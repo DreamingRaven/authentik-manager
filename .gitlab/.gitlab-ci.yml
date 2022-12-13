@@ -25,7 +25,7 @@ helm-chart-build:
   - apkg add --no-cache grep
   - helm plugin install https://github.com/chartmuseum/helm-push.git
   # - export SRC_VER="$(set -o pipefail && git describe --long 2>/dev/null | sed 's/\([^-]*-g\)/r\1/;s/-/./g' || printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)")"
-  - export SRC_VER="$(cat ${CHART_DIR}/values.yaml | egrep -P -o '(?<=ghcr.io/goauthentik/server:).*(?=\")')"
+  - export SRC_VER="$(cat ${CHART_DIR}/values.yaml | grep -P -o '(?<=ghcr.io/goauthentik/server:).*(?=\")')"
   - export HELM_VER="$(git describe --abbrev=0)" # helm does not like --long git tags
   - mkdir -p ./package
   - helm dependency build ${CHART_DIR}/
