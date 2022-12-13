@@ -1,0 +1,48 @@
+stages:
+  - lint
+  - build
+  - test
+  - deploy
+
+variables:
+  CHANNEL: "stable"
+  CHART_DIR: "charts/auth"
+
+helm-chart-lint:
+  stage: lint
+  image:
+    name: alpine/helm:latest
+    entrypoint: ["/bin/sh", "-c"]
+  script:
+    - helm lint ${CHART_DIR}/
+
+helm-chart-build:
+  stage: build
+  image:
+    name: alpine/helm:latest
+    entrypoint: ["/bin/sh", "-c"]
+  script:
+  - helm plugin install https://github.com/chartmuseum/helm-push.git
+  - export SRC_VER="$(set -o pipefail && git describe --long 2>/dev/null | sed 's/\([^-]*-g\)/r\1/;s/-/./g' || printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)")"
+  - export HELM_VER="$(git describe --abbrev=0)" # helm does not like --long git tags
+  - mkdir -p ./package
+  - helm dependency build ${CHART_DIR}/
+  - helm package ${CHART_DIR}/ --destination ./package --app-version ${SRC_VER} --version ${HELM_VER}
+  artifacts:
+    paths:
+    - package/
+
+# https://docs.gitlab.com/ee/user/packages/helm_repository/index.html#use-cicd-to-publish-a-helm-package
+helm-chart-push:
+  stage: deploy
+  only:
+  - tags
+  image:
+    name: curlimages/curl:latest
+    entrypoint: ["/bin/sh", "-c"]
+  script:
+  - cd package
+  - export PACKAGE_FILE="$(ls)"
+  - export HELM_PACKAGE_REGISTRY="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/api/${CHANNEL}/charts"
+  - curl --request POST --fail-with-body --user gitlab-ci-token:${CI_JOB_TOKEN} --form "chart=@${PACKAGE_FILE}" "${HELM_PACKAGE_REGISTRY}"
+  - echo "published to ${HELM_PACKAGE_REGISTRY}"

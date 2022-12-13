@@ -1,0 +1,80 @@
+{{- if .Values.ldap.enabled }}
+{{- $ldapDCList := (splitList "." .Values.global.domain.base )}}
+# ldapDCList: {{ $ldapDCList }}
+{{- $ldapDC := (printf "DC=%s" (join ",DC=" $ldapDCList ))}}
+# ldapDC: {{ $ldapDC }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.ldap.deployment.name }}
+  labels:
+    {{- range .Values.ldap.labels }}
+    {{ .key }}: {{ .value }}
+    {{- end }}
+spec:
+  replicas: {{ .Values.ldap.deployment.replicas }}
+  selector:
+    matchLabels:
+      {{- range .Values.ldap.labels }}
+      {{ .key }}: {{ .value }}
+      {{- end }}
+  template:
+    metadata:
+      labels:
+        {{- range .Values.ldap.labels }}
+        {{ .key }}: {{ .value }}
+        {{- end }}
+    spec:
+      # initContainers:
+      # - name: init
+      #   image: {{ .Values.ldap.deployment.image | quote }}
+      #   command: ["/bin/sh", "-c"]
+      #   args:
+      #     - |
+      #       mkdir -p /var/log /data/var/log && ls -al /var/log && touch /var/log/ipaserver-install.log # chown -R 1001:1001 /bitnami && chmod -R 770 /bitnami && ls -ahl /bitnami && ls -ahl /bitnami/openldap
+      #   securityContext:
+      #     runAsUser: 0
+      #   volumeMounts:
+      #   - mountPath: {{ .Values.ldap.persistence.mountPath }}
+      #     name: data
+      containers:
+      - name: {{ .Values.ldap.deployment.name }}
+        image: {{ .Values.ldap.deployment.image | quote }}
+        imagePullPolicy: {{ .Values.ldap.deployment.imagePullPolicy }}
+        # command: ["/bin/bash", "-c"]
+        # args: ["sleep 3600"]
+        ports:
+        {{- range .Values.ldap.ports }}
+        - name: {{ .name }}
+          containerPort: {{ .containerPort }}
+        {{- end }}
+        env:
+        # auto constructed root domain
+        - name: LLDAP_LDAP_BASE_DN
+          value: {{ $ldapDC }}
+        # static import envs
+        {{- range .Values.ldap.deployment.env }}
+        - name: {{ .name | quote }}
+          value: {{ .value | quote }}
+        {{- end }}
+        # secret imported envs
+        {{- range .Values.ldap.secrets.lookup }}
+        - name: {{ .env }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ $.Values.ldap.secrets.secretName }}
+              key: {{ .key }}
+        {{- end }}
+        volumeMounts:
+        - mountPath: {{ .Values.ldap.persistence.mountPath }}
+          name: data
+      volumes:
+      - name: data
+      {{- if .Values.ldap.persistence.enabled }}
+        persistentVolumeClaim:
+          claimName: {{ .Values.ldap.persistence.name | lower | quote }}
+      {{- else }}
+        emptyDir:
+          sizeLimit: {{ .Values.ldap.persistence.size }}
+      {{- end }}
+{{- end }}

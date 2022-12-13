@@ -1,0 +1,12 @@
+{{- if .Values.pgadmin.persistence.enable }}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{ .Values.pgadmin.persistence.name | lower | quote }}
+spec:
+  accessModes:
+    - {{ .Values.pgadmin.persistence.accessMode | quote }}
+  resources:
+    requests:
+      storage: {{ .Values.pgadmin.persistence.size | quote }}
+{{- end }}

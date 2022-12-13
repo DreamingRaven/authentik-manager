@@ -1,0 +1,28 @@
+{{- if .Values.ingress.enable }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: {{ .Values.ingress.clusterIssuer }}
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/proxy-body-size: {{ .Values.ingress.maxBodySize }}
+  name: {{ .Values.ingress.name }}
+spec:
+  rules:
+  - host: {{ .Values.global.domain.full }}
+    http:
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: {{ .Values.authentik.service.name | lower | quote }}
+              port:
+                name: {{ (first .Values.authentik.ports).name }}
+  {{- if .Values.ingress.tls.enable }}
+  tls: # < placing a host in the TLS config will indicate a certificate should be created
+  - hosts:
+    - {{ .Values.global.domain.full }}
+    secretName: {{ .Values.ingress.authCertSecret }} # < cert-manager will store the created certificate in this secret.
+  {{- end }}
+{{- end }}

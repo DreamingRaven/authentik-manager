@@ -1,0 +1,59 @@
+{{ if .Values.pgadmin.enable }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.pgadmin.deployment.name | lower | quote }}
+  labels:
+    {{- range .Values.pgadmin.labels }}
+    {{ .key }}: {{ .value }}
+    {{- end }}
+spec:
+  replicas: {{ .Values.pgadmin.deployment.replicas }}
+  selector:
+    matchLabels:
+      {{- range .Values.pgadmin.labels }}
+      {{ .key }}: {{ .value }}
+      {{- end }}
+  template:
+    metadata:
+      labels:
+        {{- range .Values.pgadmin.labels }}
+        {{ .key }}: {{ .value }}
+        {{- end }}
+    spec:
+      containers:
+        - name: pgadmin
+          image: {{ .Values.pgadmin.deployment.image | quote }}
+          imagePullPolicy: {{ .Values.pgadmin.deployment.imagePullPolicy }}
+          ports:
+            {{- range .Values.pgadmin.ports }}
+            - name: {{ .name }}
+              containerPort: {{ .containerPort }}
+            {{- end }}
+          env:
+            # static admin email from global var
+            - name: PGADMIN_DEFAULT_EMAIL
+              value: {{ .Values.global.admin.email }}
+            # statically defined envs
+            {{- range .Values.pgadmin.deployment.env }}
+            - name: {{ .name | quote }}
+              value: {{ .value | quote }}
+            {{- end }}
+            # secret imported envs
+            {{- range .Values.pgadmin.secrets.lookup }}
+            - name: {{ .env }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $.Values.pgadmin.secrets.secretName }}
+                  key: {{ .key }}
+            {{- end }}
+      {{- if .Values.pgadmin.persistence.enable }}
+          volumeMounts:
+          - mountPath: {{ .Values.pgadmin.persistence.mountPath }}
+            name: data
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: {{ .Values.pgadmin.persistence.name | lower | quote }}
+      {{- end }}
+{{ end }}

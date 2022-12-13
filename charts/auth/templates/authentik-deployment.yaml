@@ -1,0 +1,97 @@
+{{- if .Values.authentik.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.authentik.deployment.name | quote }}
+  labels:
+    {{- range .Values.authentik.labels }}
+    {{ .key }}: {{ .value }}
+    {{- end }}
+spec:
+  replicas: {{ .Values.authentik.deployment.replicas }}
+  selector:
+    matchLabels:
+      {{- range .Values.authentik.labels }}
+      {{ .key }}: {{ .value }}
+      {{- end }}
+  template:
+    metadata:
+      labels:
+        {{- range .Values.authentik.labels }}
+        {{ .key }}: {{ .value }}
+        {{- end }}
+    spec:
+      containers:
+        - name: authentik
+          image: {{ .Values.authentik.deployment.image | quote }}
+          imagePullPolicy: {{ .Values.authentik.deployment.imagePullPolicy }}
+          args:
+          - |-
+            server
+          ports:
+            {{- range .Values.authentik.ports }}
+            - name: {{ .name }}
+              containerPort: {{ .containerPort }}
+            {{- end }}
+          env:
+            # https://goauthentik.io/docs/installation/configuration
+            # POSTGRESQL AUTOGEN VARIABLES
+            - name: AUTHENTIK_POSTGRESQL__HOST
+              value: {{ .Values.postgresql.fullnameOverride }}-hl
+            - name: AUTHENTIK_POSTGRESQL__NAME
+              value: {{ .Values.postgresql.global.postgresql.auth.database }}
+            - name: AUTHENTIK_POSTGRESQL__USER
+              value: {{ .Values.postgresql.global.postgresql.auth.username }}
+            - name: AUTHENTIK_POSTGRESQL__PORT
+              value: {{ .Values.postgresql.global.postgresql.service.ports.postgresql | quote }}
+            # REDIS AUTOGEN VARIABLES
+            - name: AUTHENTIK_REDIS__HOST
+              value: {{ .Values.redis.fullnameOverride }}-master
+            - name: AUTHENTIK_REDIS__PORT
+              value: {{ .Values.redis.master.service.ports.redis | quote }}
+            # SMTP AUTOGEN VARIABLES
+            - name: AUTHENTIK_EMAIL__HOST
+              value: {{ .Values.smtp.host }}
+            - name: AUTHENTIK_EMAIL__PORT
+              value: {{ .Values.smtp.port | quote }}
+            - name: AUTHENTIK_EMAIL__USERNAME
+              value: {{ .Values.smtp.username }}
+            - name: AUTHENTIK_EMAIL__USERNAME
+              value: {{ .Values.smtp.username }}
+            # AUTHENTIK AUTOGEN VARIABLES
+            - name: AUTHENTIK_COOKIE_DOMAIN
+              value: {{ .Values.global.domain.full }}
+            # additional static deployment env variables
+            {{- range .Values.authentik.deployment.env }}
+            - name: {{ .name | quote }}
+              value: {{ .value | quote }}
+            {{- end }}
+            # env paths pointing to mounted secrets
+            {{- range .Values.authentik.secrets.lookup }}
+            - name: {{ .env }}
+              value: {{ printf "file://%s/%s" $.Values.authentik.secrets.basePath .file }}
+            {{- end }}
+          volumeMounts:
+          # config mount
+          # authentik does not use a standard config so this does nothing
+          - mountPath:  {{ .Values.authentik.config.path | quote }}
+            name: config
+            readOnly: true
+          # secrets mount
+          - mountPath: {{ .Values.authentik.secrets.basePath | quote }}
+            name: secrets
+            readOnly: true
+      volumes:
+      - name: config
+        configMap:
+          name: {{ .Values.authentik.config.name }}
+      - name: secrets
+        secret:
+          secretName: {{ .Values.secret.name }}
+          optional: false
+          items:
+          {{- range .Values.authentik.secrets.lookup }}
+          - key: {{ .key }}
+            path: {{ .file }}
+          {{- end }}
+{{- end }}

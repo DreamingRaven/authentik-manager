@@ -1,0 +1,1425 @@
+---
+# Source: authentik/templates/authentik-netpol.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: authentik-netpol
+spec:
+  podSelector:
+    matchLabels:
+      type: auth
+      app: authentik
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    # allow to go to WAN internet
+    - ipBlock:
+        cidr: 0.0.0.0/0
+        except:
+        - 10.0.0.0/8
+        - 192.168.0.0/16
+        - 172.16.0.0/20
+    # or allowed to go to local namespace
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: default
+  # Also
+  - to:
+    # allow DNS lookups
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+    # on specific ports
+    ports:
+    - protocol: UDP
+      port: 53
+---
+# Source: authentik/templates/ldap-netpol.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: ldap-netpol
+spec:
+  podSelector:
+    matchLabels:
+      type: auth
+      app: ldap
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    # allow to go to WAN internet
+    - ipBlock:
+        cidr: 0.0.0.0/0
+        except:
+        - 10.0.0.0/8
+        - 192.168.0.0/16
+        - 172.16.0.0/20
+    # or allowed to go to local namespace
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: default
+  # Also
+  - to:
+    # allow DNS lookups
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+    # on specific ports
+    ports:
+    - protocol: UDP
+      port: 53
+---
+# Source: authentik/templates/netpol.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: general-netpol
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+  - Ingress
+  ingress:
+  - from:
+    # allow ingress from other pods in this namespace
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: default
+  egress:
+  - to:
+    # allow to go to WAN internet
+    - ipBlock:
+        cidr: 0.0.0.0/0
+        except:
+        - 10.0.0.0/8
+        - 192.168.0.0/16
+        - 172.16.0.0/20
+    # or allowed to go to local namespace
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: default
+  # Also
+  - to:
+    # allow DNS lookups
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+    # on specific ports
+    ports:
+    - protocol: UDP
+      port: 53
+---
+# Source: authentik/charts/redis/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+automountServiceAccountToken: true
+metadata:
+  name: redis
+  namespace: "default"
+  labels:
+    app.kubernetes.io/name: redis
+    helm.sh/chart: redis-17.3.11
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+---
+# Source: authentik/templates/auth.secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: auth
+
+data:
+  authJwtToken: VThhMmRqalZ1UldhREw0UTlLZEJlcTVuTFJaS1Nm
+  authStorageEncryptionKey: UFBNQ3pEQTRiM1lhS0dpbU1oUGFwWnAzNFlMZ1Va
+  authSessionEncryptionKey: M2tQaHZyRlFpNVFJcWF0dHBqNEUyYkprMjlHT1lk
+  authDuoApiKey: UllGYTlJcHhYbUxPNTM3RUp4MHJLQWkzMVZBWDFk
+  ldapAdminPassword: SThWVkNQMkxiVGpxY3NCellsTkxuNGZ1TTM1Z1pl
+  oidcPrivateKey: SEFxRko1WkpnWnI5N0NCWnNzalgyRmxlQXEwc3E2
+  oidcHmacSecret: Q1Z6czdwVEZSWWF0SkFWY2lDTXZMUHl0VXR4UDVj
+  postgresPassword: WWdJb2VnNmkwWlozZkJ1UlZkWjVNNWU2dkswRk8w
+  postgresReplicationPassword: SGtKOGxzTEpMbXM2Y2NyZXZkVmNQejhiTmhVWldJ
+  postgresUserPassword: R0RpdGVQOUtTdVN2eWNMWkNDTjJoSjBWanZ3WnVr
+  pgAdminPassword: UHRwdUFldFVrQUE3Tk8zaGZWRjViTWxRNk5KNXdT
+  redisPassword: dVJVc3JOeTNxV0RtazFqaFlSTlhZTEVEaXpHaDBQ
+  redisSentinelPassword: V3JKQzBVZ0s4bEJHUDhvZEJHUWFiY0hNdVdQZzcw
+  sessionSecret: WHVxeTFYc0lMZjVBdlpOZDEzY1o0TGo4MU9aZFgw
+  smtpPassword: YWVHb0x1Q1VLRklGdHlwSTBKODdaZWlVSzh6TXAy
+---
+# Source: authentik/charts/redis/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-configuration
+  namespace: "default"
+  labels:
+    app.kubernetes.io/name: redis
+    helm.sh/chart: redis-17.3.11
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+data:
+  redis.conf: |-
+    # User-supplied common configuration:
+    # Enable AOF https://redis.io/topics/persistence#append-only-file
+    appendonly yes
+    # Disable RDB persistence, AOF persistence already enabled.
+    save ""
+    # End of common configuration
+  master.conf: |-
+    dir /data
+    # User-supplied master configuration:
+    rename-command FLUSHDB ""
+    rename-command FLUSHALL ""
+    # End of master configuration
+  replica.conf: |-
+    dir /data
+    # User-supplied replica configuration:
+    rename-command FLUSHDB ""
+    rename-command FLUSHALL ""
+    # End of replica configuration
+---
+# Source: authentik/charts/redis/templates/health-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-health
+  namespace: "default"
+  labels:
+    app.kubernetes.io/name: redis
+    helm.sh/chart: redis-17.3.11
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+data:
+  ping_readiness_local.sh: |-
+    #!/bin/bash
+
+    [[ -f $REDIS_PASSWORD_FILE ]] && export REDIS_PASSWORD="$(< "${REDIS_PASSWORD_FILE}")"
+    [[ -n "$REDIS_PASSWORD" ]] && export REDISCLI_AUTH="$REDIS_PASSWORD"
+    response=$(
+      timeout -s 3 $1 \
+      redis-cli \
+        -h localhost \
+        -p $REDIS_PORT \
+        ping
+    )
+    if [ "$?" -eq "124" ]; then
+      echo "Timed out"
+      exit 1
+    fi
+    if [ "$response" != "PONG" ]; then
+      echo "$response"
+      exit 1
+    fi
+  ping_liveness_local.sh: |-
+    #!/bin/bash
+
+    [[ -f $REDIS_PASSWORD_FILE ]] && export REDIS_PASSWORD="$(< "${REDIS_PASSWORD_FILE}")"
+    [[ -n "$REDIS_PASSWORD" ]] && export REDISCLI_AUTH="$REDIS_PASSWORD"
+    response=$(
+      timeout -s 3 $1 \
+      redis-cli \
+        -h localhost \
+        -p $REDIS_PORT \
+        ping
+    )
+    if [ "$?" -eq "124" ]; then
+      echo "Timed out"
+      exit 1
+    fi
+    responseFirstWord=$(echo $response | head -n1 | awk '{print $1;}')
+    if [ "$response" != "PONG" ] && [ "$responseFirstWord" != "LOADING" ] && [ "$responseFirstWord" != "MASTERDOWN" ]; then
+      echo "$response"
+      exit 1
+    fi
+  ping_readiness_master.sh: |-
+    #!/bin/bash
+
+    [[ -f $REDIS_MASTER_PASSWORD_FILE ]] && export REDIS_MASTER_PASSWORD="$(< "${REDIS_MASTER_PASSWORD_FILE}")"
+    [[ -n "$REDIS_MASTER_PASSWORD" ]] && export REDISCLI_AUTH="$REDIS_MASTER_PASSWORD"
+    response=$(
+      timeout -s 3 $1 \
+      redis-cli \
+        -h $REDIS_MASTER_HOST \
+        -p $REDIS_MASTER_PORT_NUMBER \
+        ping
+    )
+    if [ "$?" -eq "124" ]; then
+      echo "Timed out"
+      exit 1
+    fi
+    if [ "$response" != "PONG" ]; then
+      echo "$response"
+      exit 1
+    fi
+  ping_liveness_master.sh: |-
+    #!/bin/bash
+
+    [[ -f $REDIS_MASTER_PASSWORD_FILE ]] && export REDIS_MASTER_PASSWORD="$(< "${REDIS_MASTER_PASSWORD_FILE}")"
+    [[ -n "$REDIS_MASTER_PASSWORD" ]] && export REDISCLI_AUTH="$REDIS_MASTER_PASSWORD"
+    response=$(
+      timeout -s 3 $1 \
+      redis-cli \
+        -h $REDIS_MASTER_HOST \
+        -p $REDIS_MASTER_PORT_NUMBER \
+        ping
+    )
+    if [ "$?" -eq "124" ]; then
+      echo "Timed out"
+      exit 1
+    fi
+    responseFirstWord=$(echo $response | head -n1 | awk '{print $1;}')
+    if [ "$response" != "PONG" ] && [ "$responseFirstWord" != "LOADING" ]; then
+      echo "$response"
+      exit 1
+    fi
+  ping_readiness_local_and_master.sh: |-
+    script_dir="$(dirname "$0")"
+    exit_status=0
+    "$script_dir/ping_readiness_local.sh" $1 || exit_status=$?
+    "$script_dir/ping_readiness_master.sh" $1 || exit_status=$?
+    exit $exit_status
+  ping_liveness_local_and_master.sh: |-
+    script_dir="$(dirname "$0")"
+    exit_status=0
+    "$script_dir/ping_liveness_local.sh" $1 || exit_status=$?
+    "$script_dir/ping_liveness_master.sh" $1 || exit_status=$?
+    exit $exit_status
+---
+# Source: authentik/charts/redis/templates/scripts-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-scripts
+  namespace: "default"
+  labels:
+    app.kubernetes.io/name: redis
+    helm.sh/chart: redis-17.3.11
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+data:
+  start-master.sh: |
+    #!/bin/bash
+
+    [[ -f $REDIS_PASSWORD_FILE ]] && export REDIS_PASSWORD="$(< "${REDIS_PASSWORD_FILE}")"
+    if [[ -f /opt/bitnami/redis/mounted-etc/master.conf ]];then
+        cp /opt/bitnami/redis/mounted-etc/master.conf /opt/bitnami/redis/etc/master.conf
+    fi
+    if [[ -f /opt/bitnami/redis/mounted-etc/redis.conf ]];then
+        cp /opt/bitnami/redis/mounted-etc/redis.conf /opt/bitnami/redis/etc/redis.conf
+    fi
+    ARGS=("--port" "${REDIS_PORT}")
+    ARGS+=("--requirepass" "${REDIS_PASSWORD}")
+    ARGS+=("--masterauth" "${REDIS_PASSWORD}")
+    ARGS+=("--include" "/opt/bitnami/redis/etc/redis.conf")
+    ARGS+=("--include" "/opt/bitnami/redis/etc/master.conf")
+    exec redis-server "${ARGS[@]}"
+  start-replica.sh: |
+    #!/bin/bash
+
+    get_port() {
+        hostname="$1"
+        type="$2"
+
+        port_var=$(echo "${hostname^^}_SERVICE_PORT_$type" | sed "s/-/_/g")
+        port=${!port_var}
+
+        if [ -z "$port" ]; then
+            case $type in
+                "SENTINEL")
+                    echo 26379
+                    ;;
+                "REDIS")
+                    echo 6379
+                    ;;
+            esac
+        else
+            echo $port
+        fi
+    }
+
+    get_full_hostname() {
+        hostname="$1"
+        echo "${hostname}.${HEADLESS_SERVICE}"
+    }
+
+    REDISPORT=$(get_port "$HOSTNAME" "REDIS")
+
+    [[ -f $REDIS_PASSWORD_FILE ]] && export REDIS_PASSWORD="$(< "${REDIS_PASSWORD_FILE}")"
+    [[ -f $REDIS_MASTER_PASSWORD_FILE ]] && export REDIS_MASTER_PASSWORD="$(< "${REDIS_MASTER_PASSWORD_FILE}")"
+    if [[ -f /opt/bitnami/redis/mounted-etc/replica.conf ]];then
+        cp /opt/bitnami/redis/mounted-etc/replica.conf /opt/bitnami/redis/etc/replica.conf
+    fi
+    if [[ -f /opt/bitnami/redis/mounted-etc/redis.conf ]];then
+        cp /opt/bitnami/redis/mounted-etc/redis.conf /opt/bitnami/redis/etc/redis.conf
+    fi
+
+    echo "" >> /opt/bitnami/redis/etc/replica.conf
+    echo "replica-announce-port $REDISPORT" >> /opt/bitnami/redis/etc/replica.conf
+    echo "replica-announce-ip $(get_full_hostname "$HOSTNAME")" >> /opt/bitnami/redis/etc/replica.conf
+    ARGS=("--port" "${REDIS_PORT}")
+    ARGS+=("--replicaof" "${REDIS_MASTER_HOST}" "${REDIS_MASTER_PORT_NUMBER}")
+    ARGS+=("--requirepass" "${REDIS_PASSWORD}")
+    ARGS+=("--masterauth" "${REDIS_MASTER_PASSWORD}")
+    ARGS+=("--include" "/opt/bitnami/redis/etc/redis.conf")
+    ARGS+=("--include" "/opt/bitnami/redis/etc/replica.conf")
+    exec redis-server "${ARGS[@]}"
+---
+# Source: authentik/templates/authentik-config.yaml
+# ldapDCList: [example org]
+# ldapDC: DC=example,DC=org
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: authentik-config
+data:
+  # DC=Domain Controller
+  # CN=Common Name
+  configuration.yml: |
+    theme: dark
+    # jwt_secret: <set via secret>
+    # default_redirection_url: https://ldap.example.org
+    #
+    # server:
+    #   host: 0.0.0.0
+    #   port: 9000
+    #   path: ""
+    #   buffers:
+    #     read: 4096
+    #     write: 4096
+    #   enable_pprof: false
+    #   enable_expvars: false
+    #   disable_healthcheck: false
+    #   tls:
+    #     key: ""
+    #     certificate: ""
+    #
+    # log:
+    #   level: debug
+    #
+    # totp:
+    #   issuer: example.org
+    #   period: 30
+    #   skew: 1
+    #
+    # access_control:
+    #   default_policy: deny
+    #   rules:
+    #     ## bypass rule
+    #     - domain:
+    #         - "auth.example.org"
+    #       policy: bypass
+    #     - domain:
+    #         - "ldap.example.org"
+    #       policy: bypass
+    #     ## catch-all
+    #     - domain:
+    #         - "*.example.org"
+    #       subject:
+    #         - "group:admins"
+    #       policy: one_factor
+    #
+    # #https://docs.ibracorp.io/authelia/ldap/ldap-openldap
+    # #https://stackoverflow.com/a/61818952/11164973
+    # #https://www.authelia.com/configuration/first-factor/ldap/
+    # #https://learn.microsoft.com/en-us/windows/win32/ad/core-concepts-of-active-directory-domain-services
+    # #https://learn.microsoft.com/en-us/windows/win32/ad/naming-properties
+    # #https://www.digitalocean.com/community/tutorials/how-to-manage-and-use-ldap-servers-with-openldap-utilities
+    # authentication_backend:
+    #   password_reset:
+    #     disable: false
+    #   refresh_interval: 1m
+    #   ldap:
+    #     implementation: custom
+    #     # implementation: activedirectory
+    #     url: ldap://ldap:3890
+    #     timeout: 5s
+    #     start_tls: false
+    #     tls:
+    #       server_name: example.org
+    #       skip_verify: false
+    #       minimum_version: TLS1.2
+    #     base_dn: DC=example,DC=org
+    #     # e.g:
+    #     # base_dn: DC=deepcypher,DC=me
+    #     username_attribute: uid
+    #     # You need to set this to ou=people, because all users are stored in this ou!
+    #     additional_users_dn: ou=people
+    #     # users_filter: (&({username_attribute}={input})(objectClass=person))
+    #     users_filter: (&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))
+    #     # # Set this to ou=groups, because all groups are stored in this ou
+    #     additional_groups_dn: ou=groups
+    #     # Only this filter is supported right now
+    #     groups_filter: "(member={dn})"
+    #     # groups_filter: (&(member={dn})(objectClass=groupOfNames))
+    #     group_name_attribute: cn
+    #     mail_attribute: mail
+    #     display_name_attribute: displayName
+    #     user: CN=admin,OU=people,DC=example,DC=org
+    #     # password: <set via secret>
+    #
+    # session:
+    #   name: authentik_session
+    #   domain: example.org
+    #   same_site: lax
+    #   # secret: <set via secret>
+    #   expiration: 1h
+    #   inactivity: 5m
+    #   remember_me_duration: 2M
+    #   redis:
+    #     host: redis-master
+    #     port: 6379
+    #     # username: admin
+    #     # password: <set via secret>
+    #     database_index: 0
+    #     maximum_active_connections: 10
+    #     minimum_idle_connections: 0
+    #
+    # regulation:
+    #   max_retries: 3
+    #   find_time: 10m
+    #   ban_time: 12h
+    #
+    # storage:
+    #   # encryption_key: <set via secret>
+    #   postgres:
+    #     host: postgres-hl
+    #     port: 5432
+    #     database: authentik
+    #     schema: public
+    #     username: authentik
+    #     # password: <set via secret>
+    #     timeout: 5s
+    #
+    # notifier:
+    #   disable_startup_check: false
+    #
+    #   # this is only for proof-of-concept installs please ensure SMTP is actually used in production
+    #   filesystem:
+    #     filename: /notification.txt
+    #
+---
+# Source: authentik/charts/postgresql/templates/primary/svc-headless.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-hl
+  namespace: "default"
+  labels:
+    app.kubernetes.io/name: postgresql
+    helm.sh/chart: postgresql-12.1.2
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: primary
+    # Use this annotation in addition to the actual publishNotReadyAddresses
+    # field below because the annotation will stop being respected soon but the
+    # field is broken in some versions of Kubernetes:
+    # https://github.com/kubernetes/kubernetes/issues/58662
+    service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
+spec:
+  type: ClusterIP
+  clusterIP: None
+  # We want all pods in the StatefulSet to have their addresses published for
+  # the sake of the other Postgresql pods even before they're ready, since they
+  # have to be able to talk to each other in order to become ready.
+  publishNotReadyAddresses: true
+  ports:
+    - name: tcp-postgresql
+      port: 5432
+      targetPort: tcp-postgresql
+  selector:
+    app.kubernetes.io/name: postgresql
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/component: primary
+---
+# Source: authentik/charts/postgresql/templates/primary/svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: "default"
+  labels:
+    app.kubernetes.io/name: postgresql
+    helm.sh/chart: postgresql-12.1.2
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: primary
+  annotations:
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  ports:
+    - name: tcp-postgresql
+      port: 5432
+      targetPort: tcp-postgresql
+      nodePort: null
+  selector:
+    app.kubernetes.io/name: postgresql
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/component: primary
+---
+# Source: authentik/charts/redis/templates/headless-svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-headless
+  namespace: "default"
+  labels:
+    app.kubernetes.io/name: redis
+    helm.sh/chart: redis-17.3.11
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+    - name: tcp-redis
+      port: 6379
+      targetPort: redis
+  selector:
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/instance: release-name
+---
+# Source: authentik/charts/redis/templates/master/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-master
+  namespace: "default"
+  labels:
+    app.kubernetes.io/name: redis
+    helm.sh/chart: redis-17.3.11
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: master
+spec:
+  type: ClusterIP
+  internalTrafficPolicy: Cluster
+  sessionAffinity: None
+  ports:
+    - name: tcp-redis
+      port: 6379
+      targetPort: redis
+      nodePort: null
+  selector:
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/component: master
+---
+# Source: authentik/charts/redis/templates/replicas/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-replicas
+  namespace: "default"
+  labels:
+    app.kubernetes.io/name: redis
+    helm.sh/chart: redis-17.3.11
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: replica
+spec:
+  type: ClusterIP
+  internalTrafficPolicy: Cluster
+  sessionAffinity: None
+  ports:
+    - name: tcp-redis
+      port: 6379
+      targetPort: redis
+      nodePort: null
+  selector:
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/component: replica
+---
+# Source: authentik/templates/authentik-svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: "authentik"
+  labels:
+    type: auth
+    app: authentik
+spec:
+  type: ClusterIP
+  selector:
+    type: auth
+    app: authentik
+  ports:
+    - protocol: TCP
+      port: 80 # services in-cluster port
+      targetPort: 9000 # port of container/ pod
+      name: http
+    - protocol: TCP
+      port: 443 # services in-cluster port
+      targetPort: 9443 # port of container/ pod
+      name: https
+    - protocol: TCP
+      port: 389 # services in-cluster port
+      targetPort: 3389 # port of container/ pod
+      name: ldap
+    - protocol: TCP
+      port: 636 # services in-cluster port
+      targetPort: 6636 # port of container/ pod
+      name: ldaps
+    - protocol: TCP
+      port: 300 # services in-cluster port
+      targetPort: 9300 # port of container/ pod
+      name: metrics
+    - protocol: TCP
+      port: 900 # services in-cluster port
+      targetPort: 9900 # port of container/ pod
+      name: debug
+---
+# Source: authentik/templates/ldap-svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: "ldap"
+  labels:
+    type: auth
+    app: ldap
+spec:
+  type: ClusterIP
+  selector:
+    type: auth
+    app: ldap
+  ports:
+    - protocol: TCP
+      port: 3890 # services in-cluster port
+      targetPort: 3890 # port of container/ pod
+      name: ldap
+    - protocol: TCP
+      port: 80 # services in-cluster port
+      targetPort: 17170 # port of container/ pod
+      name: http
+---
+# Source: authentik/templates/authentik-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "authentik"
+  labels:
+    type: auth
+    app: authentik
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      type: auth
+      app: authentik
+  template:
+    metadata:
+      labels:
+        type: auth
+        app: authentik
+    spec:
+      containers:
+        - name: authentik
+          image: "ghcr.io/goauthentik/server:2022.11.3"
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 9000
+            - name: https
+              containerPort: 9443
+            - name: ldap
+              containerPort: 3389
+            - name: ldaps
+              containerPort: 6636
+            - name: metrics
+              containerPort: 9300
+            - name: debug
+              containerPort: 9900
+          env:
+            # https://goauthentik.io/docs/installation/configuration
+            # POSTGRESQL AUTOGEN VARIABLES
+            - name: AUTHENTIK_POSTGRESQL__HOST
+              value: postgres-hl
+            - name: AUTHENTIK_POSTGRESQL__NAME
+              value: authentik
+            - name: AUTHENTIK_POSTGRESQL__USER
+              value: authentik
+            - name: AUTHENTIK_POSTGRESQL__PORT
+              value: "5432"
+            # REDIS AUTOGEN VARIABLES
+            - name: AUTHENTIK_REDIS__HOST
+              value: redis-master
+            - name: AUTHENTIK_REDIS__PORT
+              value: "6379"
+            # SMTP AUTOGEN VARIABLES
+            - name: AUTHENTIK_EMAIL__HOST
+              value: smtp.gmail.com
+            - name: AUTHENTIK_EMAIL__PORT
+              value: "587"
+            - name: AUTHENTIK_EMAIL__USERNAME
+              value: somebody@example.org
+            - name: AUTHENTIK_EMAIL__USERNAME
+              value: somebody@example.org
+            # AUTHENTIK AUTOGEN VARIABLES
+            - name: AUTHENTIK_COOKIE_DOMAIN
+              value: auth.example.org
+            # additional static deployment env variables
+            - name: "AUTHENTIK_LISTERN__HTTP"
+              value: "0.0.0.0:9000"
+            - name: "AUTHENTIK_LISTERN__HTTPS"
+              value: "0.0.0.0:9443"
+            - name: "AUTHENTIK_LISTERN__LDAP"
+              value: "0.0.0.0:3389"
+            - name: "AUTHENTIK_LISTERN__LDAPS"
+              value: "0.0.0.0:6636"
+            - name: "AUTHENTIK_LISTERN__METRICS"
+              value: "0.0.0.0:9300"
+            - name: "AUTHENTIK_LISTERN__DEBUG"
+              value: "0.0.0.0:9900"
+            - name: "AUTHENTIK_LOG_LEVEL"
+              value: "info"
+            - name: "AUTHENTIK_DISABLE_UPDATE_CHECK"
+              value: "false"
+            - name: "AUTHENTIK_ERROR_REPORTING"
+              value: "false"
+            - name: "AUTHENTIK_AVATARS"
+              value: "gravatar"
+            - name: "AUTHENTIK_DEFAULT_USER_CHANGE_NAME"
+              value: "true"
+            - name: "AUTHENTIK_DEFAULT_USER_CHANGE_EMAIL"
+              value: "true"
+            - name: "AUTHENTIK_DEFAULT_USER_CHANGE_USERNAME"
+              value: "true"
+            - name: "AUTHENTIK_GDPR_COMPLIANCE"
+              value: "true"
+            - name: "AUTHENTIK_DEFAULT_TOKEN_LENGTH"
+              value: "60"
+            - name: "AUTHENTIK_IMPERSONATION"
+              value: "true"
+            - name: "AUTHENTIK_WEB__WORKERS"
+              value: "2"
+            - name: "AUTHENTIK_WEB__THREADS"
+              value: "2"
+            # env paths pointing to mounted secrets
+            - name: AUTHENTIK_POSTGRESQL__PASSWORD
+              value: file:///secrets/postgresql-pass
+            - name: AUTHENTIK_REDIS__PASSWORD
+              value: file:///secrets/redis-pass
+            - name: AUTHENTIK_SECRET_KEY
+              value: file:///secrets/secret-key
+            - name: AUTHENTIK_EMAIL__PASSWORD
+              value: file:///secrets/smtp-pass
+          volumeMounts:
+          # config mount
+          # authentik does not use a standard config so this does nothing
+          - mountPath:  "/config"
+            name: config
+            readOnly: true
+          # secrets mount
+          - mountPath: "/secrets"
+            name: secrets
+            readOnly: true
+      volumes:
+      - name: config
+        configMap:
+          name: authentik-config
+      - name: secrets
+        secret:
+          secretName: auth
+          optional: false
+          items:
+          - key: postgresPassword
+            path: postgresql-pass
+          - key: redisPassword
+            path: redis-pass
+          - key: authJwtToken
+            path: secret-key
+          - key: smtpPassword
+            path: smtp-pass
+---
+# Source: authentik/templates/ldap-deploy.yaml
+# ldapDCList: [example org]
+# ldapDC: DC=example,DC=org
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ldap
+  labels:
+    type: auth
+    app: ldap
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      type: auth
+      app: ldap
+  template:
+    metadata:
+      labels:
+        type: auth
+        app: ldap
+    spec:
+      # initContainers:
+      # - name: init
+      #   image: "docker.io/nitnelave/lldap:v0.4.1-alpine"
+      #   command: ["/bin/sh", "-c"]
+      #   args:
+      #     - |
+      #       mkdir -p /var/log /data/var/log && ls -al /var/log && touch /var/log/ipaserver-install.log # chown -R 1001:1001 /bitnami && chmod -R 770 /bitnami && ls -ahl /bitnami && ls -ahl /bitnami/openldap
+      #   securityContext:
+      #     runAsUser: 0
+      #   volumeMounts:
+      #   - mountPath: /data
+      #     name: data
+      containers:
+      - name: ldap
+        image: "docker.io/nitnelave/lldap:v0.4.1-alpine"
+        imagePullPolicy: Always
+        # command: ["/bin/bash", "-c"]
+        # args: ["sleep 3600"]
+        ports:
+        - name: ldap
+          containerPort: 3890
+        - name: http
+          containerPort: 17170
+        env:
+        # auto constructed root domain
+        - name: LLDAP_LDAP_BASE_DN
+          value: DC=example,DC=org
+        # static import envs
+        - name: "LDAP_ADMIN_USERNAME"
+          value: "admin"
+        # secret imported envs
+        - name: LLDAP_JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: auth
+              key: authJwtToken
+        - name: LLDAP_LDAP_USER_PASS
+          valueFrom:
+            secretKeyRef:
+              name: auth
+              key: ldapAdminPassword
+        volumeMounts:
+        - mountPath: /data
+          name: data
+      volumes:
+      - name: data
+        emptyDir:
+          sizeLimit: 8Gi
+---
+# Source: authentik/charts/postgresql/templates/primary/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  namespace: "default"
+  labels:
+    app.kubernetes.io/name: postgresql
+    helm.sh/chart: postgresql-12.1.2
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: primary
+  annotations:
+spec:
+  replicas: 1
+  serviceName: postgres-hl
+  updateStrategy:
+    rollingUpdate: {}
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: postgresql
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/component: primary
+  template:
+    metadata:
+      name: postgres
+      labels:
+        app.kubernetes.io/name: postgresql
+        helm.sh/chart: postgresql-12.1.2
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/component: primary
+      annotations:
+    spec:
+      serviceAccountName: default
+      
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: postgresql
+                    app.kubernetes.io/instance: release-name
+                    app.kubernetes.io/component: primary
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+      hostNetwork: false
+      hostIPC: false
+      initContainers:
+      containers:
+        - name: postgresql
+          image: docker.io/bitnami/postgresql:15
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            runAsUser: 1001
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: POSTGRESQL_PORT_NUMBER
+              value: "5432"
+            - name: POSTGRESQL_VOLUME_DIR
+              value: "/bitnami/postgresql"
+            - name: PGDATA
+              value: "/bitnami/postgresql/data"
+            # Authentication
+            - name: POSTGRES_USER
+              value: "authentik"
+            - name: POSTGRES_POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: auth
+                  key: postgresPassword
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: auth
+                  key: postgresUserPassword
+            - name: POSTGRES_DB
+              value: "authentik"
+            # Replication
+            # Initdb
+            # Standby
+            # LDAP
+            - name: POSTGRESQL_ENABLE_LDAP
+              value: "no"
+            # TLS
+            - name: POSTGRESQL_ENABLE_TLS
+              value: "no"
+            # Audit
+            - name: POSTGRESQL_LOG_HOSTNAME
+              value: "false"
+            - name: POSTGRESQL_LOG_CONNECTIONS
+              value: "false"
+            - name: POSTGRESQL_LOG_DISCONNECTIONS
+              value: "false"
+            - name: POSTGRESQL_PGAUDIT_LOG_CATALOG
+              value: "off"
+            # Others
+            - name: POSTGRESQL_CLIENT_MIN_MESSAGES
+              value: "error"
+            - name: POSTGRESQL_SHARED_PRELOAD_LIBRARIES
+              value: "pgaudit"
+          ports:
+            - name: tcp-postgresql
+              containerPort: 5432
+          livenessProbe:
+            failureThreshold: 6
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - exec pg_isready -U "authentik" -d "dbname=authentik" -h 127.0.0.1 -p 5432
+          readinessProbe:
+            failureThreshold: 6
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - -e
+                
+                - |
+                  exec pg_isready -U "authentik" -d "dbname=authentik" -h 127.0.0.1 -p 5432
+                  [ -f /opt/bitnami/postgresql/tmp/.initialized ] || [ -f /bitnami/postgresql/.initialized ]
+          resources:
+            limits: {}
+            requests:
+              cpu: 250m
+              memory: 256Mi
+          volumeMounts:
+            - name: dshm
+              mountPath: /dev/shm
+      volumes:
+        - name: dshm
+          emptyDir:
+            medium: Memory
+        - name: data
+          emptyDir: {}
+---
+# Source: authentik/charts/redis/templates/master/application.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis-master
+  namespace: "default"
+  labels:
+    app.kubernetes.io/name: redis
+    helm.sh/chart: redis-17.3.11
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: master
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: redis
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/component: master
+  serviceName: redis-headless
+  updateStrategy:
+    rollingUpdate: {}
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: redis
+        helm.sh/chart: redis-17.3.11
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/component: master
+      annotations:
+        checksum/configmap: 7a73e761ee358ea41232f9164ee3054102473c97e2fd08a2a2e92d82662cc58c
+        checksum/health: 09cf6ef0d46d8deeefa5a6f3aa98257690ea9c72155749aaf8dc329e27464781
+        checksum/scripts: a3cbd4e77ca6e96e0aafacdda56d180eef640ef6b1655e163b762225e412a1c7
+        checksum/secret: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+    spec:
+      
+      securityContext:
+        fsGroup: 1001
+      serviceAccountName: redis
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: redis
+                    app.kubernetes.io/instance: release-name
+                    app.kubernetes.io/component: master
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: redis
+          image: docker.io/bitnami/redis:7.0
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            runAsUser: 1001
+          command:
+            - /bin/bash
+          args:
+            - -c
+            - /opt/bitnami/scripts/start-scripts/start-master.sh
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: REDIS_REPLICATION_MODE
+              value: master
+            - name: ALLOW_EMPTY_PASSWORD
+              value: "no"
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: auth
+                  key: redisPassword
+            - name: REDIS_TLS_ENABLED
+              value: "no"
+            - name: REDIS_PORT
+              value: "6379"
+          ports:
+            - name: redis
+              containerPort: 6379
+          livenessProbe:
+            initialDelaySeconds: 20
+            periodSeconds: 5
+            # One second longer than command timeout should prevent generation of zombie processes.
+            timeoutSeconds: 6
+            successThreshold: 1
+            failureThreshold: 5
+            exec:
+              command:
+                - sh
+                - -c
+                - /health/ping_liveness_local.sh 5
+          readinessProbe:
+            initialDelaySeconds: 20
+            periodSeconds: 5
+            timeoutSeconds: 2
+            successThreshold: 1
+            failureThreshold: 5
+            exec:
+              command:
+                - sh
+                - -c
+                - /health/ping_readiness_local.sh 1
+          resources:
+            limits: {}
+            requests: {}
+          volumeMounts:
+            - name: start-scripts
+              mountPath: /opt/bitnami/scripts/start-scripts
+            - name: health
+              mountPath: /health
+            - name: redis-data
+              mountPath: /data
+            - name: config
+              mountPath: /opt/bitnami/redis/mounted-etc
+            - name: redis-tmp-conf
+              mountPath: /opt/bitnami/redis/etc/
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: start-scripts
+          configMap:
+            name: redis-scripts
+            defaultMode: 0755
+        - name: health
+          configMap:
+            name: redis-health
+            defaultMode: 0755
+        - name: config
+          configMap:
+            name: redis-configuration
+        - name: redis-tmp-conf
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+        - name: redis-data
+          emptyDir: {}
+---
+# Source: authentik/charts/redis/templates/replicas/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis-replicas
+  namespace: "default"
+  labels:
+    app.kubernetes.io/name: redis
+    helm.sh/chart: redis-17.3.11
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: replica
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: redis
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/component: replica
+  serviceName: redis-headless
+  updateStrategy:
+    rollingUpdate: {}
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: redis
+        helm.sh/chart: redis-17.3.11
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/component: replica
+      annotations:
+        checksum/configmap: 7a73e761ee358ea41232f9164ee3054102473c97e2fd08a2a2e92d82662cc58c
+        checksum/health: 09cf6ef0d46d8deeefa5a6f3aa98257690ea9c72155749aaf8dc329e27464781
+        checksum/scripts: a3cbd4e77ca6e96e0aafacdda56d180eef640ef6b1655e163b762225e412a1c7
+        checksum/secret: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+    spec:
+      
+      securityContext:
+        fsGroup: 1001
+      serviceAccountName: redis
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: redis
+                    app.kubernetes.io/instance: release-name
+                    app.kubernetes.io/component: replica
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: redis
+          image: docker.io/bitnami/redis:7.0
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            runAsUser: 1001
+          command:
+            - /bin/bash
+          args:
+            - -c
+            - /opt/bitnami/scripts/start-scripts/start-replica.sh
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: REDIS_REPLICATION_MODE
+              value: replica
+            - name: REDIS_MASTER_HOST
+              value: redis-master-0.redis-headless.default.svc.cluster.local
+            - name: REDIS_MASTER_PORT_NUMBER
+              value: "6379"
+            - name: ALLOW_EMPTY_PASSWORD
+              value: "no"
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: auth
+                  key: redisPassword
+            - name: REDIS_MASTER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: auth
+                  key: redisPassword
+            - name: REDIS_TLS_ENABLED
+              value: "no"
+            - name: REDIS_PORT
+              value: "6379"
+          ports:
+            - name: redis
+              containerPort: 6379
+          startupProbe:
+            failureThreshold: 22
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            tcpSocket:
+              port: redis
+          livenessProbe:
+            initialDelaySeconds: 20
+            periodSeconds: 5
+            timeoutSeconds: 6
+            successThreshold: 1
+            failureThreshold: 5
+            exec:
+              command:
+                - sh
+                - -c
+                - /health/ping_liveness_local_and_master.sh 5
+          readinessProbe:
+            initialDelaySeconds: 20
+            periodSeconds: 5
+            timeoutSeconds: 2
+            successThreshold: 1
+            failureThreshold: 5
+            exec:
+              command:
+                - sh
+                - -c
+                - /health/ping_readiness_local_and_master.sh 1
+          resources:
+            limits: {}
+            requests: {}
+          volumeMounts:
+            - name: start-scripts
+              mountPath: /opt/bitnami/scripts/start-scripts
+            - name: health
+              mountPath: /health
+            - name: redis-data
+              mountPath: /data
+            - name: config
+              mountPath: /opt/bitnami/redis/mounted-etc
+            - name: redis-tmp-conf
+              mountPath: /opt/bitnami/redis/etc
+      volumes:
+        - name: start-scripts
+          configMap:
+            name: redis-scripts
+            defaultMode: 0755
+        - name: health
+          configMap:
+            name: redis-health
+            defaultMode: 0755
+        - name: config
+          configMap:
+            name: redis-configuration
+        - name: redis-tmp-conf
+          emptyDir: {}
+        - name: redis-data
+          emptyDir: {}
+---
+# Source: authentik/templates/authentik-ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-staging
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/proxy-body-size: 32M
+  name: auth
+spec:
+  rules:
+  - host: auth.example.org
+    http:
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: "authentik"
+              port:
+                name: http
+  tls: # < placing a host in the TLS config will indicate a certificate should be created
+  - hosts:
+    - auth.example.org
+    secretName: authentik-cert # < cert-manager will store the created certificate in this secret.
+---
+# Source: authentik/templates/ldap-ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-staging
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/proxy-body-size: 32M
+    # SSO integration annotations
+    # nginx.ingress.kubernetes.io/auth-method: GET
+    # nginx.ingress.kubernetes.io/auth-url: http://authentik.default.svc.cluster.local/api/verify
+    nginx.ingress.kubernetes.io/auth-url: http://ak-outpost-authentik-embedded-outpost.auth.svc.cluster.local:9000/outpost.goauthentik.io/auth/nginx
+    # nginx.ingress.kubernetes.io/auth-signin: https://ldap.example.org?rm=$request_method
+    nginx.ingress.kubernetes.io/auth-signin: https://ldap.example.org/outpost.goauthentik.io/start?rd=$escaped_request_uri
+    # nginx.ingress.kubernetes.io/auth-response-headers: Remote-User,Remote-Name,Remote-Groups,Remote-Email
+    nginx.ingress.kubernetes.io/auth-response-headers: Set-Cookie,X-authentik-username,X-authentik-groups,X-authentik-email,X-authentik-name,X-authentik-uid
+    # nginx.ingress.kubernetes.io/auth-snippet: proxy_set_header X-Forwarded-Method $request_method;
+    nginx.ingress.kubernetes.io/auth-snippet: proxy_set_header X-Forwarded-Host $http_host;
+  name: auth-ldap
+spec:
+  rules:
+  - host: ldap.example.org
+    http:
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: "ldap"
+              port:
+                name: http
+  tls: # < placing a host in the TLS config will indicate a certificate should be created
+  - hosts:
+    - ldap.example.org
+    secretName: ldap-cert # < cert-manager will store the created certificate in this secret.

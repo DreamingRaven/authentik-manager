@@ -1,0 +1,12 @@
+{{- if .Values.ldap.persistence.enable }}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{ .Values.ldap.persistence.name | lower | quote }}
+spec:
+  accessModes:
+    - {{ .Values.ldap.persistence.accessMode | quote }}
+  resources:
+    requests:
+      storage: {{ .Values.ldap.persistence.size | quote }}
+{{- end }}
