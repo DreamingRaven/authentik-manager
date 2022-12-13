@@ -94,6 +94,9 @@ redis:
     existingSecretPasswordKey: redisPassword
   replicaCount: 5
   master:
+    service:
+      ports:
+        redis: 6379
     persistence:
       enabled: false
       size: 8Gi
