@@ -1,9 +1,17 @@
 {{- if .Values.authentik.enabled }}
+{{- $akouter := . }}
+{{- $aktypes := list "server" "worker" }}
+{{- range $aktypes }}
+{{- $aktype := . }}
+{{- with $akouter }}
+---
+# {{ $aktype }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Values.authentik.deployment.name | quote }}
+  name: {{ .Values.authentik.deployment.name }}-{{ $aktype }}
   labels:
+    mode: {{ $aktype }}
     {{- range .Values.authentik.labels }}
     {{ .key }}: {{ .value }}
     {{- end }}
@@ -11,23 +19,25 @@ spec:
   replicas: {{ .Values.authentik.deployment.replicas }}
   selector:
     matchLabels:
+      mode: {{ $aktype }}
       {{- range .Values.authentik.labels }}
       {{ .key }}: {{ .value }}
       {{- end }}
   template:
     metadata:
       labels:
+        mode: {{ $aktype }}
         {{- range .Values.authentik.labels }}
         {{ .key }}: {{ .value }}
         {{- end }}
     spec:
       containers:
-        - name: authentik
+        - name: authentik-{{ $aktype }}
           image: {{ .Values.authentik.deployment.image | quote }}
           imagePullPolicy: {{ .Values.authentik.deployment.imagePullPolicy }}
           args:
           - |-
-            server
+            {{ $aktype }}
           ports:
             {{- range .Values.authentik.ports }}
             - name: {{ .name }}
@@ -54,8 +64,6 @@ spec:
               value: {{ .Values.smtp.host }}
             - name: AUTHENTIK_EMAIL__PORT
               value: {{ .Values.smtp.port | quote }}
-            - name: AUTHENTIK_EMAIL__USERNAME
-              value: {{ .Values.smtp.username }}
             - name: AUTHENTIK_EMAIL__USERNAME
               value: {{ .Values.smtp.username }}
             # AUTHENTIK AUTOGEN VARIABLES
@@ -94,4 +102,6 @@ spec:
           - key: {{ .key }}
             path: {{ .file }}
           {{- end }}
+{{- end }}
+{{- end }}
 {{- end }}

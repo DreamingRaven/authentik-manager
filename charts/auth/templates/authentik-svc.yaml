@@ -1,15 +1,24 @@
-{{ if .Values.authentik.enabled }}
+{{- if .Values.authentik.enabled }}
+{{- $akouter := . }}
+{{- $aktypes := list "server" "worker" }}
+{{- range $aktypes }}
+{{- $aktype := . }}
+{{- with $akouter }}
+---
+# {{ $aktype }}
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Values.authentik.service.name | lower | quote }}
+  name: {{ .Values.authentik.service.name }}-{{ $aktype }}
   labels:
+    mode: {{ $aktype }}
     {{- range .Values.authentik.labels }}
     {{ .key }}: {{ .value }}
     {{- end }}
 spec:
   type: ClusterIP
   selector:
+    mode: {{ $aktype }}
     {{- range .Values.authentik.labels }}
     {{ .key }}: {{ .value }}
     {{- end }}
@@ -20,4 +29,6 @@ spec:
       targetPort: {{ .containerPort }} # port of container/ pod
       name: {{ .name }}
     {{- end }}
+{{- end }}
+{{- end }}
 {{- end }}
