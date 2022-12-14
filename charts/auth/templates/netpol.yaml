@@ -15,19 +15,6 @@ spec:
           kubernetes.io/metadata.name: {{ .Release.Namespace }}
   egress:
   - to:
-    # allow to go to WAN internet
-    - ipBlock:
-        cidr: 0.0.0.0/0
-        except:
-        - 10.0.0.0/8
-        - 192.168.0.0/16
-        - 172.16.0.0/20
-    # or allowed to go to local namespace
-    - namespaceSelector:
-        matchLabels:
-          kubernetes.io/metadata.name: {{ .Release.Namespace }}
-  # Also
-  - to:
     # allow DNS lookups
     - namespaceSelector:
         matchLabels:

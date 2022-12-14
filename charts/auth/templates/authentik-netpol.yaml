@@ -1,15 +1,39 @@
+{{- if .Values.authentik.enabled }}
+{{- $akouter := . }}
+{{- $aktypes := list "server" "worker" }}
+{{- range $aktypes }}
+{{- $aktype := . }}
+{{- with $akouter }}
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: authentik-netpol
+  name: authentik-{{ $aktype }}
 spec:
   podSelector:
     matchLabels:
+      mode: {{ $aktype }}
       {{- range .Values.authentik.labels }}
       {{ .key }}: {{ .value }}
       {{- end }}
   policyTypes:
   - Egress
+  - Ingress
+  {{- if eq $aktype "server"}}
+  ingress:
+  - from:
+    # allow ingress from other pods in this namespace
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: {{ .Release.Namespace }}
+    # to specific ports by name
+    ports:
+    - protocol: TCP
+      port: http
+    - protocol: TCP
+      port: https
+    - protocol: TCP
+      port: metrics
+  {{- end }}
   egress:
   - to:
     # allow to go to WAN internet
@@ -33,3 +57,6 @@ spec:
     ports:
     - protocol: UDP
       port: 53
+{{- end }}
+{{- end }}
+{{- end }}
