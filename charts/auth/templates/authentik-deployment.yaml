@@ -102,6 +102,16 @@ spec:
           - key: {{ .key }}
             path: {{ .file }}
           {{- end }}
+      {{- if eq $aktype "worker"}}
+      {{- range .Values.authentik.blueprints }}
+      - name: {{ .name }}
+        configMap:
+          name: {{ .configMap.name }}
+          items:
+          - key: {{ .configMap.key }}
+            # path: {{ .dest }}
+      {{- end }}
+      {{- end }}
 {{- end }}
 {{- end }}
 {{- end }}

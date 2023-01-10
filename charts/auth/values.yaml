@@ -265,6 +265,15 @@ authentik:
     value: auth
   - key: app
     value: authentik
+  # list blueprint configmap names in this namespace to automount to worker instances
+  # https://goauthentik.io/developer-docs/blueprints/
+  blueprints: []
+  # - name: some-default-blueprint
+  #   configMap:
+  #     name: example-custom-blueprint-configmap
+  #     key: my-default-blueprint
+  #   dest: /blueprints/default/some-default-blueprint.yaml
+
 
 # postgres admin dashboard
 pgadmin:
