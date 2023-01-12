@@ -3,6 +3,8 @@ Authentik Helm
 
 Just add SMTP!
 
+This is heavily a work in progress. An operator is also being developed so that configuration of authentik can dynamically change according to the cluster. In particular when the cluster creates an ingress resource tagged with some specific label, we can tell Authentik to create a authentication proxy and potentially set the basic rules.
+
 Installation
 ++++++++++++
 

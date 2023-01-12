@@ -1,0 +1,9 @@
+domain: goauthentik.io
+layout:
+- go.kubebuilder.io/v3
+plugins:
+  manifests.sdk.operatorframework.io/v2: {}
+  scorecard.sdk.operatorframework.io/v2: {}
+projectName: operator
+repo: gitlab.com/GeorgeRaven/authentik-helm/operator
+version: "3"
