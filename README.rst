@@ -158,8 +158,10 @@ AkProvider
    metadata:
       name:     Provider
    spec:
-      consentFlow:   SomeFlow
-      type: Proxy
+      consentFlow:      default-provider-authorization-explicit-consent
+      # AppForwardAuth, or DomainForwardAuth
+      type:     AppForwardAuth
+      url:      https://app.example.com
 
 AkOutpost
 ---------
@@ -171,10 +173,6 @@ AkOutpost
    metadata:
       name:     Outpost
    spec:
-      consentFlow:      default-provider-authorization-explicit-consent
-      # AppForwardAuth, or DomainForwardAuth
-      type:     AppForwardAuth
-      url:      https://app.example.com
 
 AkApplication
 ---------

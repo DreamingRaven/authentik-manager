@@ -28,8 +28,14 @@ type AkProviderSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of AkProvider. Edit akprovider_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	// ConsentFlow (requires) defines which authentik flow to use to confirm users consent sharing data between applications
+	ConsentFlow string `json:"consentFlow,omitempty"`
+
+	// Type (required) of outpost from AppForwardAuth or DomainForwardAuth for authentik app specific authentication or global domain authentication
+	Type string `json:"type,omitempty"`
+
+	//URL (required) the url that should be launched when a user selects this provider in the UI
+	URL string `json:"url,omitempty"`
 }
 
 // AkProviderStatus defines the observed state of AkProvider
