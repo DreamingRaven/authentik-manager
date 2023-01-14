@@ -173,6 +173,7 @@ AkOutpost
    metadata:
       name:     Outpost
    spec:
+      type:     Proxy
 
 AkApplication
 ---------

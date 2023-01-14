@@ -28,8 +28,8 @@ type AkOutpostSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of AkOutpost. Edit akoutpost_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	// Type defines the type of authentik outpost this should be, either Proxy or LDAP
+	Type string `json:"type,omitempty"`
 }
 
 // AkOutpostStatus defines the observed state of AkOutpost
