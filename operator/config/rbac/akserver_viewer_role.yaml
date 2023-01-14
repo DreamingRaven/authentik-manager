@@ -1,0 +1,27 @@
+# permissions for end users to view akservers.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: akserver-viewer-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: operator
+    app.kubernetes.io/part-of: operator
+    app.kubernetes.io/managed-by: kustomize
+  name: akserver-viewer-role
+rules:
+- apiGroups:
+  - sso.goauthentik.io
+  resources:
+  - akservers
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - sso.goauthentik.io
+  resources:
+  - akservers/status
+  verbs:
+  - get

@@ -96,6 +96,41 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "Auth")
 		os.Exit(1)
 	}
+	if err = (&controllers.AkApplicationReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "AkApplication")
+		os.Exit(1)
+	}
+	if err = (&controllers.AkOutpostReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "AkOutpost")
+		os.Exit(1)
+	}
+	if err = (&controllers.AkProviderReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "AkProvider")
+		os.Exit(1)
+	}
+	if err = (&controllers.AkWorkerReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "AkWorker")
+		os.Exit(1)
+	}
+	if err = (&controllers.AkServerReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "AkServer")
+		os.Exit(1)
+	}
 	//+kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {

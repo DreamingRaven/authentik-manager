@@ -1,4 +1,9 @@
 ## Append samples you want in your CSV to this file as resources ##
 resources:
 - sso_v1alpha1_auth.yaml
+- sso_v1alpha1_akapplication.yaml
+- sso_v1alpha1_akoutpost.yaml
+- sso_v1alpha1_akprovider.yaml
+- sso_v1alpha1_akworker.yaml
+- sso_v1alpha1_akserver.yaml
 #+kubebuilder:scaffold:manifestskustomizesamples

@@ -16,4 +16,49 @@ resources:
   kind: Auth
   path: gitlab.com/GeorgeRaven/authentik-helm/operator/api/v1alpha1
   version: v1alpha1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: goauthentik.io
+  group: sso
+  kind: AkApplication
+  path: gitlab.com/GeorgeRaven/authentik-helm/operator/api/v1alpha1
+  version: v1alpha1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: goauthentik.io
+  group: sso
+  kind: AkOutpost
+  path: gitlab.com/GeorgeRaven/authentik-helm/operator/api/v1alpha1
+  version: v1alpha1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: goauthentik.io
+  group: sso
+  kind: AkProvider
+  path: gitlab.com/GeorgeRaven/authentik-helm/operator/api/v1alpha1
+  version: v1alpha1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: goauthentik.io
+  group: sso
+  kind: AkWorker
+  path: gitlab.com/GeorgeRaven/authentik-helm/operator/api/v1alpha1
+  version: v1alpha1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: goauthentik.io
+  group: sso
+  kind: AkServer
+  path: gitlab.com/GeorgeRaven/authentik-helm/operator/api/v1alpha1
+  version: v1alpha1
 version: "3"

@@ -3,7 +3,7 @@ Authentik Helm
 
 Just add SMTP!
 
-This is heavily a work in progress. An operator is also being developed so that configuration of authentik can dynamically change according to the cluster. In particular when the cluster creates an ingress resource tagged with some specific label, we can tell Authentik to create a authentication proxy and potentially set the basic rules.
+This is heavily a work in progress. An operator is also being developed so that configuration of Authentik can dynamically change according to the cluster. In particular when the cluster creates an ingress resource tagged with some specific label, we can tell Authentik to create a authentication proxy and potentially set the basic rules.
 
 Installation
 ++++++++++++
@@ -116,3 +116,88 @@ Uninstall the helm chart and its resources but not anything that you have instal
 .. code-block:: bash
 
    helm uninstall authentik --namespace auth
+
+Authentik Operator
+++++++++++++++++++
+
+The Authentik operator is a custom operator which currently consists of a controller for AkServer (WIP), AkWorker (WIP), AkProvider (WIP), AkOutpost (WIP), AkApplication (WIP) resources. 
+
+We have tried to keep as much of the terminology to match that which existing Authentik users would understand.
+
+The current proposals for CRDs are:
+
+AkServer
+--------
+
+.. code-block:: yaml
+
+   apiVersion:  v1alpha1
+   kind:        AkServer
+   metadata:
+      name:     AkServer
+   spec:
+
+AkWorker
+--------
+
+.. code-block:: yaml
+
+   apiVersion:  v1alpha1
+   kind:        AkWorker
+   metadata:
+      name:     AkWorker
+   spec:
+
+AkProvider
+----------
+
+.. code-block:: yaml
+
+   apiVersion:  v1alpha1
+   kind:        AkProvider
+   metadata:
+      name:     Provider
+   spec:
+      consentFlow:   SomeFlow
+      type: Proxy
+
+AkOutpost
+---------
+
+.. code-block:: yaml
+
+   apiVersion:  v1alpha1
+   kind:        AkOutpost
+   metadata:
+      name:     Outpost
+   spec:
+      consentFlow:      default-provider-authorization-explicit-consent
+      # AppForwardAuth, or DomainForwardAuth
+      type:     AppForwardAuth
+      url:      https://app.example.com
+
+AkApplication
+---------
+
+.. code-block:: yaml
+
+   apiVersion:  v1alpha1
+   kind:        AkApplication
+   metadata:
+      name:     AkApp
+   spec:
+      # internal application name for urls
+      slug:     myapp
+      # (Optional) group and show applications together in UI
+      group:    nil
+      # provider to handle this application
+      provider: AkProvider
+      # either any or all policies must match to grant access
+      policyEngineMode: any
+      # (Optional) UI settings for this application
+      ui:
+         # optional specifier for url to launch, will default to providers url if empty
+         launchURL:     https://app.example.com
+         icon:          https://cdn.example.com/appIcon.png
+         publisher:     Organisation
+         description:   "Some app of ours that does the thing."
