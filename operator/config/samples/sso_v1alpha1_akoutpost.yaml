@@ -1,3 +1,4 @@
+# AkOutpost example resource
 apiVersion: sso.goauthentik.io/v1alpha1
 kind: AkOutpost
 metadata:
@@ -9,4 +10,4 @@ metadata:
     app.kubernetes.io/created-by: operator
   name: akoutpost-sample
 spec:
-  # TODO(user): Add fields here
+  type: Proxy
