@@ -6,4 +6,5 @@ resources:
 - sso_v1alpha1_akprovider.yaml
 - sso_v1alpha1_akworker.yaml
 - sso_v1alpha1_akserver.yaml
+- sso_v1alpha1_akblueprint.yaml
 #+kubebuilder:scaffold:manifestskustomizesamples
