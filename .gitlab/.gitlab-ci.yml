@@ -149,6 +149,7 @@ helm-chart-build:
   # - export SRC_VER="$(set -o pipefail && git describe --long 2>/dev/null | sed 's/\([^-]*-g\)/r\1/;s/-/./g' || printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)")"
   - export SRC_VER="$(cat ${CHART_DIR}/values.yaml | grep -P -o '(?<=ghcr.io/goauthentik/server:).*(?=\")')"
   - export HELM_VER="$(git describe --abbrev=0)" # helm does not like --long git tags
+  - echo "src version: ${SRC_VER}\nhelm version: ${HELM_VER}"
   - mkdir -p ./package
   - helm dependency build ${CHART_DIR}/
   - helm package ${CHART_DIR}/ --destination ./package --app-version ${SRC_VER} --version ${HELM_VER}
