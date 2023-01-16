@@ -73,6 +73,7 @@ docker_build_branch:
     - export SRC_VER="$(set -o pipefail && git describe --long 2>/dev/null | sed 's/\([^-]*-g\)/r\1/;s/-/./g' || printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)")"
     # - sed -e '1 s/\(^FROM\)/FROM --platform=\$$\{BUILDPLATFORM\}/; t' -e ' 1,// s//FROM --platform=\$$\{BUILDPLATFORM\}/' ${DOCKERFILE_PATH} > ${DOCKERFILE_PATH}.cross
     - make -C operator/ docker-cross
+    - cd operator
     - docker-buildx create
       --use
     - docker-buildx build
@@ -82,7 +83,7 @@ docker_build_branch:
       --build-arg GIN_MODE="release"
       -t "$(echo ${CI_REGISTRY}/${CI_PROJECT_PATH}:${CI_COMMIT_BRANCH} | tr "[:upper:]" "[:lower:]")"
       --push
-      -f ${DOCKERFILE_PATH}.cross .
+      -f Dockerfile.cross .
   after_script:
     - docker logout ${CI_REGISTRY}
   tags:
@@ -111,6 +112,7 @@ docker_build_multi_arch_tag:
     - export SRC_VER_SHORT="$(git describe --abbrev=0)"
     # - sed -e '1 s/\(^FROM\)/FROM --platform=\$$\{BUILDPLATFORM\}/; t' -e ' 1,// s//FROM --platform=\$$\{BUILDPLATFORM\}/' ${DOCKERFILE_PATH} > ${DOCKERFILE_PATH}.cross
     - make -C operator/ docker-cross
+    - cd operator
     - docker-buildx create
       --use
     - docker-buildx build
@@ -121,7 +123,7 @@ docker_build_multi_arch_tag:
       -t "$(echo ${CI_REGISTRY}/${CI_PROJECT_PATH}:${SRC_VER_SHORT} | tr "[:upper:]" "[:lower:]")"
       -t "$(echo ${CI_REGISTRY}/${CI_PROJECT_PATH}:latest | tr "[:upper:]" "[:lower:]")"
       --push
-      -f ${DOCKERFILE_PATH}.cross .
+      -f Dockerfile.cross .
   after_script:
     - docker logout ${CI_REGISTRY}
   tags:
