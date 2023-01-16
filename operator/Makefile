@@ -145,7 +145,7 @@ docker-buildx: test ## Build and push docker image for the manager for cross-pla
 
 .PHONY: docker-cross
 docker-cross:
-	sed -e '1 s/\(^FROM\)/FROM --platform=\$$\{BUILDPLATFORM\}/; t' -e ' 1,// s//FROM --platform=\$$\{BUILDPLATFORM\}/' Dockerfile > Dockerfile.cross
+	sed -f cross.sed Dockerfile > Dockerfile.cross
 
 ##@ Deployment
 
