@@ -3,7 +3,9 @@ Authentik Manager
 
 Just add SMTP!
 
-This is heavily a work in progress. An operator is also being developed so that configuration of Authentik can dynamically change according to the cluster. In particular when the cluster creates an ingress resource tagged with some specific label, we can tell Authentik to create a authentication proxy and potentially set the basic rules.
+Authentik-Manager is a custom authentik-helm chart with an additional operator. The helm chart helps deploy the base system, and the operator with its additional CRDs makes it easier to declaratively define your authentik setup.
+
+Please note this is still heavily a work in progress, that has only recently started. If you like living life on the edge welcome, otherwise good news on progress should come soon.
 
 Installation
 ++++++++++++
