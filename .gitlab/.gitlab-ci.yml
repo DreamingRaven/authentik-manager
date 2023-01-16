@@ -8,6 +8,119 @@ variables:
   CHANNEL: "stable"
   CHART_DIR: "charts/auth"
 
+  BUILDX_VERSION: "v0.7.1" # https://github.com/docker/buildx/releases
+  BUILDX_ARCH: "linux-amd64" # I.E what architecture we are building FROM
+  BUILDX_TARGET_ARCHES: "linux/amd64,linux/arm64/v8" # what architecture we are building FOR
+  DOCKERFILE_PATH: "operator/Dockerfile" # relative path to dockerfile from project root directory
+  CONTAINER_NAME: "copy-container"
+  PAGES_DIR: "public"
+
+# REUSABLE CONDITIONAL RULES FOR PIPELINE TRIGGERS
+.rules_default_branch_push:
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE == "push"
+
+.rules_default_branch_tag:
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_COMMIT_TAG != "" && $CI_PIPELINE_SOURCE == "tag"
+
+.rules_nondefault_branch_push:
+  rules:
+    - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE == "push"
+
+# for use with simple checks like initial PRs
+docker_build:
+  stage: build
+  image: docker:stable
+  services:
+    - docker:dind
+  before_script:
+    - docker info
+  only:
+    - staging
+    - dev
+  before_script:
+    - docker login registry.gitlab.com -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD}
+  script:
+    - docker build -t "$(echo ${CI_REGISTRY}/${CI_PROJECT_PATH}:${CI_COMMIT_BRANCH} | tr "[:upper:]" "[:lower:]")" -f ${DOCKERFILE_PATH} .
+    - docker push "$(echo ${CI_REGISTRY}/${CI_PROJECT_PATH}:${CI_COMMIT_BRANCH} | tr "[:upper:]" "[:lower:]")"
+  after_script:
+    - docker logout ${CI_REGISTRY}
+  tags:
+    - docker
+
+# for every branch build container artifact for x86
+docker_build_branch:
+  stage: build
+  image: docker:stable # an alpine image
+  services:
+    - docker:dind
+  before_script:
+    - docker info
+  rules:
+   - !reference [.rules_default_branch_push, rules]
+   - !reference [.rules_nondefault_branch_push, rules]
+  before_script:
+    - apk add git
+    - docker login registry.gitlab.com
+      -u ${CI_REGISTRY_USER}
+      -p ${CI_REGISTRY_PASSWORD}
+    - wget -O /usr/bin/docker-buildx
+      https://github.com/docker/buildx/releases/download/${BUILDX_VERSION}/buildx-${BUILDX_VERSION}.${BUILDX_ARCH}
+    - chmod +x /usr/bin/docker-buildx
+  script:
+    - export SRC_VER="$(set -o pipefail && git describe --long 2>/dev/null | sed 's/\([^-]*-g\)/r\1/;s/-/./g' || printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)")"
+    - docker-buildx create
+      --use
+    - docker-buildx build
+      --platform "linux/amd64"
+      --label "version=${SRC_VER}"
+      --label "commit=$(git rev-parse HEAD)"
+      --build-arg GIN_MODE="release"
+      -t "$(echo ${CI_REGISTRY}/${CI_PROJECT_PATH}:${CI_COMMIT_BRANCH} | tr "[:upper:]" "[:lower:]")"
+      --push
+      -f ${DOCKERFILE_PATH} .
+  after_script:
+    - docker logout ${CI_REGISTRY}
+  tags:
+    - docker
+
+docker_build_multi_arch_tag:
+  stage: build
+  image: docker:stable # an alpine image
+  services:
+    - docker:dind
+  before_script:
+    - docker info
+  rules:
+   - !reference [.rules_default_branch_tag, rules]
+  before_script:
+    - apk add git
+    - docker login registry.gitlab.com
+      -u ${CI_REGISTRY_USER}
+      -p ${CI_REGISTRY_PASSWORD}
+    - wget -O /usr/bin/docker-buildx
+      https://github.com/docker/buildx/releases/download/${BUILDX_VERSION}/buildx-${BUILDX_VERSION}.${BUILDX_ARCH}
+    - chmod +x /usr/bin/docker-buildx
+  script:
+    - export SRC_VER="$(set -o pipefail && git describe --long 2>/dev/null | sed 's/\([^-]*-g\)/r\1/;s/-/./g' || printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)")"
+    - export SRC_VER_SHORT="$(git describe --abbrev=0)"
+    - docker-buildx create
+      --use
+    - docker-buildx build
+      --platform ${BUILDX_TARGET_ARCHES}
+      --label "version=${SRC_VER}"
+      --label "commit=$(git rev-parse HEAD)"
+      --build-arg GIN_MODE="release"
+      -t "$(echo ${CI_REGISTRY}/${CI_PROJECT_PATH}:${SRC_VER_SHORT} | tr "[:upper:]" "[:lower:]")"
+      -t "$(echo ${CI_REGISTRY}/${CI_PROJECT_PATH}:latest | tr "[:upper:]" "[:lower:]")"
+      --push
+      -f ${DOCKERFILE_PATH} .
+  after_script:
+    - docker logout ${CI_REGISTRY}
+  tags:
+    - docker
+
 helm-chart-lint:
   stage: lint
   image:
