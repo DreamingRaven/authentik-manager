@@ -70,7 +70,8 @@ docker_build_branch:
     - chmod +x /usr/bin/docker-buildx
   script:
     - export SRC_VER="$(set -o pipefail && git describe --long 2>/dev/null | sed 's/\([^-]*-g\)/r\1/;s/-/./g' || printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)")"
-    - sed -e '1 s/\(^FROM\)/FROM --platform=\$$\{BUILDPLATFORM\}/; t' -e ' 1,// s//FROM --platform=\$$\{BUILDPLATFORM\}/' ${DOCKERFILE_PATH} > ${DOCKERFILE_PATH}.cross
+    # - sed -e '1 s/\(^FROM\)/FROM --platform=\$$\{BUILDPLATFORM\}/; t' -e ' 1,// s//FROM --platform=\$$\{BUILDPLATFORM\}/' ${DOCKERFILE_PATH} > ${DOCKERFILE_PATH}.cross
+    - make -C operator/ docker-cross
     - docker-buildx create
       --use
     - docker-buildx build
@@ -106,7 +107,8 @@ docker_build_multi_arch_tag:
   script:
     - export SRC_VER="$(set -o pipefail && git describe --long 2>/dev/null | sed 's/\([^-]*-g\)/r\1/;s/-/./g' || printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)")"
     - export SRC_VER_SHORT="$(git describe --abbrev=0)"
-    - sed -e '1 s/\(^FROM\)/FROM --platform=\$$\{BUILDPLATFORM\}/; t' -e ' 1,// s//FROM --platform=\$$\{BUILDPLATFORM\}/' ${DOCKERFILE_PATH} > ${DOCKERFILE_PATH}.cross
+    # - sed -e '1 s/\(^FROM\)/FROM --platform=\$$\{BUILDPLATFORM\}/; t' -e ' 1,// s//FROM --platform=\$$\{BUILDPLATFORM\}/' ${DOCKERFILE_PATH} > ${DOCKERFILE_PATH}.cross
+    - make -C operator/ docker-cross
     - docker-buildx create
       --use
     - docker-buildx build
