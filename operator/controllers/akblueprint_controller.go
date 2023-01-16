@@ -2,8 +2,8 @@ package controllers
 
 import (
 	"context"
-	"fmt"
 
+	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -33,10 +33,33 @@ type AkBlueprintReconciler struct {
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.13.0/pkg/reconcile
 func (r *AkBlueprintReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	l := log.FromContext(ctx)
+	// blank crd struct to populate
+	crd := &ssov1alpha1.AkBlueprint{}
+	// populating blank crd struct
+	err := r.Get(ctx, req.NamespacedName, crd)
+
+	// check if crd has been fetched correctly and early exit if not, or reque if there was some sort of request failure
+	if err != nil {
+		if errors.IsNotFound(err) {
+			// Request object not found, could have been deleted after reconcile request.
+			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
+			// Return and don't requeue
+			l.Info("AkBlueprint resource not found. Ignoring since object must have been deleted")
+			return ctrl.Result{}, nil
+		}
+		// Error reading the object - requeue the request.
+		l.Error(err, "Failed to get AkBlueprint")
+		return ctrl.Result{}, err
+	}
 	l.Info("AkBlueprint found")
 
-	// TODO(user): your logic here
-	fmt.Printf("%v", r)
+	// check blueprint validity
+
+	// link blueprint if unlinked
+
+	// update links
+
+	// fmt.Printf("%v", crd)
 
 	return ctrl.Result{}, nil
 }
