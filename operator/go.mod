@@ -1,4 +1,4 @@
-module gitlab.com/GeorgeRaven/authentik-helm/operator
+module gitlab.com/GeorgeRaven/authentik-manager/operator
 
 go 1.19
 

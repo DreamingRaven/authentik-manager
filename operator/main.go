@@ -31,8 +31,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	ssov1alpha1 "gitlab.com/GeorgeRaven/authentik-helm/operator/api/v1alpha1"
-	"gitlab.com/GeorgeRaven/authentik-helm/operator/controllers"
+	ssov1alpha1 "gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1"
+	"gitlab.com/GeorgeRaven/authentik-manager/operator/controllers"
 	//+kubebuilder:scaffold:imports
 )
 

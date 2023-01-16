@@ -5,7 +5,7 @@ plugins:
   manifests.sdk.operatorframework.io/v2: {}
   scorecard.sdk.operatorframework.io/v2: {}
 projectName: operator
-repo: gitlab.com/GeorgeRaven/authentik-helm/operator
+repo: gitlab.com/GeorgeRaven/authentik-manager/operator
 resources:
 - api:
     crdVersion: v1
@@ -14,7 +14,7 @@ resources:
   domain: goauthentik.io
   group: sso
   kind: Auth
-  path: gitlab.com/GeorgeRaven/authentik-helm/operator/api/v1alpha1
+  path: gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1
   version: v1alpha1
 - api:
     crdVersion: v1
@@ -23,7 +23,7 @@ resources:
   domain: goauthentik.io
   group: sso
   kind: AkApplication
-  path: gitlab.com/GeorgeRaven/authentik-helm/operator/api/v1alpha1
+  path: gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1
   version: v1alpha1
 - api:
     crdVersion: v1
@@ -32,7 +32,7 @@ resources:
   domain: goauthentik.io
   group: sso
   kind: AkOutpost
-  path: gitlab.com/GeorgeRaven/authentik-helm/operator/api/v1alpha1
+  path: gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1
   version: v1alpha1
 - api:
     crdVersion: v1
@@ -41,7 +41,7 @@ resources:
   domain: goauthentik.io
   group: sso
   kind: AkProvider
-  path: gitlab.com/GeorgeRaven/authentik-helm/operator/api/v1alpha1
+  path: gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1
   version: v1alpha1
 - api:
     crdVersion: v1
@@ -50,7 +50,7 @@ resources:
   domain: goauthentik.io
   group: sso
   kind: AkWorker
-  path: gitlab.com/GeorgeRaven/authentik-helm/operator/api/v1alpha1
+  path: gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1
   version: v1alpha1
 - api:
     crdVersion: v1
@@ -59,7 +59,7 @@ resources:
   domain: goauthentik.io
   group: sso
   kind: AkServer
-  path: gitlab.com/GeorgeRaven/authentik-helm/operator/api/v1alpha1
+  path: gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1
   version: v1alpha1
 - api:
     crdVersion: v1
@@ -68,6 +68,6 @@ resources:
   domain: goauthentik.io
   group: sso
   kind: AkBlueprint
-  path: gitlab.com/GeorgeRaven/authentik-helm/operator/api/v1alpha1
+  path: gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1
   version: v1alpha1
 version: "3"

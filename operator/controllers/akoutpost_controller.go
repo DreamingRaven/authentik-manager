@@ -24,7 +24,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	ssov1alpha1 "gitlab.com/GeorgeRaven/authentik-helm/operator/api/v1alpha1"
+	ssov1alpha1 "gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1"
 )
 
 // AkOutpostReconciler reconciles a AkOutpost object

@@ -1,5 +1,5 @@
-Authentik Helm
-==============
+Authentik Manager
+=================
 
 Just add SMTP!
 
@@ -15,7 +15,7 @@ Adding our helm chart package registry on gitlab.
 
 .. code-block:: bash
 
-   helm repo add authentik-helm-registry https://gitlab.com/api/v4/projects/41806964/packages/helm/stable
+   helm repo add authentik-manager-registry https://gitlab.com/api/v4/projects/41806964/packages/helm/stable
 
 .. note::
 
@@ -25,31 +25,31 @@ Ensuring our local index of the helm chart is up to date.
 
 .. code-block:: bash
 
-   helm repo update authentik-helm-registry
+   helm repo update authentik-manager-registry
 
 Searching our package registry for available versions.
 
 .. code-block:: bash
 
-   helm search repo authentik-helm-registry/authentik --versions
+   helm search repo authentik-manager-registry/authentik --versions
 
 Installing a specific version of the helm chart we would like from our search previously.
 
 .. code-block:: bash
 
-   helm install authentik-helm-registry/authentik --version <MAJOR.MINOR.PATCH>
+   helm install authentik-manager-registry/authentik --version <MAJOR.MINOR.PATCH>
 
 #OR just install the latest out local index knows about.
 
 .. code-block:: bash
 
-   helm install authentik-helm-registry/authentik
+   helm install authentik-manager-registry/authentik
 
 Now lets install everything properly, in its own namespace and with your own values. This command does not enable SMTP as this gives you a simple proof of concept install. Once you are sure this is what you are after you will then need to replace the SMTP details with some of your own beyond this short guide. Most settings you might want to change are at the top of the values.yaml file. The big exception being images and tags.
 
 .. code-block:: bash
 
-   helm install authentik authentik-helm-registry/authentik --version <MAJOR.MINOR.PATCH> --create-namespace --namespace auth --set global.domain.base=<example.org> --set global.domain.full=<auth.example.org> --set global.admin.name=<somebody> --set global.admin.email=<somebody@pm.me>
+   helm install authentik authentik-manager-registry/authentik --version <MAJOR.MINOR.PATCH> --create-namespace --namespace auth --set global.domain.base=<example.org> --set global.domain.full=<auth.example.org> --set global.admin.name=<somebody> --set global.admin.email=<somebody@pm.me>
 
 .. warning::
 
@@ -106,7 +106,7 @@ Upgrade from one version to another explicitly.
 
 .. code-block:: bash
 
-   helm upgrade authentik authentik-helm-registry/authentik --namespace auth --version <MAJOR.MINOR.PATCH>
+   helm upgrade authentik authentik-manager-registry/authentik --namespace auth --version <MAJOR.MINOR.PATCH>
 
 Uninstall
 +++++++++
