@@ -61,7 +61,7 @@ docker_build_branch:
    - !reference [.rules_default_branch_push, rules]
    - !reference [.rules_nondefault_branch_push, rules]
   before_script:
-    - apk add git make
+    - apk add git make bash
     - docker login registry.gitlab.com
       -u ${CI_REGISTRY_USER}
       -p ${CI_REGISTRY_PASSWORD}
@@ -97,7 +97,7 @@ docker_build_multi_arch_tag:
   rules:
    - !reference [.rules_default_branch_tag, rules]
   before_script:
-    - apk add git make
+    - apk add git make bash
     - docker login registry.gitlab.com
       -u ${CI_REGISTRY_USER}
       -p ${CI_REGISTRY_PASSWORD}
