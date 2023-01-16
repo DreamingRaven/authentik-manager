@@ -124,29 +124,32 @@ The Authentik operator is a custom operator which currently consists of a contro
 
 We have tried to keep as much of the terminology to match that which existing Authentik users would understand.
 
-The current proposals for CRDs are:
+You can see all currently defined CRDs in `operator/api/v1alpha1` and samples are available in `operator/config/samples`. All reconciliation logic can be found in `operator/controllers`.
 
-AkServer
---------
+The operator is deployed as another container in your cluster with special service accounts limited to the requirements of the reconciliation loop. We will soon integrate this into our existing auth helm chart. With the CRDs installed you can use `kubectl explain AkBlueprint` to get more specific detail for each field.
 
-.. code-block:: yaml
+Broadly the current proposals for CRDs are:
 
-   apiVersion:  v1alpha1
-   kind:        AkServer
-   metadata:
-      name:     AkServer
-   spec:
+AkBlueprint
+-----------
 
-AkWorker
---------
+AkBlueprint is the most basic glue CRD. This CRD is the primary heavy lifter, that actually mounts, manages, and connects blueprints to Authentik.
+Since blueprints can do most things in Authentik this is the most low level CRD responsible for controlling Authentiks behaviour broadly. Technically the other CRDs are just abstractions to auto-populate blueprints and Kubernetes components for you, with a YAML interface that matches Authentiks inbuilt interface.
 
 .. code-block:: yaml
 
    apiVersion:  v1alpha1
-   kind:        AkWorker
+   kind:        AkBlueprint
    metadata:
-      name:     AkWorker
+      name:     SomeBlueprint
    spec:
+      conigMap:
+         # the name of the configmap in the same namespace to mount as a blueprint
+         name: someConfigmap
+         # the key which holds the configmap data
+         key: blueprintData
+      # the filepath the blueprint should be mounted to (and potentially over base files)
+      Blueprint: /blueprints/operator/SomeBlueprint.yaml
 
 AkProvider
 ----------
@@ -200,3 +203,29 @@ AkApplication
          icon:          https://cdn.example.com/appIcon.png
          publisher:     Organisation
          description:   "Some app of ours that does the thing."
+
+AkServer
+--------
+
+We want to implement AkServer as while the operator and helm chart are perfectly happy together, we also want to be able to automatically spin up the Authentik server components automatically without helm as well.
+
+.. code-block:: yaml
+
+   apiVersion:  v1alpha1
+   kind:        AkServer
+   metadata:
+      name:     AkServer
+   spec:
+
+AkWorker
+--------
+
+Similarly to AkServer AkWorker is intended to extend the capabilities of the operator to also manage the whole Authentik instance itself.
+
+.. code-block:: yaml
+
+   apiVersion:  v1alpha1
+   kind:        AkWorker
+   metadata:
+      name:     AkWorker
+   spec:
