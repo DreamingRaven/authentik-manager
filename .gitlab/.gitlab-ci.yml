@@ -23,32 +23,11 @@ variables:
 
 .rules_default_branch_tag:
   rules:
-    - if: $CI_COMMIT_BRANCH == "" && $CI_COMMIT_TAG != "" && $CI_PIPELINE_SOURCE == "tag"
+    - if: $CI_PIPELINE_SOURCE == "tag"
 
 .rules_nondefault_branch_push:
   rules:
     - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_TAG == "" && $CI_PIPELINE_SOURCE == "push"
-
-# for use with simple checks like initial PRs
-# docker_build:
-#   stage: build
-#   image: docker:stable
-#   services:
-#     - docker:dind
-#   before_script:
-#     - docker info
-#   only:
-#     - staging
-#     - dev
-#   before_script:
-#     - docker login registry.gitlab.com -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD}
-#   script:
-#     - docker build -t "$(echo ${CI_REGISTRY}/${CI_PROJECT_PATH}:${CI_COMMIT_BRANCH} | tr "[:upper:]" "[:lower:]")" -f ${DOCKERFILE_PATH} .
-#     - docker push "$(echo ${CI_REGISTRY}/${CI_PROJECT_PATH}:${CI_COMMIT_BRANCH} | tr "[:upper:]" "[:lower:]")"
-#   after_script:
-#     - docker logout ${CI_REGISTRY}
-#   tags:
-#     - docker
 
 # for every branch build container artifact for x86
 docker_build_branch:
