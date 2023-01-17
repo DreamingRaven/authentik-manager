@@ -77,8 +77,10 @@ docker_build_multi_arch_tag:
     - docker:dind
   before_script:
     - docker info
-  rules:
-   - !reference [.rules_default_branch_tag, rules]
+  only:
+  - tags
+  # rules:
+  #  - !reference [.rules_default_branch_tag, rules]
   before_script:
     - apk add git make bash sed
     - sed --version
