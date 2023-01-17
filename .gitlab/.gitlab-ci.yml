@@ -19,7 +19,7 @@ variables:
 # REUSABLE CONDITIONAL RULES FOR PIPELINE TRIGGERS
 .rules_default_branch_push:
   rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_COMMIT_TAG == "" && $CI_PIPELINE_SOURCE == "push"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE == "push"
 
 .rules_default_branch_tag:
   rules:
