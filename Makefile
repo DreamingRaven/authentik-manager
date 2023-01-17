@@ -3,6 +3,9 @@ CHART_NAME="auth"
 CHART_NAMESPACE="auth"
 FORWARD_PORT="8079"
 PRIVATE_REGISTRY="registry.gitlab.com"
+DOCKER_AUTH_FILE="${HOME}/.docker/config.json"
+# https://docs.podman.io/en/latest/markdown/podman-login.1.html#authfile-path
+REGISTRY_AUTH_FILE=${DOCKER_AUTH_FILE}
 
 .PHONY: all
 all: lint minikube install ingress
@@ -33,6 +36,18 @@ ingress:
 # 	kubectl create -n ${CHART_NAMESPACE} secret generic regcred --from-file=.dockerconfigjson=${HOME}/.docker/config.json --type=kubernetes.io/dockerconfigjson --dry-run=client -o yaml > login.creds
 # 	docker logout {PRIVATE_REGISTRY}
 # 	touch login.lock
+
+.PHONY: login
+login: login.lock
+
+login.lock:
+	# please use your username and a token with sufficient permissions to access the repo / registry
+	sudo podman login ${PRIVATE_REGISTRY} --authfile ${REGISTRY_AUTH_FILE}
+	sudo kubectl create -n ${REGCRED_NAMESPACE} secret generic ${REGCRED_NAME} --from-file=.dockerconfigjson=${REGISTRY_AUTH_FILE} --type=kubernetes.io/dockerconfigjson --dry-run=client -o yaml > login.creds
+	sudo podman logout ${PRIVATE_REGISTRY} --authfile ${REGISTRY_AUTH_FILE}
+	# podman protects the registry file unlike docker. If it exists it will throw a permission error for other apps that expect it unpermed.
+	sudo rm ${REGISTRY_AUTH_FILE}
+	touch login.lock
 
 .PHONY: test
 test: lint minikube install
