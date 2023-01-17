@@ -1,0 +1,40 @@
+{{- if .Values.operator.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.operator.deployment.name }}
+  labels:
+    {{- range .Values.operator.labels }}
+    {{ .key }}: {{ .value }}
+    {{- end }}
+spec:
+  replicas: {{ .Values.operator.deployment.replicas }}
+  selector:
+    matchLabels:
+      {{- range .Values.operator.labels }}
+      {{ .key }}: {{ .value }}
+      {{- end }}
+  template:
+    metadata:
+      labels:
+        {{- range .Values.operator.labels }}
+        {{ .key }}: {{ .value }}
+        {{- end }}
+    spec:
+      containers:
+        - name: operator
+          image: {{ .Values.operator.deployment.image | quote }}
+          imagePullPolicy: {{ .Values.operator.deployment.imagePullPolicy }}
+          ports:
+            {{- range .Values.operator.ports }}
+            - name: {{ .name }}
+              containerPort: {{ .containerPort }}
+            {{- end }}
+          env:
+            # additional static deployment env variables
+            {{- range .Values.operator.deployment.env }}
+            - name: {{ .name | quote }}
+              value: {{ .value | quote }}
+            {{- end }}
+          volumeMounts:
+{{- end }}
