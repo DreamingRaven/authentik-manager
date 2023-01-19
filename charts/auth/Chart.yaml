@@ -30,3 +30,6 @@ dependencies:
 - name: postgresql
   version: "12.1.2"
   repository: "https://charts.bitnami.com/bitnami"
+- name: authentik-manager-crds
+  version: "0.1.0"
+  repository: "file://../crds"
