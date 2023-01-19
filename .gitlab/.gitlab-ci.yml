@@ -134,8 +134,9 @@ helm-chart-build:
   - export HELM_VER="$(git describe --abbrev=0)" # helm does not like --long git tags
   - echo "src version ${SRC_VER}\nhelm version ${HELM_VER}"
   - mkdir -p ./package
-  - helm dependency build ${CHART_DIR}/
-  - helm package ${CHART_DIR}/ --destination ./package --app-version ${SRC_VER} --version ${HELM_VER}
+  - |
+    helm dependency build ${CHART_DIR}/
+    helm package ${CHART_DIR}/ --destination ./package --app-version ${SRC_VER} --version ${HELM_VER}
   artifacts:
     paths:
     - package/
