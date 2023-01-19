@@ -1,0 +1,17 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ .Values.operator.clusterRole.name }}
+rules:
+# Ingress annotation modification for forward auth to authentik
+- apiGroups:
+  - ""
+  resources:
+  - ingresses
+  verbs:
+  - get
+  - list
+  - watch
+  - update
+  - patch
+# See and update all of our own operator specific CRDs that arent namespace bound

@@ -294,6 +294,26 @@ operator:
     value: auth
   - key: app
     value: operator
+  serviceAccount:
+    enabled: true
+    name: operator
+    generate: true
+  clusterRole:
+    enabled: true
+    name: operator
+    generate: true
+  clusterRoleBinding:
+    enabled: true
+    name: operator
+    generate: true
+  role:
+    enabled: true
+    name: operator
+    generate: true
+  roleBinding:
+    enabled: true
+    name: operator
+    generate: true
 
 # postgres admin dashboard
 pgadmin:
