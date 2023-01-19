@@ -6,7 +6,7 @@ stages:
 
 variables:
   CHANNEL: "stable"
-  CHART_DIR: "charts/auth"
+  CHARTS_DIR: "charts"
 
   BUILDX_VERSION: "v0.7.1" # https://github.com/docker/buildx/releases
   BUILDX_ARCH: "linux-amd64" # I.E what architecture we are building FROM
@@ -119,7 +119,13 @@ helm-chart-lint:
     name: alpine/helm:latest
     entrypoint: ["/bin/sh", "-c"]
   script:
-    - helm lint ${CHART_DIR}/
+    - |
+      for dir in ${CHARTS_DIR}/*/
+      do
+        dir=${dir%*/} # removes trailing "/"
+        echo "linting ${dir} chart"
+        helm lint "${dir}"/
+      done
 
 helm-chart-build:
   stage: build
@@ -130,13 +136,17 @@ helm-chart-build:
   - apk add --no-cache grep
   - helm plugin install https://github.com/chartmuseum/helm-push.git
   # - export SRC_VER="$(set -o pipefail && git describe --long 2>/dev/null | sed 's/\([^-]*-g\)/r\1/;s/-/./g' || printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)")"
-  - export SRC_VER="$(cat ${CHART_DIR}/values.yaml | grep -P -o '(?<=ghcr.io/goauthentik/server:).*(?=\")')"
+  - export SRC_VER="$(cat ${CHARTS_DIR}/auth/values.yaml | grep -P -o '(?<=ghcr.io/goauthentik/server:).*(?=\")')"
   - export HELM_VER="$(git describe --abbrev=0)" # helm does not like --long git tags
   - echo "src version ${SRC_VER}\nhelm version ${HELM_VER}"
   - mkdir -p ./package
   - |
-    helm dependency build ${CHART_DIR}/
-    helm package ${CHART_DIR}/ --destination ./package --app-version ${SRC_VER} --version ${HELM_VER}
+    for dir in ${CHARTS_DIR}/*/
+    do
+      dir=${dir%*/} # removes trailing "/"
+      helm dependency build "${dir}"/
+      helm package "${dir}"/ --destination ./package --app-version ${SRC_VER} --version ${HELM_VER}
+    done
   artifacts:
     paths:
     - package/
@@ -151,7 +161,12 @@ helm-chart-push:
     entrypoint: ["/bin/sh", "-c"]
   script:
   - cd package
-  - export PACKAGE_FILE="$(ls)"
+  # - export PACKAGE_FILE="$(ls)"
   - export HELM_PACKAGE_REGISTRY="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/api/${CHANNEL}/charts"
-  - curl --request POST --fail-with-body --user gitlab-ci-token:${CI_JOB_TOKEN} --form "chart=@${PACKAGE_FILE}" "${HELM_PACKAGE_REGISTRY}"
+  - |
+    for file in *
+    do
+      echo "exporting ${file}"
+      curl --request POST --fail-with-body --user gitlab-ci-token:${CI_JOB_TOKEN} --form "chart=@${file}" "${HELM_PACKAGE_REGISTRY}"
+    done
   - echo "published to ${HELM_PACKAGE_REGISTRY}"
