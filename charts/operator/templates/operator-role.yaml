@@ -1,6 +1,26 @@
+# A namespaced role to allow our opertor full control of its specific namespace
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  namespace: default
-  name: pod-reader
+  name: {{ .Values.operator.role.name }}
 rules:
+- apiGroups:
+  - "*"
+  resources:
+  - "configmaps"
+  - "pods"
+  - "secrets"
+  - "services"
+  - "horizontalpodautoscalers"
+  - "jobs"
+  - "cronjobs"
+  - "ingress"
+  - "networkpolicies"
+  verbs:
+  - "*"
+- apiGroups:
+  - "sso.goauthentik.io"
+  resources:
+  - "*"
+  verbs:
+  - "*"
