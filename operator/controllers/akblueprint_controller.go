@@ -47,29 +47,25 @@ func (r *AkBlueprintReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return ctrl.Result{}, err
 	}
 
-	requeue := false
 	name := fmt.Sprintf("%v-%v", crd.Namespace, crd.Name)
 	found := &corev1.ConfigMap{}
 	err = r.Get(ctx, types.NamespacedName{Name: name, Namespace: crd.Namespace}, found)
+	desire := r.configForBlueprint(crd, name)
 
 	if err != nil && errors.IsNotFound(err) {
 		l.Info(fmt.Sprintf("AkBlueprint's configmap `%v` not found in namespace `%v` but desired, reconciling", name, crd.Namespace))
-		desire := r.configForBlueprint(crd, name)
 		r.Create(ctx, desire)
-		requeue = true
 		l.Info(fmt.Sprintf("AkBlueprint's configmap `%v` successfully created  in `%v`", name, crd.Namespace))
+		return ctrl.Result{Requeue: true}, nil
 	} else if err != nil {
 		l.Error(err, "Failed to get ConfigMap", name, "in", crd.Namespace)
 		return ctrl.Result{}, err
 	}
 
-	// spawn configmap for pods to mount in our namespace if not already
+	// check configmap still matches our crd
 
 	// attatch configmap to deployment if not already by name
 
-	if requeue {
-		return ctrl.Result{Requeue: true}, nil
-	}
 	return ctrl.Result{}, nil
 }
 

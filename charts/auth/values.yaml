@@ -106,7 +106,7 @@ redis:
       size: 8Gi
 
 ldap:
-  enabled: true
+  enabled: false
   persistence:
     enabled: false
     name: ldap-pvc
