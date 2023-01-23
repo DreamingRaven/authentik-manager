@@ -29,10 +29,10 @@ type AkBlueprintSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// ConfigMap is the name of the cm that holds the blueprints that should be mounted
-	ConigMap string `json:"configMap,omitempty"`
+	// File is the name of the file for the blueprint, it can also be a relative path
+	File string `json:"file,omitempty"`
 
-	// Blueprint is the filepath the blueprint should be loaded into
+	// Blueprint is the blueprint file contents
 	Blueprint string `json:"blueprint,omitempty"`
 }
 

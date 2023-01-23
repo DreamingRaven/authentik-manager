@@ -2,9 +2,13 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -22,15 +26,6 @@ type AkBlueprintReconciler struct {
 //+kubebuilder:rbac:groups=sso.goauthentik.io,resources=akblueprints/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=sso.goauthentik.io,resources=akblueprints/finalizers,verbs=update
 
-// Reconcile is part of the main kubernetes reconciliation loop which aims to
-// move the current state of the cluster closer to the desired state.
-// TODO(user): Modify the Reconcile function to compare the state specified by
-// the AkBlueprint object against the actual cluster state, and then
-// perform operations to make the cluster state reflect the state specified by
-// the user.
-//
-// For more details, check Reconcile and its Result here:
-// - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.13.0/pkg/reconcile
 func (r *AkBlueprintReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	l := log.FromContext(ctx)
 	// blank crd struct to populate
@@ -51,17 +46,44 @@ func (r *AkBlueprintReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		l.Error(err, "Failed to get AkBlueprint")
 		return ctrl.Result{}, err
 	}
-	l.Info("AkBlueprint found")
 
-	// check blueprint validity
+	requeue := false
+	name := fmt.Sprintf("%v-%v", crd.Namespace, crd.Name)
+	found := &corev1.ConfigMap{}
+	err = r.Get(ctx, types.NamespacedName{Name: name, Namespace: crd.Namespace}, found)
 
-	// link blueprint if unlinked
+	if err != nil && errors.IsNotFound(err) {
+		l.Info(fmt.Sprintf("AkBlueprint's configmap `%v` not found in namespace `%v` but desired, reconciling", name, crd.Namespace))
+		desire := r.configForBlueprint(crd, name)
+		r.Create(ctx, desire)
+		requeue = true
+		l.Info(fmt.Sprintf("AkBlueprint's configmap `%v` successfully created  in `%v`", name, crd.Namespace))
+	} else if err != nil {
+		l.Error(err, "Failed to get ConfigMap", name, "in", crd.Namespace)
+		return ctrl.Result{}, err
+	}
 
-	// update links
+	// spawn configmap for pods to mount in our namespace if not already
 
-	// fmt.Printf("%v", crd)
+	// attatch configmap to deployment if not already by name
 
+	if requeue {
+		return ctrl.Result{Requeue: true}, nil
+	}
 	return ctrl.Result{}, nil
+}
+
+func (r *AkBlueprintReconciler) configForBlueprint(crd *ssov1alpha1.AkBlueprint, name string) *corev1.ConfigMap {
+	cm := corev1.ConfigMap{
+		// Metadata
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: crd.Namespace,
+		},
+	}
+	// set that we are controlling this resource
+	ctrl.SetControllerReference(crd, &cm, r.Scheme)
+	return &cm
 }
 
 // SetupWithManager sets up the controller with the Manager.

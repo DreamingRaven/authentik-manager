@@ -36,12 +36,11 @@ spec:
             description: AkBlueprintSpec defines the desired state of AkBlueprint
             properties:
               blueprint:
-                description: Blueprint is the filepath the blueprint should be loaded
-                  into
+                description: Blueprint is the blueprint file contents
                 type: string
-              configMap:
-                description: ConfigMap is the name of the cm that holds the blueprints
-                  that should be mounted
+              file:
+                description: File is the name of the file for the blueprint, it can
+                  also be a relative path
                 type: string
             type: object
           status:
