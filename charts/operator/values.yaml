@@ -1,0 +1,41 @@
+operator:
+  enabled: true
+  deployment:
+    imagePullPolicy: Always
+    image: "registry.gitlab.com/georgeraven/authentik-manager:latest"
+    name: operator
+    replicas: 3
+    env: [] # statically defined environment variables can be as many as desired
+    # - name: AUTHENTIK_LISTERN__HTTP
+    #   value: 0.0.0.0:9000
+  ports: []
+  # - name: http
+  #   containerPort: 9000
+  #   servicePort: 80
+  #   protocol: TCP
+  labels:
+  - key: type
+    value: auth
+  - key: app
+    value: operator
+  serviceAccount:
+    enabled: true
+    name: operator
+    generate: true
+  clusterRole:
+    enabled: true
+    name: operator
+    generate: true
+  clusterRoleBinding:
+    enabled: true
+    name: operator
+    generate: true
+  role:
+    enabled: true
+    name: operator
+    generate: true
+  roleBinding:
+    enabled: true
+    name: operator
+    generate: true
+
