@@ -1,3 +1,4 @@
+# ClusterRole to watch for our CRDs and the respective ingress modified in the CRDs
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -5,8 +6,10 @@ metadata:
 rules:
 # Ingress annotation modification for forward auth to authentik
 - apiGroups:
-  - ""
+  # the api group that the CRD belongs to for ingress
+  - "networking.k8s.io"
   resources:
+  # the necessary ingress to modify with forward auth etc
   - ingresses
   verbs:
   - get
@@ -15,3 +18,15 @@ rules:
   - update
   - patch
 # See and update all of our own operator specific CRDs that arent namespace bound
+- apiGroups:
+  # our apiGroup
+  - "sso.goauthentik.io"
+  resources:
+  # all of our resources
+  - "*"
+  verbs:
+  - get
+  - list
+  - watch
+  - update
+  - patch

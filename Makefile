@@ -60,6 +60,7 @@ templates.yaml:
 
 .PHONY: install
 install: # login.lock
+	helm dependency build ${CHART_DIR_PATH}
 	kubectl create namespace ${CHART_NAMESPACE}
 	# kubectl apply -f login.creds
 	# kubectl get -n ${CHART_NAMESPACE} secret regcred --output="jsonpath={.data.\.dockerconfigjson}" | base64 --decode
@@ -98,6 +99,7 @@ pla:
 
 .PHONY: upgrade
 upgrade:
+	helm dependency build ${CHART_DIR_PATH}
 	helm upgrade --namespace ${CHART_NAMESPACE} ${CHART_NAME} ${CHART_DIR_PATH}/.
 
 

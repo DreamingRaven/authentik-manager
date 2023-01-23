@@ -3,7 +3,7 @@ operator:
   deployment:
     imagePullPolicy: Always
     image: "registry.gitlab.com/georgeraven/authentik-manager:latest"
-    name: operator
+    name: authentik-manager
     replicas: 3
     env: [] # statically defined environment variables can be as many as desired
     # - name: AUTHENTIK_LISTERN__HTTP
@@ -17,25 +17,25 @@ operator:
   - key: type
     value: auth
   - key: app
-    value: operator
+    value: authentik-manager
   serviceAccount:
     enabled: true
-    name: operator
+    name: authentik-manager
     generate: true
   clusterRole:
     enabled: true
-    name: operator
+    name: authentik-manager
     generate: true
   clusterRoleBinding:
     enabled: true
-    name: operator
+    name: authentik-manager
     generate: true
   role:
     enabled: true
-    name: operator
+    name: authentik-manager
     generate: true
   roleBinding:
     enabled: true
-    name: operator
+    name: authentik-manager
     generate: true
 

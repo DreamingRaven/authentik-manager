@@ -21,6 +21,7 @@ spec:
         {{ .key }}: {{ .value }}
         {{- end }}
     spec:
+      serviceAccountName: {{ .Values.operator.serviceAccount.name }}
       containers:
         - name: operator
           image: {{ .Values.operator.deployment.image | quote }}
