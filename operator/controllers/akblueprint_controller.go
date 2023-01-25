@@ -3,7 +3,9 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"os"
 
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -28,6 +30,16 @@ type AkBlueprintReconciler struct {
 
 func (r *AkBlueprintReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	l := log.FromContext(ctx)
+
+	ns := os.Getenv("AUTHENTIK_MANAGER_NAMESPACE")
+	if ns == "" {
+		ns = "default"
+	}
+	wn := os.Getenv("AUTHENTIK_WORKER_NAME")
+	if wn == "" {
+		wn = "authentik-worker"
+	}
+
 	// blank crd struct to populate
 	crd := &ssov1alpha1.AkBlueprint{}
 	// populating blank crd struct
@@ -47,34 +59,75 @@ func (r *AkBlueprintReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return ctrl.Result{}, err
 	}
 
-	name := fmt.Sprintf("%v-%v", crd.Namespace, crd.Name)
-	found := &corev1.ConfigMap{}
-	err = r.Get(ctx, types.NamespacedName{Name: name, Namespace: crd.Namespace}, found)
-	desire := r.configForBlueprint(crd, name)
-
+	// configmap name is a composite of the namespace the blueprint is from and the blueprint name itself with a bp suffix
+	name := fmt.Sprintf("bp-%v-%v", crd.Namespace, crd.Name)
+	// fetch from kubeapi the current state of the configmap
+	cm := &corev1.ConfigMap{}
+	err = r.Get(ctx, types.NamespacedName{Name: name, Namespace: ns}, cm)
+	// create an object that is what we would like the config map to be
+	cmWant := r.configForBlueprint(crd, name, ns)
+	// check that the configmap is what we expected and no errors
 	if err != nil && errors.IsNotFound(err) {
-		l.Info(fmt.Sprintf("AkBlueprint's configmap `%v` not found in namespace `%v` but desired, reconciling", name, crd.Namespace))
-		r.Create(ctx, desire)
-		l.Info(fmt.Sprintf("AkBlueprint's configmap `%v` successfully created  in `%v`", name, crd.Namespace))
+		// configmap was not found rety and notify the user
+		l.Info(fmt.Sprintf("AkBlueprint's configmap `%v` not found in namespace `%v` but desired, reconciling", cmWant.Name, cmWant.Namespace))
+		r.Create(ctx, cmWant)
+		l.Info(fmt.Sprintf("AkBlueprint's configmap `%v` successfully created  in `%v`", cmWant.Name, cmWant.Namespace))
 		return ctrl.Result{Requeue: true}, nil
 	} else if err != nil {
+		// something went wrong with fetching the config map could be fatal
 		l.Error(err, "Failed to get ConfigMap", name, "in", crd.Namespace)
 		return ctrl.Result{}, err
 	}
+	//TODO: check configmap matches what we want it to be
 
-	// check configmap still matches our crd
+	// get authentik worker deployment by name
+	dep := &appsv1.Deployment{}
+	depWant := types.NamespacedName{
+		Namespace: ns,
+		Name:      wn,
+	}
+	err = r.Get(ctx, depWant, dep)
 
-	// attatch configmap to deployment if not already by name
+	if err != nil && errors.IsNotFound(err) {
+		// if deployment cannot be found
+		l.Error(err, fmt.Sprintf("Authentik worker deployment `%v` not found in namespace `%v` but required, retrying", depWant.Name, depWant.Namespace))
+		return ctrl.Result{Requeue: true}, nil
+	} else if err != nil {
+		// if there was some failure in searching for deployment
+		l.Error(err, "Failed to get Authentik worker deployment", name, "in", crd.Namespace)
+		return ctrl.Result{}, err
+	}
+	// first check if volume is already present
+	// https://github.com/kubernetes/api/blob/master/core/v1/types.go#L36
+	volWant := &corev1.Volume{
+		Name: name,
+	}
+	// volWant := &corev1.ConfigMapVolumeSource{
+	// 	Name: name,
+	// 	// Items: []corev1.KeyToPath,
+	// }
+	fmt.Println(volWant)
+	for i, vol := range dep.Spec.Template.Spec.Volumes {
+		l.Info(fmt.Sprintf("volume: %v: %T", i, vol))
+		if vol.Name == name {
+			l.Info(fmt.Sprintf("existing blueprint volume: %v: %T found validating", vol, vol))
+			// return ctrl.Result{}, nil
+		}
+	}
+	// volume was not found so create it and requeue
+	// TODO: ensure deployment matches what we want with volume + mount of prior configmap
+
+	// fmt.Print(dep.Spec.Template.Spec.Volumes)
 
 	return ctrl.Result{}, nil
 }
 
-func (r *AkBlueprintReconciler) configForBlueprint(crd *ssov1alpha1.AkBlueprint, name string) *corev1.ConfigMap {
+func (r *AkBlueprintReconciler) configForBlueprint(crd *ssov1alpha1.AkBlueprint, name string, namespace string) *corev1.ConfigMap {
 	cm := corev1.ConfigMap{
 		// Metadata
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
-			Namespace: crd.Namespace,
+			Namespace: namespace,
 		},
 	}
 	// set that we are controlling this resource

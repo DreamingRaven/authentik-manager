@@ -32,6 +32,13 @@ spec:
               containerPort: {{ .containerPort }}
             {{- end }}
           env:
+            # lets the manager know which namespace is the authentication core namespace
+            # which may not actually be the same one it is in
+            - name: AUTHENTIK_MANAGER_NAMESPACE
+              value: {{ .Release.Namespace }}
+            #TODO template worker name
+            - name: AUTHENTIK_WORKER_NAME
+              value: authentik-worker
             # additional static deployment env variables
             {{- range .Values.operator.deployment.env }}
             - name: {{ .name | quote }}

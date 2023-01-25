@@ -31,5 +31,6 @@ dependencies:
   version: "12.1.2"
   repository: "https://charts.bitnami.com/bitnami"
 - name: authentik-manager
+  condition: operator.enabled
   version: "0.1.0"
   repository: "file://../operator"
