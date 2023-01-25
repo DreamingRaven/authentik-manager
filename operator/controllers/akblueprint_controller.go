@@ -99,9 +99,7 @@ func (r *AkBlueprintReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	}
 	// first check if volume is already present
 	// https://github.com/kubernetes/api/blob/master/core/v1/types.go#L36
-	volWant := &corev1.Volume{
-		Name: name,
-	}
+	volWant := r.volumeForConfig(cm)
 	// volWant := &corev1.ConfigMapVolumeSource{
 	// 	Name: name,
 	// 	// Items: []corev1.KeyToPath,
@@ -120,6 +118,21 @@ func (r *AkBlueprintReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	// fmt.Print(dep.Spec.Template.Spec.Volumes)
 
 	return ctrl.Result{}, nil
+}
+
+func (r *AkBlueprintReconciler) volumeForConfig(crd *corev1.ConfigMap) *corev1.Volume {
+	k2p := make([]corev1.KeyToPath, 1)
+	k2p[0] = corev1.KeyToPath{}
+	volSpec := &corev1.ConfigMapVolumeSource{
+		Items: k2p,
+	}
+	vol := corev1.Volume{
+		Name: crd.Name,
+		VolumeSource: corev1.VolumeSource{
+			ConfigMap: volSpec,
+		},
+	}
+	return &vol
 }
 
 func (r *AkBlueprintReconciler) configForBlueprint(crd *ssov1alpha1.AkBlueprint, name string, namespace string) *corev1.ConfigMap {
