@@ -9,7 +9,7 @@ metadata:
     app.kubernetes.io/created-by: operator
   name: akblueprint-sample
 spec:
-  file: operator/blueprint-sample.yml
+  file: /blueprints/operator/blueprint-sample.yml
   blueprint: |-
     version: 1
     metadata:

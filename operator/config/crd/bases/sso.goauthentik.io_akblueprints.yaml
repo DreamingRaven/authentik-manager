@@ -36,7 +36,8 @@ spec:
             description: AkBlueprintSpec defines the desired state of AkBlueprint
             properties:
               blueprint:
-                description: Blueprint is the blueprint file contents
+                description: Blueprint is the blueprint file contents must be an absolute
+                  path
                 type: string
               file:
                 description: File is the name of the file for the blueprint, it can

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -61,11 +62,14 @@ func (r *AkBlueprintReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 
 	// configmap name is a composite of the namespace the blueprint is from and the blueprint name itself with a bp suffix
 	name := fmt.Sprintf("bp-%v-%v", crd.Namespace, crd.Name)
+	// create an object that is what we would like the config map to be
+	cmWant, err := r.configForBlueprint(crd, name, ns)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
 	// fetch from kubeapi the current state of the configmap
 	cm := &corev1.ConfigMap{}
 	err = r.Get(ctx, types.NamespacedName{Name: name, Namespace: ns}, cm)
-	// create an object that is what we would like the config map to be
-	cmWant := r.configForBlueprint(crd, name, ns)
 	// check that the configmap is what we expected and no errors
 	if err != nil && errors.IsNotFound(err) {
 		// configmap was not found rety and notify the user
@@ -99,7 +103,7 @@ func (r *AkBlueprintReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	}
 	// first check if volume is already present
 	// https://github.com/kubernetes/api/blob/master/core/v1/types.go#L36
-	volWant := r.volumeForConfig(cm)
+	volWant := r.volumeForConfig(cm, filepath.Base(filepath.Clean(crd.Spec.File)))
 	// volWant := &corev1.ConfigMapVolumeSource{
 	// 	Name: name,
 	// 	// Items: []corev1.KeyToPath,
@@ -120,9 +124,12 @@ func (r *AkBlueprintReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	return ctrl.Result{}, nil
 }
 
-func (r *AkBlueprintReconciler) volumeForConfig(crd *corev1.ConfigMap) *corev1.Volume {
+func (r *AkBlueprintReconciler) volumeForConfig(crd *corev1.ConfigMap, key string) *corev1.Volume {
 	k2p := make([]corev1.KeyToPath, 1)
-	k2p[0] = corev1.KeyToPath{}
+	k2p[0] = corev1.KeyToPath{
+		Key:  key,
+		Path: key,
+	}
 	volSpec := &corev1.ConfigMapVolumeSource{
 		Items: k2p,
 	}
@@ -135,17 +142,30 @@ func (r *AkBlueprintReconciler) volumeForConfig(crd *corev1.ConfigMap) *corev1.V
 	return &vol
 }
 
-func (r *AkBlueprintReconciler) configForBlueprint(crd *ssov1alpha1.AkBlueprint, name string, namespace string) *corev1.ConfigMap {
+func (r *AkBlueprintReconciler) configForBlueprint(crd *ssov1alpha1.AkBlueprint, name string, namespace string) (*corev1.ConfigMap, error) {
+	// create the map of key values for the data in configmap from blueprint contents
+	cleanFP := filepath.Clean(crd.Spec.File)
+	var dataMap = make(map[string]string)
+	// set the key to be the filename and extension from path
+	// set data to be the blueprint string
+	dataMap[filepath.Base(cleanFP)] = crd.Spec.Blueprint
+
+	// create annotation for destination path
+	var annMap = make(map[string]string)
+	annMap["sso.goauthentik/v1alpha1"] = filepath.Dir(cleanFP)
+
 	cm := corev1.ConfigMap{
 		// Metadata
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: namespace,
+			Name:        name,
+			Namespace:   namespace,
+			Annotations: annMap,
 		},
+		Data: dataMap,
 	}
 	// set that we are controlling this resource
 	ctrl.SetControllerReference(crd, &cm, r.Scheme)
-	return &cm
+	return &cm, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.

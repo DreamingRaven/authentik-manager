@@ -32,7 +32,7 @@ type AkBlueprintSpec struct {
 	// File is the name of the file for the blueprint, it can also be a relative path
 	File string `json:"file,omitempty"`
 
-	// Blueprint is the blueprint file contents
+	// Blueprint is the blueprint file contents must be an absolute path
 	Blueprint string `json:"blueprint,omitempty"`
 }
 
