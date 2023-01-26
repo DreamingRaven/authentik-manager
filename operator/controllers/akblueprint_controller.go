@@ -82,7 +82,13 @@ func (r *AkBlueprintReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		l.Error(err, "Failed to get ConfigMap", name, "in", crd.Namespace)
 		return ctrl.Result{}, err
 	}
-	//TODO: check configmap matches what we want it to be
+	//check configmap matches what we want it to be by updating it
+	r.Update(ctx, cmWant)
+	if err != nil {
+		// something went wrong with updating the deployment
+		l.Error(err, fmt.Sprintf("Failed to update configmap %v in %v", cmWant.Name, cmWant.Namespace))
+		return ctrl.Result{}, err
+	}
 
 	// get authentik worker deployment by name
 	dep := &appsv1.Deployment{}
@@ -113,13 +119,14 @@ func (r *AkBlueprintReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	volIsFound := false
 	for i, vol := range dep.Spec.Template.Spec.Volumes {
 		// l.Info(fmt.Sprintf("volume: %v: %T", i, vol))
-		if vol.Name == name {
+		if vol.Name == cmWant.Name {
 			l.Info(fmt.Sprintf("existing blueprint volume: %v: %T found", vol, vol))
 			depWant.Spec.Template.Spec.Volumes[i] = *volWant
 			volIsFound = true
 		}
 	}
 	if volIsFound == false {
+		l.Info(fmt.Sprintf("Volume for configmap not found creating"))
 		depWant.Spec.Template.Spec.Volumes = append(depWant.Spec.Template.Spec.Volumes, *volWant)
 	}
 
@@ -134,7 +141,7 @@ func (r *AkBlueprintReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 			}
 		}
 		if mountIsFound == false {
-			l.Info(fmt.Sprintf("VolumeMount not found creating for container %v (%v)", i, cont.Name))
+			l.Info(fmt.Sprintf("VolumeMount for volume not found creating, cont:%v (%v)", i, cont.Name))
 			depWant.Spec.Template.Spec.Containers[i].VolumeMounts = append(depWant.Spec.Template.Spec.Containers[i].VolumeMounts, *mountWant)
 		}
 	}
@@ -182,8 +189,6 @@ func (r *AkBlueprintReconciler) volumeForConfig(crd *corev1.ConfigMap, key strin
 			ConfigMap: volSpec,
 		},
 	}
-	// mar, _ := json.Marshal(vol)
-	// fmt.Println(string(mar))
 	return &vol
 }
 
