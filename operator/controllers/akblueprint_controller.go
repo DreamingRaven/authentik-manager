@@ -123,7 +123,7 @@ func (r *AkBlueprintReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		depWant.Spec.Template.Spec.Volumes = append(depWant.Spec.Template.Spec.Volumes, *volWant)
 	}
 
-	mountWant := r.mountForVolume(volWant, filepath.Base(filepath.Clean(crd.Spec.File)))
+	mountWant := r.mountForVolume(volWant, filepath.Dir(filepath.Clean(crd.Spec.File)))
 	mountIsFound := false
 	for i, cont := range dep.Spec.Template.Spec.Containers {
 		for j, mount := range cont.VolumeMounts {
@@ -140,7 +140,12 @@ func (r *AkBlueprintReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	}
 
 	// ctrl.SetControllerReference(crd, &depWant, r.Scheme)
-	// r.Patch(ctx, &depWant)
+	err = r.Update(ctx, &depWant)
+	if err != nil {
+		// something went wrong with updating the deployment
+		l.Error(err, fmt.Sprintf("Failed to update deployment %v in %v", dep.Name, dep.Namespace))
+		return ctrl.Result{}, err
+	}
 
 	// mar, _ := json.Marshal(depWant)
 	// l.Info(fmt.Sprintf("%v", string(mar)))
@@ -166,6 +171,9 @@ func (r *AkBlueprintReconciler) volumeForConfig(crd *corev1.ConfigMap, key strin
 		Path: key,
 	}
 	volSpec := &corev1.ConfigMapVolumeSource{
+		LocalObjectReference: corev1.LocalObjectReference{
+			Name: crd.Name,
+		},
 		Items: k2p,
 	}
 	vol := corev1.Volume{
