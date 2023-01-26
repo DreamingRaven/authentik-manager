@@ -39,3 +39,21 @@ Manually Running the Operator
 .. code-block::
 
    make run
+
+Environment Variables
+---------------------
+
+It is necessary to give the controller some environment variables. These environment variables help the controller look in the right place, and behave in the correct way.
+
+.. list-yable:: Environment Variables
+   :header-rows: 1
+
+   * - ENV_VARIABLE
+     - required?
+     - function
+   * - AUTHENTIK_MANAGER_NAMESPACE
+     - recommended
+     - Identifies the namespace that authentik manager uses as it base. This should also be the same namespace that authentik-workers are in.
+   * - AUTHENTIK_WORKER_NAME
+     - recommended
+     - Identifies the deployment name that authentik-workers can be found, in the AUTHENTIK_MANAGER_NAMESPACE.
