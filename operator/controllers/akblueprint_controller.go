@@ -86,40 +86,64 @@ func (r *AkBlueprintReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 
 	// get authentik worker deployment by name
 	dep := &appsv1.Deployment{}
-	depWant := types.NamespacedName{
+	// instantiating minimal namespacedname to use in searching the kubeapi for the deployment
+	depSearch := types.NamespacedName{
 		Namespace: ns,
 		Name:      wn,
 	}
-	err = r.Get(ctx, depWant, dep)
+	err = r.Get(ctx, depSearch, dep)
 
 	if err != nil && errors.IsNotFound(err) {
 		// if deployment cannot be found
-		l.Error(err, fmt.Sprintf("Authentik worker deployment `%v` not found in namespace `%v` but required, retrying", depWant.Name, depWant.Namespace))
+		l.Error(err, fmt.Sprintf("Authentik worker deployment `%v` not found in namespace `%v` but required, retrying", depSearch.Name, depSearch.Namespace))
 		return ctrl.Result{Requeue: true}, nil
 	} else if err != nil {
 		// if there was some failure in searching for deployment
-		l.Error(err, "Failed to get Authentik worker deployment", name, "in", crd.Namespace)
+		l.Error(err, "Failed to get Authentik worker deployment", depSearch.Name, "in", depSearch.Namespace)
 		return ctrl.Result{}, err
 	}
+	// create a copy of the spec for us to modify with what we want it to be
+	depWant := *dep
+	depWant.Namespace = ns
+	depWant.Name = wn
+
 	// first check if volume is already present
 	// https://github.com/kubernetes/api/blob/master/core/v1/types.go#L36
 	volWant := r.volumeForConfig(cm, filepath.Base(filepath.Clean(crd.Spec.File)))
-	// volWant := &corev1.ConfigMapVolumeSource{
-	// 	Name: name,
-	// 	// Items: []corev1.KeyToPath,
-	// }
-	fmt.Println(volWant)
+	volIsFound := false
 	for i, vol := range dep.Spec.Template.Spec.Volumes {
-		l.Info(fmt.Sprintf("volume: %v: %T", i, vol))
+		// l.Info(fmt.Sprintf("volume: %v: %T", i, vol))
 		if vol.Name == name {
-			l.Info(fmt.Sprintf("existing blueprint volume: %v: %T found validating", vol, vol))
-			// return ctrl.Result{}, nil
+			l.Info(fmt.Sprintf("existing blueprint volume: %v: %T found", vol, vol))
+			depWant.Spec.Template.Spec.Volumes[i] = *volWant
+			volIsFound = true
 		}
 	}
-	// volume was not found so create it and requeue
-	// TODO: ensure deployment matches what we want with volume + mount of prior configmap
+	if volIsFound == false {
+		depWant.Spec.Template.Spec.Volumes = append(depWant.Spec.Template.Spec.Volumes, *volWant)
+	}
 
-	// fmt.Print(dep.Spec.Template.Spec.Volumes)
+	mountWant := r.mountForVolume(volWant, filepath.Base(filepath.Clean(crd.Spec.File)))
+	mountIsFound := false
+	for i, cont := range dep.Spec.Template.Spec.Containers {
+		for j, mount := range cont.VolumeMounts {
+			if mount.Name == mountWant.Name {
+				l.Info(fmt.Sprintf("VolumeMount found container: %v (%v), volMount: %v %+v", i, cont.Name, j, mount))
+				depWant.Spec.Template.Spec.Containers[i].VolumeMounts[j] = *mountWant
+				mountIsFound = true
+			}
+		}
+		if mountIsFound == false {
+			l.Info(fmt.Sprintf("VolumeMount not found creating for container %v (%v)", i, cont.Name))
+			depWant.Spec.Template.Spec.Containers[i].VolumeMounts = append(depWant.Spec.Template.Spec.Containers[i].VolumeMounts, *mountWant)
+		}
+	}
+
+	// ctrl.SetControllerReference(crd, &depWant, r.Scheme)
+	// r.Patch(ctx, &depWant)
+
+	// mar, _ := json.Marshal(depWant)
+	// l.Info(fmt.Sprintf("%v", string(mar)))
 
 	return ctrl.Result{}, nil
 }
