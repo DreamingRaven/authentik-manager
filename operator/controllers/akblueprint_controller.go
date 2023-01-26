@@ -124,6 +124,17 @@ func (r *AkBlueprintReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	return ctrl.Result{}, nil
 }
 
+// mountForVolume creates a volumeMount inside a pod from a Volume specification which was generated from a configmap which was generated froma blueprint. This takes the volume and gives back a volume mount for this volume.
+func (r *AkBlueprintReconciler) mountForVolume(crd *corev1.Volume, basePath string) *corev1.VolumeMount {
+	volMount := corev1.VolumeMount{
+		Name:      crd.Name,
+		MountPath: filepath.Join(basePath, crd.VolumeSource.ConfigMap.Items[0].Path),
+		SubPath:   crd.VolumeSource.ConfigMap.Items[0].Path,
+	}
+	return &volMount
+}
+
+// volumeForConfig creates a Volume to be added to add to the array of volums that holds a desired configmap which itself is generated from a blueprint. This takes the blueprint-configmap and the key to use inside the configmap to create the volume.
 func (r *AkBlueprintReconciler) volumeForConfig(crd *corev1.ConfigMap, key string) *corev1.Volume {
 	k2p := make([]corev1.KeyToPath, 1)
 	k2p[0] = corev1.KeyToPath{
@@ -139,9 +150,12 @@ func (r *AkBlueprintReconciler) volumeForConfig(crd *corev1.ConfigMap, key strin
 			ConfigMap: volSpec,
 		},
 	}
+	// mar, _ := json.Marshal(vol)
+	// fmt.Println(string(mar))
 	return &vol
 }
 
+// configForBlueprint generates a configmap spec from a given blueprint that contains the blueprint data as a kube-native configmap to mount into our deployment later.
 func (r *AkBlueprintReconciler) configForBlueprint(crd *ssov1alpha1.AkBlueprint, name string, namespace string) (*corev1.ConfigMap, error) {
 	// create the map of key values for the data in configmap from blueprint contents
 	cleanFP := filepath.Clean(crd.Spec.File)
