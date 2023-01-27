@@ -66,6 +66,12 @@ install: # login.lock
 	# kubectl get -n ${CHART_NAMESPACE} secret regcred --output="jsonpath={.data.\.dockerconfigjson}" | base64 --decode
 	helm install --namespace ${CHART_NAMESPACE} ${CHART_NAME} ${CHART_DIR_PATH}/.
 
+.PHONY: forward
+forward:
+	kubectl wait --timeout=600s --for=condition=Available=True -n ${CHART_NAMESPACE} deployment authentik-worker
+	xdg-open "https://localhost:${FORWARD_PORT}/if/flow/initial-setup/" &
+	kubectl port-forward svc/authentik-server -n ${CHART_NAMESPACE} ${FORWARD_PORT}:443
+
 .PHONY: users
 users:
 	@echo "Admin pass in secret:"
