@@ -81,7 +81,7 @@ TODO: note that an ingress resource must exist that points to authentik for ever
 PGAdmin
 -------
 
-To access pgadmin use the following commands while replacing ${CHART_NAMESPACE} with whatever namespace you have installed this chart to and ${FORWARD_PORT} to whichever port on your local machine you want it to be available from.
+To access pgadmin use the following commands while replacing CHART_NAMESPACE with whatever namespace you have installed this chart to and FORWARD_PORT to whichever port on your local machine you want it to be available from.
 
 .. code-block:: bash
 
@@ -96,10 +96,10 @@ To access pgadmin use the following commands while replacing ${CHART_NAMESPACE} 
 
 Once logged in you can add the postgres service running in the cluster:
 
-- host: ${CHART_NAMESPACE}-pgsql-hl
+- host: ``${CHART_NAMESPACE}-pgsql-hl``
 - port: 5432
 - username: postgres
-- password: $(kubectl -n ${CHART_NAMESPACE} get secret auth -o jsonpath="{.data.postgresPassword}" | base64 -d)
+- password: ``$(kubectl -n ${CHART_NAMESPACE} get secret auth -o jsonpath="{.data.postgresPassword}" | base64 -d)``
 
 Upgrade
 +++++++
