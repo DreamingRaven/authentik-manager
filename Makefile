@@ -7,6 +7,11 @@ DOCKER_AUTH_FILE="${HOME}/.docker/config.json"
 # https://docs.podman.io/en/latest/markdown/podman-login.1.html#authfile-path
 REGISTRY_AUTH_FILE=${DOCKER_AUTH_FILE}
 
+# Docs arguments
+TAG=akm/docs
+CONTAINER_NAME=authentik-manager-docs
+DOCS_DOCKERFILE=Dockerfile
+
 .PHONY: all
 all: lint minikube install ingress
 
@@ -69,8 +74,15 @@ install: # login.lock
 .PHONY: forward
 forward:
 	kubectl wait --timeout=600s --for=condition=Available=True -n ${CHART_NAMESPACE} deployment authentik-worker
-	xdg-open "https://localhost:${FORWARD_PORT}/if/flow/initial-setup/" &
-	kubectl port-forward svc/authentik-server -n ${CHART_NAMESPACE} ${FORWARD_PORT}:443
+	xdg-open "https://example.com:${FORWARD_PORT}/if/flow/initial-setup/" &
+	kubectl port-forward svc/authentik-server -n ${CHART_NAMESPACE} ${FORWARD_PORT}:443 &
+	sudo socat TCP-LISTEN:443,fork TCP:127.0.0.1:${FORWARD_PORT}
+
+.PHONY: proxy
+proxy:
+	minikube -n ingress-nginx service ingress-nginx-controller --url
+	sudo socat TCP-LISTEN:443,fork TCP:192.168.49.2:30312
+
 
 .PHONY: users
 users:
@@ -131,3 +143,19 @@ clean:
 .PHONY: stuck
 stuck:
 	kubectl api-resources --verbs=list --namespaced -o name | xargs -n 1 kubectl get --show-kind --ignore-not-found -n ${CHART_NAMESPACE}
+
+.PHONY: docs
+docs: doc-build doc-test doc-run
+
+.PHONY: doc-build
+doc-build:
+	sudo podman build -t ${TAG} -f ${DOCS_DOCKERFILE} .
+
+.PHONY: doc-test
+doc-test:
+	cd docs/server && go test -short $(go list ./... | grep -v /vendor/)
+
+.PHONY: doc-run
+doc-run: doc-build
+	xdg-open "http://127.0.0.1:8080" &
+	sudo podman run -p 127.0.0.1:8080:8080 -it ${TAG}

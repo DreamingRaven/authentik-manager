@@ -1,3 +1,4 @@
 charts/**/charts
 **Chart.lock
 **.key
+**build

@@ -1,0 +1,80 @@
+.. _docker: https://www.docker.com/
+.. |docker| replace:: Docker
+
+.. _docker-compose: https://docs.docker.com/compose/
+.. |docker-compose| replace:: Docker-Compose
+
+.. _bash shell: https://en.wikipedia.org/wiki/Bash_%28Unix_shell%29
+.. |bash shell| replace:: Bash shell
+
+.. _manifest: https://kubernetes.io/docs/reference/kubectl/cheatsheet/#creating-objects
+.. |manifest| replace:: Manifest
+
+.. _helm: https://helm.sh/
+.. |helm| replace:: Helm
+
+.. _k8s: https://kubernetes.io
+.. |k8s| replace:: Kubernetes
+
+.. _cncf: https://kubernetes.io
+.. |cncf| replace:: CNCF
+
+.. _rtd: https://readthedocs.org/
+.. |rtd| replace:: RTD
+
+.. _git: https://en.wikipedia.org/wiki/Git
+.. |git| replace:: Git
+
+.. _github: https://github.com/
+.. |github| replace:: GitHub
+
+.. _gitlab: https://gitlab.com/
+.. |gitlab| replace:: GitLab
+
+.. _cicd: https://about.gitlab.com/topics/ci-cd/
+.. |cicd| replace:: CI/CD pipeline
+
+.. _eks: https://aws.amazon.com/eks/
+.. |eks| replace:: EKS
+
+.. _cni: https://kubernetes.io/docs/concepts/extend-kubernetes/compute-storage-net/network-plugins/
+.. |cni| replace:: CNI
+
+.. _calico: https://projectcalico.docs.tigera.io/about/about-calico
+.. |calico| replace:: Calico
+
+.. _workflow: https://docs.github.com/en/github-ae@latest/actions/using-workflows/about-workflows
+.. |workflow| replace:: Workflow
+
+.. |username| replace:: ``username``
+.. |group| replace:: ``group``
+.. |csr| replace:: ``csr``
+
+.. |section_artifacts| replace:: :ref:`section_artifacts`
+
+.. _authelia: https://www.authelia.com/
+.. |authelia| replace:: Authelia
+
+.. _openldap: https://www.openldap.org/
+.. |openldap| replace:: OpenLDAP
+
+.. _ldap: https://en.wikipedia.org/wiki/Lightweight_Directory_Access_Protocol
+.. |ldap| replace:: LDAP
+
+.. _redis: https://redis.io/
+.. |redis| replace:: Redis
+
+.. _postgres: https://www.postgresql.org/
+.. |postgres| replace:: PostgreSQL
+
+.. _smtp: https://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol
+.. |smtp| replace:: SMTP
+
+.. _bitnami: https://bitnami.com/
+.. |bitnami| replace:: Bitnami
+
+.. _sealed: https://github.com/bitnami-labs/sealed-secrets
+.. |sealed| replace:: Sealed Secrets
+
+.. _secret: https://kubernetes.io/docs/concepts/configuration/secret/
+.. |secret| replace:: Secret
