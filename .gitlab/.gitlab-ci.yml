@@ -184,8 +184,7 @@ pages:
       -p ${CI_REGISTRY_PASSWORD}
   script:
     - export DOCKER_TAG="$(echo ${CI_REGISTRY}/${CI_PROJECT_PATH}:latest | tr "[:upper:]" "[:lower:]")"
-    - docker pull ${DOCKER_TAG}
-    - docker rm -f ${CONTAINER_NAME} || echo "skipped container:'${CONTAINER_NAME}' removal"
+    - docker build -t ${CONTAINER_NAME} -f Dockerfile
     - docker run -d --name ${CONTAINER_NAME} --entrypoint /bin/sleep ${DOCKER_TAG} 20
     - docker cp ${CONTAINER_NAME}:/app/static ${PAGES_DIR}
     - docker rm -f ${CONTAINER_NAME} || echo "all good"
