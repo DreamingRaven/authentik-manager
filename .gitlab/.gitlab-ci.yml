@@ -185,7 +185,7 @@ pages:
   script:
     - export DOCKER_TAG="$(echo ${CI_REGISTRY}/${CI_PROJECT_PATH}:latest | tr "[:upper:]" "[:lower:]")"
     - docker build -t ${CONTAINER_NAME} -f Dockerfile .
-    - docker run -d --entrypoint sleep ${CONTAINER_NAME} 20
+    - docker run --name ${CONTAINER_NAME} -d --entrypoint sleep ${CONTAINER_NAME} 20
     - docker cp ${CONTAINER_NAME}:/app/static ${PAGES_DIR}
     - docker rm -f ${CONTAINER_NAME} || echo "all good"
     # display URL of pages
