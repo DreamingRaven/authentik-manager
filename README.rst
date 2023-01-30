@@ -133,3 +133,10 @@ To see all current CRDs the current specification can be found in the ``operator
 Please also be aware only AkBlueprint is semi-complete. AkBlueprint will back almost all other CRDs as a low level interface, while the other CRDs will deploy much higher level concepts that require blueprints to exist.
 
 For more operator specific details please see the ``operator`` directory README.
+
+Documentation
++++++++++++++
+
+WIP!
+
+https://georgeraven.gitlab.io/authentik-manager/
