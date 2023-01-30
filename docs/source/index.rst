@@ -9,3 +9,5 @@ Authentik-Manager Documentation
   :numbered:
 
   license
+  intro
+  glossary
