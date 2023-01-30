@@ -10,12 +10,6 @@
 .. _manifest: https://kubernetes.io/docs/reference/kubectl/cheatsheet/#creating-objects
 .. |manifest| replace:: Manifest
 
-.. _helm: https://helm.sh/
-.. |helm| replace:: Helm
-
-.. _k8s: https://kubernetes.io
-.. |k8s| replace:: Kubernetes
-
 .. _cncf: https://kubernetes.io
 .. |cncf| replace:: CNCF
 
@@ -50,13 +44,8 @@
 .. |group| replace:: ``group``
 .. |csr| replace:: ``csr``
 
-.. |section_artifacts| replace:: :ref:`section_artifacts`
-
 .. _authelia: https://www.authelia.com/
 .. |authelia| replace:: Authelia
-
-.. _authentik: https://goauthentik.io/
-.. |authentik| replace:: authentik
 
 .. _openldap: https://www.openldap.org/
 .. |openldap| replace:: OpenLDAP
@@ -82,14 +71,10 @@
 .. _secret: https://kubernetes.io/docs/concepts/configuration/secret/
 .. |secret| replace:: Secret
 
-.. _operator: https://kubernetes.io/docs/concepts/extend-kubernetes/operator/
-.. |operator| replace:: operator
-
-.. _controller: https://kubernetes.io/docs/concepts/architecture/controller/
-.. |controller| replace:: controller
-
-.. _crd: https://kubernetes.io/docs/tasks/extend-kubernetes/custom-resources/custom-resource-definitions/
-.. |crd| replace:: CRD
-
-.. _gitops: https://about.gitlab.com/topics/gitops/
-.. |gitops| replace:: GitOps
+.. |authentik| replace:: :term:`authentik`
+.. |helm| replace:: :term:`Helm`
+.. |k8s| replace:: :term:`Kubernetes`
+.. |controller| replace:: :term:`controller`
+.. |crd| replace:: :term:`CRD`
+.. |operator| replace:: :term:`operator`
+.. |gitops| replace:: :term:`GitOps`
