@@ -35,7 +35,7 @@ A helpful list of terms and definitions, potentially along with external resourc
 
       https://kubernetes.io/docs/concepts/architecture/controller/
 
-  |k8s|
+  Kubernetes
     An open-source platform for automating the deployment, scaling, and management of containerized applications. It provides a declarative way to manage resources in a cluster and offers features such as service discovery, scaling, and self-healing for high availability. Kubernetes runs in a cloud-agnostic environment and supports a wide range of deployment options.
 
     :see-also:
