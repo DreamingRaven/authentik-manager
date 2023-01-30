@@ -1,0 +1,15 @@
+You have created an authentik instance that:
+
+- Uses `{{ .Values.global.base }}` as its base domain
+- Listens to the domain `{{ .Values.global.full }}`
+{{- if .Values.smtp.enabled }}
+- Connects to SMTP at `{{ .Values.smtp.host}}:{{ .Values.smtp.port}}` as `{{ .Values.smtp.username }}`
+{{- end }}
+{{- if .Values.secret.generate }}
+- Generates a new secret in the `{{ .Release.Namespace }}` namespace called '{{ .Values.secret.name }}'
+{{- else }}
+- Watches for a secret in the `{{ .Release.Namespace }}` namespace called '{{ .Values.secret.name }}'
+{{- end }}
+{{- if .Values.operator.enabled }}
+- Also creates and integrates the authentik-manager operator in the `{{ .Release.Namespace }}` namespace
+{{- end }}

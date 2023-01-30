@@ -1,7 +1,7 @@
 CHART_DIR_PATH="charts/auth"
 CHART_NAME="auth"
 CHART_NAMESPACE="auth"
-FORWARD_PORT="8079"
+FORWARD_PORT=8079
 PRIVATE_REGISTRY="registry.gitlab.com"
 DOCKER_AUTH_FILE="${HOME}/.docker/config.json"
 # https://docs.podman.io/en/latest/markdown/podman-login.1.html#authfile-path
@@ -74,14 +74,27 @@ install: # login.lock
 .PHONY: forward
 forward:
 	kubectl wait --timeout=600s --for=condition=Available=True -n ${CHART_NAMESPACE} deployment authentik-worker
-	xdg-open "https://example.com:${FORWARD_PORT}/if/flow/initial-setup/" &
-	kubectl port-forward svc/authentik-server -n ${CHART_NAMESPACE} ${FORWARD_PORT}:443 &
-	sudo socat TCP-LISTEN:443,fork TCP:127.0.0.1:${FORWARD_PORT}
+	kubectl wait --timeout=600s --for=condition=Available=True -n ${CHART_NAMESPACE} deployment authentik-server
+	@echo NOTE: the full domain is the .global.domain.full value in the auth chart that you probably set to something else
+	@echo Please ensure you have added the full domain to authentik as the following line in your /etc/hosts file:
+	@echo
+	@echo ...
+	@echo 127.0.0.1	auth.example.org
+	@echo ...
+	@echo
+	@echo Please run in a new terminal:
+	@echo
+	@echo sudo socat TCP-LISTEN:443,fork TCP:127.0.0.1:${FORWARD_PORT}
+	@echo xdg-open "https://auth.example.org:${FORWARD_PORT}/if/flow/initial-setup/"
+	@echo
+	kubectl port-forward svc/authentik-server -n ${CHART_NAMESPACE} ${FORWARD_PORT}:443
 
 .PHONY: proxy
 proxy:
+	kubectl wait --timeout=600s --for=condition=Available=True -n ${CHART_NAMESPACE} deployment authentik-worker
+	kubectl wait --timeout=600s --for=condition=Available=True -n ${CHART_NAMESPACE} deployment authentik-server
 	minikube -n ingress-nginx service ingress-nginx-controller --url
-	sudo socat TCP-LISTEN:443,fork TCP:192.168.49.2:30312
+	#sudo socat TCP-LISTEN:443,fork TCP:192.168.49.2:30312
 
 
 .PHONY: users
