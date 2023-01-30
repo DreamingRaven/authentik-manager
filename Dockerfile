@@ -39,7 +39,7 @@ ARG EXPOSE_PORT_PROTOCOL
 COPY --from=gopiler ${PKG_DIR}/build ${PKG_DIR}
 COPY --from=docpiler ${PKG_DIR}/${DOC_DIR}/build/html ${PKG_DIR}/static
 COPY --from=gopiler ${PKG_DIR}/static ${PKG_DIR}/static
-RUN apk add shadow tree && \
+RUN apk add shadow tree coreutils bash && \
     chmod 544 ${PKG_DIR}/server.go && \
     useradd ${USERNAME} && \
     chown -R ${USERNAME}:${USERNAME} ${PKG_DIR}
