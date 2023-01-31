@@ -145,7 +145,7 @@ WIP!
   :alt: Documentation Pipeline Status (Default Branch)
 
 .. list-table::
-    :widths: 25 25 30
+    :widths: 25 30
     :header-rows: 1
 
     * - Version
