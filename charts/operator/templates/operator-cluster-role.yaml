@@ -17,6 +17,18 @@ rules:
   - watch
   - update
   - patch
+# List configmaps to locate are necessary apparently
+# TODO: check why operator-SDK insists on this permission
+- apiGroups:
+  # the api group that the CRD belongs to for ingress
+  - ""
+  resources:
+  # the necessary ingress to modify with forward auth etc
+  - configmaps
+  verbs:
+  - list
+  - watch
+  - get
 # See and update all of our own operator specific CRDs that arent namespace bound
 - apiGroups:
   # our apiGroup
