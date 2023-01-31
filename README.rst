@@ -140,9 +140,9 @@ Documentation
 
 WIP!
 
-.. |pages-default| image:: https://gitlab.com/%{project_path}/badges/%{default_branch}/pipeline.svg
+.. |pages-default| image:: https://gitlab.com/GeorgeRaven/authentik-manager/badges/master/pipeline.svg
   :target: https://georgeraven.gitlab.io/authentik-manager/
-  :alt: Documentation Pipeline Status (Default Branch)
+  :alt: Documentation status (master branch)
 
 .. list-table::
     :widths: 25 30
@@ -150,5 +150,5 @@ WIP!
 
     * - Version
       - Badge to Documentation
-    * - HEAD
+    * - master
       - |pages-default|
