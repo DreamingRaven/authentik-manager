@@ -19,9 +19,6 @@ Contents
   :numbered:
 
   license
-  install
-  usage
+  basics
   operator
-  upgrade
-  uninstall
   glossary

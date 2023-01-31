@@ -26,7 +26,7 @@ else:
 
 # -- Project information -----------------------------------------------------
 
-project = 'Authentik-Manager Documentation'
+project = 'Authentik-Manager'
 copyright = '2023, George Onoufriou'
 author = 'George Onoufriou'
 master_doc = 'index'

@@ -7,6 +7,16 @@ Now that the chart is installed it will do... Nothing. Unless your ingress contr
 
 Each ingress resource is configured individually to listen to authentik but not authentiks own ingress resource. Please add the following annotations to your ingress-nginx ingress resource to have it listen to authentik. Note that you must point the auth-url to an outpost that knows of the ingress host.
 
+.. code-block:: yaml
+
+   #Additional annotations necessary to have authentik be an authentication middleware on the nginx proxy.
+   
+   annotations:
+      nginx.ingress.kubernetes.io/auth-url: http://{ OUTPOST SERVICE}.{ OUTPOST NAMESPACE }.svc.cluster.local:9000/outpost.goauthentik.io/auth/nginx
+      nginx.ingress.kubernetes.io/auth-signin: https://{ INGRESS HOST OF YOUR APP }/outpost.goauthentik.io/start?rd=$escaped_request_uri
+      nginx.ingress.kubernetes.io/auth-response-headers: Set-Cookie,X-authentik-username,X-authentik-groups,X-authentik-email,X-authentik-name,X-authentik-uid
+      nginx.ingress.kubernetes.io/auth-snippet: proxy_set_header X-Forwarded-Host $http_host;
+
 PGAdmin
 -------
 
