@@ -7,6 +7,7 @@ Authentik-Manager is a custom authentik-helm chart with an additional operator. 
 
 Please note this is still heavily a work in progress, that has only recently started. If you like living life on the edge welcome, otherwise good news on progress should come soon.
 
+
 Installation
 ++++++++++++
 
@@ -139,4 +140,15 @@ Documentation
 
 WIP!
 
-https://georgeraven.gitlab.io/authentik-manager/
+.. |pages-default| image:: https://gitlab.com/%{project_path}/badges/%{default_branch}/pipeline.svg
+  :target: https://georgeraven.gitlab.io/authentik-manager/
+  :alt: Documentation Pipeline Status (Default Branch)
+
+.. list-table::
+    :widths: 25 25 30
+    :header-rows: 1
+
+    * - Version
+      - Badge to Documentation
+    * - HEAD
+      - |pages-default|
