@@ -41,12 +41,10 @@ func (r *AkBlueprintReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		wn = "authentik-worker"
 	}
 
-	// blank crd struct to populate
+	// GET CRD
 	crd := &ssov1alpha1.AkBlueprint{}
-	// populating blank crd struct
 	err := r.Get(ctx, req.NamespacedName, crd)
 
-	// check if crd has been fetched correctly and early exit if not, or reque if there was some sort of request failure
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Request object not found, could have been deleted after reconcile request.
@@ -60,43 +58,49 @@ func (r *AkBlueprintReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return ctrl.Result{}, err
 	}
 
-	// configmap name is a composite of the namespace the blueprint is from and the blueprint name itself with a bp suffix
 	name := fmt.Sprintf("bp-%v-%v", crd.Namespace, crd.Name)
-	// create an object that is what we would like the config map to be
 	cmWant, err := r.configForBlueprint(crd, name, ns)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
-	// fetch from kubeapi the current state of the configmap
+
+	// GET CONFIGMAP
 	cm := &corev1.ConfigMap{}
+	l.Info(fmt.Sprintf("Searching for configmap %v in %v", name, ns))
 	err = r.Get(ctx, types.NamespacedName{Name: name, Namespace: ns}, cm)
-	// check that the configmap is what we expected and no errors
+
 	if err != nil && errors.IsNotFound(err) {
 		// configmap was not found rety and notify the user
-		l.Info(fmt.Sprintf("AkBlueprint's configmap `%v` not found in namespace `%v` but desired, reconciling", cmWant.Name, cmWant.Namespace))
-		r.Create(ctx, cmWant)
-		l.Info(fmt.Sprintf("AkBlueprint's configmap `%v` successfully created  in `%v`", cmWant.Name, cmWant.Namespace))
+		l.Info(fmt.Sprintf("Not found. Creating configmap `%v` in `%v`", name, ns))
+		err = r.Create(ctx, cmWant)
+		if err != nil {
+			l.Error(err, fmt.Sprintf("Failed to create configmap `%v` in `%v`", name, ns))
+			return ctrl.Result{}, err
+		}
 		return ctrl.Result{Requeue: true}, nil
 	} else if err != nil {
 		// something went wrong with fetching the config map could be fatal
-		l.Error(err, "Failed to get ConfigMap", name, "in", crd.Namespace)
+		l.Error(err, fmt.Sprintf("Failed to get configmap `%v` in `%v`", name, ns))
 		return ctrl.Result{}, err
 	}
+	l.Info(fmt.Sprintf("Found configmap %v in %v", name, ns))
+
 	//check configmap matches what we want it to be by updating it
 	r.Update(ctx, cmWant)
 	if err != nil {
 		// something went wrong with updating the deployment
-		l.Error(err, fmt.Sprintf("Failed to update configmap %v in %v", cmWant.Name, cmWant.Namespace))
+		l.Error(err, fmt.Sprintf("Failed to update configmap %v in %v", name, ns))
 		return ctrl.Result{}, err
 	}
 
-	// get authentik worker deployment by name
+	// GET DEPLOYMENT
 	dep := &appsv1.Deployment{}
 	// instantiating minimal namespacedname to use in searching the kubeapi for the deployment
 	depSearch := types.NamespacedName{
 		Namespace: ns,
 		Name:      wn,
 	}
+	l.Info(fmt.Sprintf("Searching for deployment %v in %v", depSearch.Name, depSearch.Namespace))
 	err = r.Get(ctx, depSearch, dep)
 
 	if err != nil && errors.IsNotFound(err) {
@@ -108,28 +112,31 @@ func (r *AkBlueprintReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		l.Error(err, "Failed to get Authentik worker deployment", depSearch.Name, "in", depSearch.Namespace)
 		return ctrl.Result{}, err
 	}
+	l.Info(fmt.Sprintf("Found deployment %v in %v", depSearch.Name, depSearch.Namespace))
+
 	// create a copy of the spec for us to modify with what we want it to be
 	depWant := *dep
 	depWant.Namespace = ns
 	depWant.Name = wn
 
+	// GET VOLUME
 	// first check if volume is already present
 	// https://github.com/kubernetes/api/blob/master/core/v1/types.go#L36
 	volWant := r.volumeForConfig(cm, filepath.Base(filepath.Clean(crd.Spec.File)))
 	volIsFound := false
 	for i, vol := range dep.Spec.Template.Spec.Volumes {
-		// l.Info(fmt.Sprintf("volume: %v: %T", i, vol))
 		if vol.Name == cmWant.Name {
-			l.Info(fmt.Sprintf("existing blueprint volume: %v: %T found", vol, vol))
+			l.Info(fmt.Sprintf("Existing blueprint volume: %v: %T found reconciling", vol, vol))
 			depWant.Spec.Template.Spec.Volumes[i] = *volWant
 			volIsFound = true
 		}
 	}
 	if volIsFound == false {
-		l.Info(fmt.Sprintf("Volume for configmap not found creating"))
+		l.Info(fmt.Sprintf("Volume for configmap not found appending"))
 		depWant.Spec.Template.Spec.Volumes = append(depWant.Spec.Template.Spec.Volumes, *volWant)
 	}
 
+	// GET MOUNT
 	mountWant := r.mountForVolume(volWant, filepath.Dir(filepath.Clean(crd.Spec.File)))
 	mountIsFound := false
 	for i, cont := range dep.Spec.Template.Spec.Containers {
@@ -146,6 +153,7 @@ func (r *AkBlueprintReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		}
 	}
 
+	// APPLY
 	// ctrl.SetControllerReference(crd, &depWant, r.Scheme)
 	err = r.Update(ctx, &depWant)
 	if err != nil {
@@ -153,9 +161,6 @@ func (r *AkBlueprintReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		l.Error(err, fmt.Sprintf("Failed to update deployment %v in %v", dep.Name, dep.Namespace))
 		return ctrl.Result{}, err
 	}
-
-	// mar, _ := json.Marshal(depWant)
-	// l.Info(fmt.Sprintf("%v", string(mar)))
 
 	return ctrl.Result{}, nil
 }
