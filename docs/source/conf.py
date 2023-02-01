@@ -34,7 +34,8 @@ master_doc = 'index'
 # The full version, including alpha/beta/rc tags
 # autogenerating version number in Archlinux style
 # git describe --long | sed 's/\([^-]*-\)g/r\1/;s/-/./g
-git_describe = subprocess.Popen(["git", "describe", "--long"],
+# git_describe = subprocess.Popen(["git", "describe", "--long"],
+git_describe = subprocess.Popen(["git", "describe", "--abbrev=0"],
                                 stdout=subprocess.PIPE)
 version_num = subprocess.check_output(["sed", r"s/\([^-]*-\)g/r\1/;s/-/./g"],
                                       stdin=git_describe.stdout)
