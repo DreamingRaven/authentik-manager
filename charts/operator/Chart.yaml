@@ -1,5 +1,5 @@
 apiVersion: v2
-name: authentik-manager
+name: akm
 description: 
 
 # A chart can be either an 'application' or a 'library' chart.
@@ -24,6 +24,6 @@ version: 0.1.0
 appVersion: "2022.11.3"
 
 dependencies:
-- name: authentik-manager-crds
+- name: akm-crds
   version: "0.1.0"
   repository: "file://../crds"

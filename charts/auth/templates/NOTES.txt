@@ -10,6 +10,6 @@ You have created an authentik instance that:
 {{- else }}
 - Watches for a secret in the `{{ .Release.Namespace }}` namespace called '{{ .Values.secret.name }}'
 {{- end }}
-{{- if .Values.operator.enabled }}
+{{- if .Values.akm.operator.enabled }}
 - Also creates and integrates the authentik-manager operator in the `{{ .Release.Namespace }}` namespace
 {{- end }}
