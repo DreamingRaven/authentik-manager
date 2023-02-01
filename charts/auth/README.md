@@ -8,7 +8,7 @@ Unofficial Authentik single-sign-on chart
 
 | Repository | Name | Version |
 |------------|------|---------|
-| file://../operator | authentik-manager | 0.1.0 |
+| file://../operator | akm | 0.1.0 |
 | https://charts.bitnami.com/bitnami | postgresql | 12.1.2 |
 | https://charts.bitnami.com/bitnami | redis | 17.3.11 |
 
@@ -16,6 +16,7 @@ Unofficial Authentik single-sign-on chart
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| akm.operator.enabled | bool | `true` |  |
 | authentik.blueprints | list | `[]` |  |
 | authentik.config.file | string | `"configuration.yml"` |  |
 | authentik.config.generate | bool | `true` |  |
@@ -148,32 +149,6 @@ Unofficial Authentik single-sign-on chart
 | ldap.secrets.lookup[1].key | string | `"ldapAdminPassword"` |  |
 | ldap.secrets.secretName | string | `"auth"` |  |
 | ldap.service.name | string | `"ldap"` |  |
-| operator.clusterRole.enabled | bool | `true` |  |
-| operator.clusterRole.generate | bool | `true` |  |
-| operator.clusterRole.name | string | `"operator"` |  |
-| operator.clusterRoleBinding.enabled | bool | `true` |  |
-| operator.clusterRoleBinding.generate | bool | `true` |  |
-| operator.clusterRoleBinding.name | string | `"operator"` |  |
-| operator.deployment.env | list | `[]` |  |
-| operator.deployment.image | string | `"registry.gitlab.com/georgeraven/authentik-manager:latest"` |  |
-| operator.deployment.imagePullPolicy | string | `"Always"` |  |
-| operator.deployment.name | string | `"operator"` |  |
-| operator.deployment.replicas | int | `3` |  |
-| operator.enabled | bool | `false` |  |
-| operator.labels[0].key | string | `"type"` |  |
-| operator.labels[0].value | string | `"auth"` |  |
-| operator.labels[1].key | string | `"app"` |  |
-| operator.labels[1].value | string | `"operator"` |  |
-| operator.ports | list | `[]` |  |
-| operator.role.enabled | bool | `true` |  |
-| operator.role.generate | bool | `true` |  |
-| operator.role.name | string | `"operator"` |  |
-| operator.roleBinding.enabled | bool | `true` |  |
-| operator.roleBinding.generate | bool | `true` |  |
-| operator.roleBinding.name | string | `"operator"` |  |
-| operator.serviceAccount.enabled | bool | `true` |  |
-| operator.serviceAccount.generate | bool | `true` |  |
-| operator.serviceAccount.name | string | `"operator"` |  |
 | pgadmin.deployment.env[0].name | string | `"PGADMIN_LISTEN_PORT"` |  |
 | pgadmin.deployment.env[0].value | int | `80` |  |
 | pgadmin.deployment.image | string | `"docker.io/dpage/pgadmin4:latest"` |  |
