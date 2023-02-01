@@ -20,11 +20,17 @@ rules:
 # List configmaps to locate are necessary apparently
 # TODO: check why operator-SDK insists on this permission
 - apiGroups:
-  # the api group that the CRD belongs to for ingress
   - ""
   resources:
-  # the necessary ingress to modify with forward auth etc
   - configmaps
+  verbs:
+  - list
+  - watch
+  - get
+- apiGroups:
+  - "apps"
+  resources:
+  - deployments
   verbs:
   - list
   - watch

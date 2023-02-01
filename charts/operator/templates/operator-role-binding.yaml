@@ -7,6 +7,6 @@ subjects:
   name: {{ .Values.operator.serviceAccount.name }}
   namespace: {{ .Release.Namespace }}
 roleRef:
-  kind: ClusterRole
+  kind: Role
   name: {{ .Values.operator.role.name }}
   apiGroup: ""

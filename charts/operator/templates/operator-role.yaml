@@ -16,6 +16,7 @@ rules:
   - "cronjobs"
   - "ingress"
   - "networkpolicies"
+  - "deployments"
   verbs:
   - "*"
 - apiGroups:
