@@ -1,5 +1,7 @@
 .. include:: /substitutions
 
+.. _section_install:
+
 Install
 =======
 
@@ -10,7 +12,7 @@ Adding our helm chart package registry on gitlab.
 
 .. code-block:: bash
 
-   helm repo add authentik-manager-registry https://gitlab.com/api/v4/projects/41806964/packages/helm/stable
+   helm repo add akm-registry https://gitlab.com/api/v4/projects/41806964/packages/helm/stable
 
 .. note::
 
@@ -20,31 +22,36 @@ Ensuring our local index of the helm chart is up to date.
 
 .. code-block:: bash
 
-   helm repo update authentik-manager-registry
+   helm repo update akm-registry
 
 Searching our package registry for available versions.
 
 .. code-block:: bash
 
-   helm search repo authentik-manager-registry/authentik --versions
+   helm search repo akm-registry/ak --versions
 
 Installing a specific version of the helm chart we would like from our search previously.
 
 .. code-block:: bash
 
-   helm install authentik-manager-registry/authentik --version MAJOR.MINOR.PATCH
+   helm install akm-registry/ak --version MAJOR.MINOR.PATCH
 
-#OR just install the latest out local index knows about.
+#OR just install the latest our local index knows about.
 
 .. code-block:: bash
 
-   helm install authentik-manager-registry/authentik
+   helm install akm-registry/ak
 
 Now lets install everything properly, in its own namespace and with your own values. This command does not enable SMTP as this gives you a simple proof of concept install. Once you are sure this is what you are after you will then need to replace the SMTP details with some of your own beyond this short guide. Most settings you might want to change are at the top of the values.yaml file. The big exception being images and tags.
 
 .. code-block:: bash
 
-   helm install authentik authentik-manager-registry/authentik --version MAJOR.MINOR.PATCH --create-namespace --namespace auth --set global.domain.base=example.org --set global.domain.full=auth.example.org --set global.admin.name=somebody --set global.admin.email=somebody@pm.me
+   helm install authentik akm-registry/ak --version MAJOR.MINOR.PATCH --create-namespace --namespace auth --set global.domain.base=example.org --set global.domain.full=auth.example.org --set global.admin.name=somebody --set global.admin.email=somebody@pm.me
+
+
+.. note::
+
+   The flags for global.admin.name and global.admin.email do not currently propagate through so you wont be able to log in with these credentials. Instead please initialise your user manually for now. See |section_usage| for how, there is inbuilt functionality for this by authentik so its just a matter of visiting a URL and giving it the details once.
 
 .. warning::
 

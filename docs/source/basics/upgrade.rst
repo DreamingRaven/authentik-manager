@@ -1,3 +1,7 @@
+.. include:: /substitutions
+
+.. _section_upgrade:
+
 Upgrade
 =======
 

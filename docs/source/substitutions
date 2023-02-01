@@ -78,3 +78,9 @@
 .. |crd| replace:: :term:`CRD`
 .. |operator| replace:: :term:`operator`
 .. |gitops| replace:: :term:`GitOps`
+
+.. |section_basics| replace:: :ref:`section_basics`
+.. |section_install| replace:: :ref:`section_install`
+.. |section_uninstall| replace:: :ref:`section_uninstall`
+.. |section_upgrade| replace:: :ref:`section_upgrade`
+.. |section_usage| replace:: :ref:`section_usage`
