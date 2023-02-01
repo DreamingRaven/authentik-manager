@@ -1,7 +1,7 @@
 You have created an authentik instance that:
 
-- Uses `{{ .Values.global.base }}` as its base domain
-- Listens to the domain `{{ .Values.global.full }}`
+- Uses `{{ .Values.global.domain.base }}` as its base domain
+- Listens to the domain `{{ .Values.global.domain.full }}`
 {{- if .Values.smtp.enabled }}
 - Connects to SMTP at `{{ .Values.smtp.host}}:{{ .Values.smtp.port}}` as `{{ .Values.smtp.username }}`
 {{- end }}
