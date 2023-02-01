@@ -139,6 +139,10 @@ uninstall:
 	helm uninstall --namespace ${CHART_NAMESPACE} ${CHART_NAME}
 	kubectl delete namespace ${CHART_NAMESPACE}
 
+.PHONY: getBlueprint
+getBlueprint:
+	kubectl exec --namespace ${CHART_NAMESPACE} -it deployment/authentik-worker -- ak export_blueprint > export_blueprint.yaml
+
 .PHONY: perm
 perm:
 	sudo usermod -aG docker ${USER}
