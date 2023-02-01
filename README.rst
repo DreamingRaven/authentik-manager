@@ -1,6 +1,12 @@
 Authentik Manager
 =================
 
+.. |akm_ver| image:: https://img.shields.io/gitlab/v/tag/41806964?color=teal&label=AKM&sort=semver&style=for-the-badge
+  :target: https://gitlab.com/GeorgeRaven/authentik-manager
+  :alt: GitLab tag (latest by SemVer)
+
+|akm_ver|
+
 Authentik-Manager is a custom authentik-helm chart with an additional operator. The helm chart helps deploy the base authentik stack, and the operator with its additional CRDs makes it easier to declaratively define your authentik setup.
 
 Documentation Versions
