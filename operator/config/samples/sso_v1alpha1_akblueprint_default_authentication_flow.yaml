@@ -3,11 +3,11 @@ kind: AkBlueprint
 metadata:
   labels:
     app.kubernetes.io/name: akblueprint
-    app.kubernetes.io/instance: akblueprint-sample
+    app.kubernetes.io/instance: akblueprint-authentication-sample
     app.kubernetes.io/part-of: operator
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/created-by: operator
-  name: default-tenant
+  name: default-authentication-flow
 spec:
   # note: this will overwrite the default tenant by overwriting the existing blueprint file
   # please ensure this file is still correct. I dont imagine it will change frequently but 
@@ -25,12 +25,12 @@ spec:
         required: false
     - attrs:
         designation: authentication
-        # TODO: (USER) adjust the name, title, and slug to your brand
+        # TODO: (USER) adjust the name, title to match your branding
         name: login
         title: Welcome to akm!
         authentication: require_unauthenticated
       identifiers:
-        slug: login
+        slug: default-authentication-flow
       model: authentik_flows.flow
       id: flow
     - attrs:
