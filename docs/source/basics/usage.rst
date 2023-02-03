@@ -15,7 +15,7 @@ The path portion of the URL for the default user setup is ``/if/flow/initial-set
 
 While you may have set the domain to be ``auth.example.org`` this must actually resolve to the IP of the |k8s| cluster load balancer which is actually serving |authentik|. you can check this by using the ``nslookup`` tool :code:`nslookup auth.example.org` If you are developing locally the easiest way to do this is by changing your ``/etc/hosts`` file to include something like the following:
 
-.. code-block:: txt
+.. code-block::
 
    192.168.49.2 auth.example.org
 
