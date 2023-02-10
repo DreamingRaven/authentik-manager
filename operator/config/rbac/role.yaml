@@ -112,6 +112,32 @@ rules:
 - apiGroups:
   - sso.goauthentik.io
   resources:
+  - aks
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - sso.goauthentik.io
+  resources:
+  - aks/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - sso.goauthentik.io
+  resources:
+  - aks/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - sso.goauthentik.io
+  resources:
   - akservers
   verbs:
   - create

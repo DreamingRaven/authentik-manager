@@ -1,0 +1,48 @@
+apiVersion: sso.goauthentik.io/v1alpha1
+kind: Ak
+metadata:
+  labels:
+    app.kubernetes.io/name: ak
+    app.kubernetes.io/instance: ak-sample
+    app.kubernetes.io/part-of: operator
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: operator
+  name: ak-sample
+spec:
+  # NAMING
+  naming:
+    base: authentik
+    server: server
+    worker: worker
+  # DOMAIN
+  domain:
+    # 
+    base: example.org
+    # the full domain name including authentik subdomain 
+    full: auth.example.org
+  # SECRET
+  # k8s secret to use to pass sensitive data to all necessary pods
+  secret:
+    # the name of the secret in the same namespace as this resource
+    name: auth
+    # whethere or not to generate the secret for the user
+    generate: true
+  # SMTP
+  # if empty smtp is disabled, else will try to log in with SMTP credentials provided
+  smtp:
+    # username to log into smtp with
+    username: somebody@example.org
+    # SMTP port to attempt to connect to
+    port: 587
+    # the host to connect to that provides SMTP
+    host: smtp.gmail.com
+    # the email which should be the sender of notifications and resets
+    from: noreply@example.org
+    # the key to look up in the secret defined in .spec.secret.name
+    passKey: smtpPassword
+  # INGRESS
+  ingress:
+    enabled: true
+    tls:
+      enabled: true
+      issuer: letsencrypt-staging

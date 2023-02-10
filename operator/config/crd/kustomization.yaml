@@ -9,6 +9,7 @@ resources:
 - bases/sso.goauthentik.io_akworkers.yaml
 - bases/sso.goauthentik.io_akservers.yaml
 - bases/sso.goauthentik.io_akblueprints.yaml
+- bases/sso.goauthentik.io_aks.yaml
 #+kubebuilder:scaffold:crdkustomizeresource
 
 patchesStrategicMerge:
@@ -21,6 +22,7 @@ patchesStrategicMerge:
 #- patches/webhook_in_akworkers.yaml
 #- patches/webhook_in_akservers.yaml
 #- patches/webhook_in_akblueprints.yaml
+#- patches/webhook_in_aks.yaml
 #+kubebuilder:scaffold:crdkustomizewebhookpatch
 
 # [CERTMANAGER] To enable cert-manager, uncomment all the sections with [CERTMANAGER] prefix.
@@ -32,6 +34,7 @@ patchesStrategicMerge:
 #- patches/cainjection_in_akworkers.yaml
 #- patches/cainjection_in_akservers.yaml
 #- patches/cainjection_in_akblueprints.yaml
+#- patches/cainjection_in_aks.yaml
 #+kubebuilder:scaffold:crdkustomizecainjectionpatch
 
 # the following config is for teaching kustomize how to do kustomization for CRDs.
