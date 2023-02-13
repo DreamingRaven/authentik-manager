@@ -1,9 +1,16 @@
 {{- if .Values.authentik.enabled }}
+---
 {{- $akouter := . }}
 {{- $aktypes := list "server" "worker" }}
 {{- range $aktypes }}
 {{- $aktype := . }}
 {{- with $akouter }}
+{{- $existingDeployment := (lookup "apps/v1" "Deployment" (printf "%s" .Release.Namespace) (printf "%s-%s" .Values.authentik.deployment.name $aktype) )}}
+# {{ printf "%s-%s" .Values.authentik.deployment.name $aktype }}
+{{- if $existingDeployment }}
+# exists
+{{- end }}
+# existing deployment {{ $existingDeployment }}
 ---
 # {{ $aktype }}
 apiVersion: apps/v1
