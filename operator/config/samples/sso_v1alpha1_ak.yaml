@@ -9,6 +9,8 @@ metadata:
     app.kubernetes.io/created-by: operator
   name: ak-sample
 spec:
+  mode: tyranny
+  # mode: republic
   # NAMING
   naming:
     base: authentik

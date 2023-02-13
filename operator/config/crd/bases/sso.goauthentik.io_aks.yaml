@@ -58,6 +58,15 @@ spec:
                       authentiks ingress resources or not
                     type: boolean
                 type: object
+              mode:
+                default: tyranny
+                description: Mode specifies if the controller is going to make things
+                  happen one way or another or if it is going to try to cooperate
+                  with existing installations
+                enum:
+                - tyranny
+                - republic
+                type: string
               naming:
                 description: Naming is a struct that defines how the authentik resources
                   should be named

@@ -42,6 +42,11 @@ type AkSpec struct {
 
 	// Ingress contains settings for ingress route control
 	Ingress AkIngress `json:"ingress,omitempty"`
+
+	//+kubebuilder:validation:Enum="tyranny";"republic"
+	//+kubebuilder:default:=tyranny
+	// Mode specifies if the controller is going to make things happen one way or another or if it is going to try to cooperate with existing installations
+	Mode string `json:"mode,omitempty"`
 }
 
 type AkNaming struct {
