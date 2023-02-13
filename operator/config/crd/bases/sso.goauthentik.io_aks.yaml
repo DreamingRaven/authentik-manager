@@ -35,9 +35,86 @@ spec:
           spec:
             description: AkSpec defines the desired state of Ak
             properties:
-              foo:
-                description: Foo is an example field of Ak. Edit ak_types.go to remove/update
-                type: string
+              domain:
+                description: Domain is a struct that defines the domain authentik
+                  should operate within
+                properties:
+                  base:
+                    default: example.org
+                    description: Base is the root domain name e.g example.org
+                    type: string
+                  full:
+                    default: auth.example.org
+                    description: Full is the full domain name including subdomain
+                      which authentik should listen for
+                    type: string
+                type: object
+              ingress:
+                description: Ingress contains settings for ingress route control
+                properties:
+                  enabled:
+                    default: true
+                    description: Enabled dictates whether this controller should manage
+                      authentiks ingress resources or not
+                    type: boolean
+                type: object
+              naming:
+                description: Naming is a struct that defines how the authentik resources
+                  should be named
+                properties:
+                  base:
+                    default: authentik
+                    description: Base is the prefix name to use e.g authentik-server
+                      or something-server
+                    type: string
+                  server:
+                    default: server
+                    description: Server is the suffix name to append to the server
+                      specific deployment
+                    type: string
+                  worker:
+                    default: worker
+                    description: Worker is the suffix name to append to the celery
+                      specific deployment
+                    type: string
+                type: object
+              secret:
+                description: Secret is the definition of which secret to use and how
+                  to manage it
+                properties:
+                  generate:
+                    default: true
+                    description: Generate is a flag to tell the operator if it should
+                      manage its own secret
+                    type: boolean
+                  name:
+                    default: auth
+                    description: Name is the name of the secret to look for in the
+                      same namespace or to generate
+                    type: string
+                type: object
+              smtp:
+                description: Smtp controls how and where to connect to an SMTP server
+                  for authentik
+                properties:
+                  from:
+                    description: From who the emails sent via this SMTP email server
+                      should be from
+                    type: string
+                  host:
+                    description: Host to connect to
+                    type: string
+                  key:
+                    description: key the key to look up in the .spec.secret.name secret
+                    type: string
+                  port:
+                    description: Port on SMTP host to connect to
+                    type: integer
+                  username:
+                    description: Username the name which should be use to authenticate
+                      to the SMTP server
+                    type: string
+                type: object
             type: object
           status:
             description: AkStatus defines the observed state of Ak

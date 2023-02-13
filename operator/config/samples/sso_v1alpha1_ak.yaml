@@ -39,10 +39,10 @@ spec:
     # the email which should be the sender of notifications and resets
     from: noreply@example.org
     # the key to look up in the secret defined in .spec.secret.name
-    passKey: smtpPassword
+    key: smtpPassword
   # INGRESS
   ingress:
     enabled: true
-    tls:
-      enabled: true
-      issuer: letsencrypt-staging
+    # tls:
+    #   enabled: true
+    #   issuer: letsencrypt-staging
