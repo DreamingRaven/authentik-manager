@@ -43,10 +43,6 @@ type AkReconciler struct {
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
-// TODO(user): Modify the Reconcile function to compare the state specified by
-// the Ak object against the actual cluster state, and then
-// perform operations to make the cluster state reflect the state specified by
-// the user.
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.13.0/pkg/reconcile
@@ -84,13 +80,10 @@ func (r *AkReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Re
 	}
 
 	// TODO: at the moment we assume tyranny implement more harmonious republic
-	// TODO: populate values next once sub-resources are populated
 
 	// Generate, search, and update server resource from generic ak resource
 	server := &sso.AkServer{}
-	serverWant := &sso.AkServer{
-		Spec: sso.AkServerSpec{},
-	}
+	serverWant := r.genServer(crd)
 	serverWant.Namespace = crd.Namespace
 	serverWant.Name = fmt.Sprintf("%v-%v", crd.Spec.Naming.Base, crd.Spec.Naming.Server)
 	ctrl.SetControllerReference(crd, serverWant, r.Scheme)
@@ -121,9 +114,7 @@ func (r *AkReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Re
 
 	// Generate worker resource from generic ak resource
 	worker := &sso.AkWorker{}
-	workerWant := &sso.AkWorker{
-		Spec: sso.AkWorkerSpec{},
-	}
+	workerWant := r.genWorker(crd)
 	workerWant.Namespace = crd.Namespace
 	workerWant.Name = fmt.Sprintf("%v-%v", crd.Spec.Naming.Base, crd.Spec.Naming.Worker)
 	ctrl.SetControllerReference(crd, workerWant, r.Scheme)
@@ -155,11 +146,13 @@ func (r *AkReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Re
 	return ctrl.Result{}, nil
 }
 
-func (r *AkReconciler) genServer() *sso.AkServer {
+func (r *AkReconciler) genServer(crd *sso.Ak) *sso.AkServer {
+	// TODO: populate values next once sub-resources are populated
 	return &sso.AkServer{}
 }
 
-func (r *AkReconciler) genWorker() *sso.AkWorker {
+func (r *AkReconciler) genWorker(crd *sso.Ak) *sso.AkWorker {
+	// TODO: populate values next once sub-resources are populated
 	return &sso.AkWorker{}
 }
 
