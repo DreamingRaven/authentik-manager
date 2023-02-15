@@ -8,4 +8,5 @@ resources:
 # - sso_v1alpha1_akserver.yaml
 - sso_v1alpha1_akblueprint.yaml
 - sso_v1alpha1_akblueprint_default_tenant.yaml
+- sso_v1alpha1_ak.yaml
 #+kubebuilder:scaffold:manifestskustomizesamples

@@ -24,6 +24,8 @@ import (
 
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
+// +kubebuilder:validation:Required
+
 // AkBlueprintSpec defines the desired state of AkBlueprint
 type AkBlueprintSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
