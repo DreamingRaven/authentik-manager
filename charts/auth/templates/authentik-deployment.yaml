@@ -1,22 +1,22 @@
 {{- if .Values.authentik.enabled }}
----
 {{- $akouter := . }}
 {{- $aktypes := list "server" "worker" }}
 {{- range $aktypes }}
 {{- $aktype := . }}
 {{- with $akouter }}
-{{- $existingDeployment := (lookup "apps/v1" "Deployment" (printf "%s" .Release.Namespace) (printf "%s-%s" .Values.authentik.deployment.name $aktype) )}}
-# {{ printf "%s-%s" .Values.authentik.deployment.name $aktype }}
-{{- if $existingDeployment }}
-# exists
-{{- end }}
-# existing deployment {{ $existingDeployment }}
 ---
-# {{ $aktype }}
+{{- $dpnm := (printf "%s-%s" .Values.authentik.deployment.name $aktype) }}
+{{- $existingDeployment := (lookup "apps/v1" "Deployment" .Release.Namespace $dpnm) }}
+# tp: {{ $aktype }}
+# ns: {{ .Release.Namespace }}
+# nm: {{ $dpnm }}
+# dp: {{ toJson $existingDeployment }}
+{{- if $existingDeployment }}
+{{- end }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Values.authentik.deployment.name }}-{{ $aktype }}
+  name: {{ $dpnm }}
   labels:
     mode: {{ $aktype }}
     {{- range .Values.authentik.labels }}
@@ -86,6 +86,11 @@ spec:
             - name: {{ .env }}
               value: {{ printf "file://%s/%s" $.Values.authentik.secrets.basePath .file }}
             {{- end }}
+          {{- if $existingDeployment }}
+          # This is generated using the pre-existing deployments volumemounts so that
+          # the operator and any gitops do not conflict and try to over-reconcile each other
+          volumeMounts: {{ toJson (last $existingDeployment.spec.template.spec.containers).volumeMounts }}
+          {{- else }}
           volumeMounts:
           # config mount
           # authentik does not use a standard config so this does nothing
@@ -96,6 +101,12 @@ spec:
           - mountPath: {{ .Values.authentik.secrets.basePath | quote }}
             name: secrets
             readOnly: true
+          {{- end }}
+      {{- if $existingDeployment }}
+      # This is generated using the pre-existing deployments volumes so that
+      # the operator and any gitops do not conflict and try to over-reconcile each other
+      volumes: {{ toJson $existingDeployment.spec.template.spec.volumes }}
+      {{- else }}
       volumes:
       - name: config
         configMap:
@@ -117,6 +128,7 @@ spec:
           items:
           - key: {{ .configMap.key }}
             # path: {{ .dest }}
+      {{- end }}
       {{- end }}
       {{- end }}
 {{- end }}
