@@ -1,0 +1,81 @@
+apiVersion: sso.goauthentik.io/v1alpha1
+kind: AkBlueprint
+metadata:
+  labels:
+    app.kubernetes.io/name: akblueprint
+    app.kubernetes.io/instance: akblueprint-authentication-sample
+    app.kubernetes.io/part-of: operator
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: operator
+  name: default-authentication-flow
+spec:
+  # note: this will overwrite the default tenant by overwriting the existing blueprint file
+  # please ensure this file is still correct. I dont imagine it will change frequently but 
+  # just in case
+  file: /blueprints/default/10-flow-default-authentication-flow.yaml
+  blueprint: |-
+    version: 1
+    metadata:
+      name: Default - Authentication flow
+    entries:
+    - model: authentik_blueprints.metaapplyblueprint
+      attrs:
+        identifiers:
+          name: Default - Password change flow
+        required: false
+    - attrs:
+        designation: authentication
+        # TODO: (USER) adjust the name, title to match your branding
+        name: login
+        title: Welcome to akm!
+        authentication: require_unauthenticated
+      identifiers:
+        slug: default-authentication-flow
+      model: authentik_flows.flow
+      id: flow
+    - attrs:
+        backends:
+        - authentik.core.auth.InbuiltBackend
+        - authentik.sources.ldap.auth.LDAPBackend
+        - authentik.core.auth.TokenBackend
+        configure_flow: !Find [authentik_flows.flow, [slug, default-password-change]]
+      identifiers:
+        name: default-authentication-password
+      id: default-authentication-password
+      model: authentik_stages_password.passwordstage
+    - identifiers:
+        name: default-authentication-mfa-validation
+      id: default-authentication-mfa-validation
+      model: authentik_stages_authenticator_validate.authenticatorvalidatestage
+    - attrs:
+        user_fields:
+        - email
+        - username
+      identifiers:
+        name: default-authentication-identification
+      id: default-authentication-identification
+      model: authentik_stages_identification.identificationstage
+    - identifiers:
+        name: default-authentication-login
+      id: default-authentication-login
+      model: authentik_stages_user_login.userloginstage
+    - identifiers:
+        order: 10
+        stage: !KeyOf default-authentication-identification
+        target: !KeyOf flow
+      model: authentik_flows.flowstagebinding
+    - identifiers:
+        order: 20
+        stage: !KeyOf default-authentication-password
+        target: !KeyOf flow
+      model: authentik_flows.flowstagebinding
+    - identifiers:
+        order: 30
+        stage: !KeyOf default-authentication-mfa-validation
+        target: !KeyOf flow
+      model: authentik_flows.flowstagebinding
+    - identifiers:
+        order: 100
+        stage: !KeyOf default-authentication-login
+        target: !KeyOf flow
+      model: authentik_flows.flowstagebinding

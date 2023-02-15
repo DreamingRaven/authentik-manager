@@ -1,215 +1,31 @@
----
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  creationTimestamp: null
   name: manager-role
 rules:
+##
+## Base operator rules
+##
+# We need to get namespaces so the operator can read namespaces to ensure they exist
 - apiGroups:
-  - sso.goauthentik.io
+  - ""
   resources:
-  - akapplications
+  - namespaces
+  verbs:
+  - get
+# We need to manage Helm release secrets
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - "*"
+# We need to create events on CRs about things happening during reconciliation
+- apiGroups:
+  - ""
+  resources:
+  - events
   verbs:
   - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - sso.goauthentik.io
-  resources:
-  - akapplications/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - sso.goauthentik.io
-  resources:
-  - akapplications/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - sso.goauthentik.io
-  resources:
-  - akblueprints
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - sso.goauthentik.io
-  resources:
-  - akblueprints/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - sso.goauthentik.io
-  resources:
-  - akblueprints/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - sso.goauthentik.io
-  resources:
-  - akoutposts
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - sso.goauthentik.io
-  resources:
-  - akoutposts/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - sso.goauthentik.io
-  resources:
-  - akoutposts/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - sso.goauthentik.io
-  resources:
-  - akproviders
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - sso.goauthentik.io
-  resources:
-  - akproviders/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - sso.goauthentik.io
-  resources:
-  - akproviders/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - sso.goauthentik.io
-  resources:
-  - aks
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - sso.goauthentik.io
-  resources:
-  - aks/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - sso.goauthentik.io
-  resources:
-  - aks/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - sso.goauthentik.io
-  resources:
-  - akservers
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - sso.goauthentik.io
-  resources:
-  - akservers/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - sso.goauthentik.io
-  resources:
-  - akservers/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - sso.goauthentik.io
-  resources:
-  - akworkers
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - sso.goauthentik.io
-  resources:
-  - akworkers/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - sso.goauthentik.io
-  resources:
-  - akworkers/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - sso.goauthentik.io
-  resources:
-  - auths
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - sso.goauthentik.io
-  resources:
-  - auths/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - sso.goauthentik.io
-  resources:
-  - auths/status
-  verbs:
-  - get
-  - patch
-  - update
+
+#+kubebuilder:scaffold:rules

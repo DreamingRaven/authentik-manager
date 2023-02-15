@@ -2,39 +2,18 @@
 # since it depends on service name and namespace that are out of this kustomize package.
 # It should be run by config/default
 resources:
-- bases/sso.goauthentik.io_auths.yaml
-- bases/sso.goauthentik.io_akapplications.yaml
-- bases/sso.goauthentik.io_akoutposts.yaml
-- bases/sso.goauthentik.io_akproviders.yaml
-- bases/sso.goauthentik.io_akworkers.yaml
-- bases/sso.goauthentik.io_akservers.yaml
-- bases/sso.goauthentik.io_akblueprints.yaml
-- bases/sso.goauthentik.io_aks.yaml
+- bases/akm.goauthentik.io_akblueprints.yaml
 #+kubebuilder:scaffold:crdkustomizeresource
 
 patchesStrategicMerge:
 # [WEBHOOK] To enable webhook, uncomment all the sections with [WEBHOOK] prefix.
 # patches here are for enabling the conversion webhook for each CRD
-#- patches/webhook_in_auths.yaml
-#- patches/webhook_in_akapplications.yaml
-#- patches/webhook_in_akoutposts.yaml
-#- patches/webhook_in_akproviders.yaml
-#- patches/webhook_in_akworkers.yaml
-#- patches/webhook_in_akservers.yaml
 #- patches/webhook_in_akblueprints.yaml
-#- patches/webhook_in_aks.yaml
 #+kubebuilder:scaffold:crdkustomizewebhookpatch
 
 # [CERTMANAGER] To enable cert-manager, uncomment all the sections with [CERTMANAGER] prefix.
 # patches here are for enabling the CA injection for each CRD
-#- patches/cainjection_in_auths.yaml
-#- patches/cainjection_in_akapplications.yaml
-#- patches/cainjection_in_akoutposts.yaml
-#- patches/cainjection_in_akproviders.yaml
-#- patches/cainjection_in_akworkers.yaml
-#- patches/cainjection_in_akservers.yaml
 #- patches/cainjection_in_akblueprints.yaml
-#- patches/cainjection_in_aks.yaml
 #+kubebuilder:scaffold:crdkustomizecainjectionpatch
 
 # the following config is for teaching kustomize how to do kustomization for CRDs.

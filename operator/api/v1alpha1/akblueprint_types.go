@@ -1,19 +1,24 @@
+/*
+Copyright 2023 George Onoufriou.
+
+Licensed under the Open Software Licence, Version 3.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License in the project root (LICENSE) or at
+
+    https://opensource.org/license/osl-3-0-php/
+*/
+
 package v1alpha1
 
-// appsv1 "k8s.io/api/apps/v1"
-// batchv1 "k8s.io/api/batch/v1"
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
-
-// +kubebuilder:validation:Required
 
 // AkBlueprintSpec defines the desired state of AkBlueprint
 type AkBlueprintSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
 
 	// File is the name of the file for the blueprint, it can also be a relative path
 	File string `json:"file,omitempty"`

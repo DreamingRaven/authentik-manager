@@ -1,22 +1,16 @@
 /*
-Copyright 2023.
+Copyright 2023 George Onoufriou.
 
-Licensed under the Apache License, Version 2.0 (the "License");
+Licensed under the Open Software Licence, Version 3.0 (the "License");
 you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+You may obtain a copy of the License in the project root (LICENSE) or at
 
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
+    https://opensource.org/license/osl-3-0-php/
 */
 
-// Package v1alpha1 contains API Schema definitions for the sso v1alpha1 API group
+// Package v1alpha1 contains API Schema definitions for the akm v1alpha1 API group
 // +kubebuilder:object:generate=true
-// +groupName=sso.goauthentik.io
+// +groupName=akm.goauthentik.io
 package v1alpha1
 
 import (
@@ -26,7 +20,7 @@ import (
 
 var (
 	// GroupVersion is group version used to register these objects
-	GroupVersion = schema.GroupVersion{Group: "sso.goauthentik.io", Version: "v1alpha1"}
+	GroupVersion = schema.GroupVersion{Group: "akm.goauthentik.io", Version: "v1alpha1"}
 
 	// SchemeBuilder is used to add go types to the GroupVersionKind scheme
 	SchemeBuilder = &scheme.Builder{GroupVersion: GroupVersion}

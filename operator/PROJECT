@@ -1,6 +1,6 @@
 domain: goauthentik.io
 layout:
-- go.kubebuilder.io/v3
+- hybrid.helm.sdk.operatorframework.io/v1-alpha
 plugins:
   manifests.sdk.operatorframework.io/v2: {}
   scorecard.sdk.operatorframework.io/v2: {}
@@ -12,71 +12,8 @@ resources:
     namespaced: true
   controller: true
   domain: goauthentik.io
-  group: sso
-  kind: Auth
-  path: gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1
-  version: v1alpha1
-- api:
-    crdVersion: v1
-    namespaced: true
-  controller: true
-  domain: goauthentik.io
-  group: sso
-  kind: AkApplication
-  path: gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1
-  version: v1alpha1
-- api:
-    crdVersion: v1
-    namespaced: true
-  controller: true
-  domain: goauthentik.io
-  group: sso
-  kind: AkOutpost
-  path: gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1
-  version: v1alpha1
-- api:
-    crdVersion: v1
-    namespaced: true
-  controller: true
-  domain: goauthentik.io
-  group: sso
-  kind: AkProvider
-  path: gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1
-  version: v1alpha1
-- api:
-    crdVersion: v1
-    namespaced: true
-  controller: true
-  domain: goauthentik.io
-  group: sso
-  kind: AkWorker
-  path: gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1
-  version: v1alpha1
-- api:
-    crdVersion: v1
-    namespaced: true
-  controller: true
-  domain: goauthentik.io
-  group: sso
-  kind: AkServer
-  path: gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1
-  version: v1alpha1
-- api:
-    crdVersion: v1
-    namespaced: true
-  controller: true
-  domain: goauthentik.io
-  group: sso
+  group: akm
   kind: AkBlueprint
-  path: gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1
-  version: v1alpha1
-- api:
-    crdVersion: v1
-    namespaced: true
-  controller: true
-  domain: goauthentik.io
-  group: sso
-  kind: Ak
   path: gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1
   version: v1alpha1
 version: "3"
