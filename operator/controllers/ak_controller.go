@@ -84,6 +84,7 @@ func (r *AkReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Re
 	}
 
 	// TODO: at the moment we assume tyranny implement more harmonious republic
+	// TODO: populate values next once sub-resources are populated
 
 	// Generate, search, and update server resource from generic ak resource
 	server := &sso.AkServer{}
