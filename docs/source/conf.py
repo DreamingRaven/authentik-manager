@@ -16,7 +16,6 @@
 import subprocess
 import sys
 import os
-import sphinx_rtd_theme
 # check if building on read the docs
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 if on_rtd is True:
@@ -51,7 +50,7 @@ release = version_num
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    "sphinx_rtd_theme",
+    # "sphinx_rtd_theme",
     "sphinxarg.ext",
     "sphinx.ext.autodoc",
     # "sphinx.ext.mathbase"
@@ -71,7 +70,6 @@ exclude_patterns = []
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-# html_theme = "sphinx_rtd_theme"  # 'alabaster'
 # NOTE! UNDERSCORES not hyphens
 html_theme = "pydata_sphinx_theme"  # 'alabaster'
 
@@ -86,3 +84,10 @@ html_theme = "pydata_sphinx_theme"  # 'alabaster'
 #     "css/rtd_dark.css",
 # ]
 # html_logo = "fhez.svg"
+
+html_theme_options = {
+   "logo": {
+      "image_light": "img/akm-light.svg",
+      "image_dark": "img/akm-dark.svg",
+   }
+}
