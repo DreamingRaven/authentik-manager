@@ -109,8 +109,7 @@ test: manifests generate fmt vet envtest ## Run tests.
 ##@ Build
 .PHONY: run
 run: manifests generate fmt vet ## Run against the configured Kubernetes cluster in ~/.kube/config
-	helm-operator
-	$(HELM_OPERATOR) run
+	helm-operator run
 	
 .PHONY: docker-build
 docker-build: test ## Build docker image with the manager.
