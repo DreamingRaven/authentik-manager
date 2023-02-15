@@ -109,8 +109,9 @@ test: manifests generate fmt vet envtest ## Run tests.
 ##@ Build
 .PHONY: run
 run: manifests generate fmt vet ## Run against the configured Kubernetes cluster in ~/.kube/config
-	helm-operator run
-	
+	# helm-operator run
+	go run ./main.go
+
 .PHONY: docker-build
 docker-build: test ## Build docker image with the manager.
 	podman build -t ${IMG}
