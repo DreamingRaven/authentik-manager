@@ -5,14 +5,16 @@ import (
 	"fmt"
 	"os"
 
+	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	sso "gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1"
-	ssov1alpha1 "gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1"
 )
 
 // AkServerReconciler reconciles a AkServer object
@@ -54,14 +56,55 @@ func (r *AkServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 	l.Info(fmt.Sprintf("Found AkServer resource `%v` in `%v`.", crd.Name, crd.Namespace))
 
+	dep := &appsv1.Deployment{}
+	depWant := r.genDeploy(crd)
+	depWant.Namespace = crd.Namespace
+	depWant.Name = crd.Name
+	ctrl.SetControllerReference(crd, depWant, r.Scheme)
+	depSearch := types.NamespacedName{
+		Namespace: depWant.Namespace,
+		Name:      depWant.Name,
+	}
+	err = r.Get(ctx, depSearch, dep)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			err = r.Create(ctx, depWant)
+			if err != nil {
+				l.Error(err, fmt.Sprintf("Failed to create AkServer %v in %v", depWant.Name, depWant.Namespace))
+				return ctrl.Result{}, err
+			}
+		} else {
+			l.Error(err, "Failed to get AkServer. Likely fetch error. Retrying.")
+			return ctrl.Result{}, err
+		}
+	} else {
+		dep.Spec = depWant.Spec
+		err = r.Update(ctx, dep)
+		if err != nil {
+			l.Error(err, fmt.Sprintf("Failed to update AkServer %v in %v", depWant.Name, depWant.Namespace))
+			return ctrl.Result{}, err
+		}
+	}
 	// TODO(user): your logic here
 
 	return ctrl.Result{}, nil
 }
 
+// genDeploy generate an authentik server deployment from the CRD we are given.
+func (r *AkServerReconciler) genDeploy(crd *sso.AkServer) *appsv1.Deployment {
+	deploy := &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      crd.Name,
+			Namespace: crd.Namespace,
+		},
+		Spec: appsv1.DeploymentSpec{},
+	}
+	return deploy
+}
+
 // SetupWithManager sets up the controller with the Manager.
 func (r *AkServerReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&ssov1alpha1.AkServer{}).
+		For(&sso.AkServer{}).
 		Complete(r)
 }
