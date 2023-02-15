@@ -92,6 +92,7 @@ func (r *AkReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Re
 	}
 	serverWant.Namespace = crd.Namespace
 	serverWant.Name = fmt.Sprintf("%v-%v", crd.Spec.Naming.Base, crd.Spec.Naming.Server)
+	ctrl.SetControllerReference(crd, serverWant, r.Scheme)
 	serverSearch := types.NamespacedName{
 		Namespace: serverWant.Namespace,
 		Name:      serverWant.Name,
@@ -124,6 +125,7 @@ func (r *AkReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Re
 	}
 	workerWant.Namespace = crd.Namespace
 	workerWant.Name = fmt.Sprintf("%v-%v", crd.Spec.Naming.Base, crd.Spec.Naming.Worker)
+	ctrl.SetControllerReference(crd, workerWant, r.Scheme)
 	workerSearch := types.NamespacedName{
 		Namespace: workerWant.Namespace,
 		Name:      workerWant.Name,
