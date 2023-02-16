@@ -5,8 +5,26 @@
 Usage
 =====
 
+Now depending on your chosen installation, whether |operator| or raw |authentik| helm chart, please choose one of the following subsections :ref:`section_usage_akm`, or :ref:`section_usage_ak`.
+
+.. _section_usage_akm:
+
+Authentik-Manager Usage
+-----------------------
+
+By default AKM does nothing. You will just see the default AKM pods, as they do not have any instructions with anything to do yet.
+
+There are two types of things you will need to do. Tell AKM what sort of |authentik| instance you would like, and declare custom resources for any apps you would like to link |authentik| to.
+
+To do this we have various |crd|\ s. But the first one you should look at is called ``Ak``. A single |crd| of type ``Ak`` in whatever namespace the |operator| is watching, even if it is a mostly empty it is all that is needed to spin up an |authentik| instance with all of the |helm| defaults.
+
+.. _section_usage_ak:
+
+Authentik Usage
+---------------
+
 User creation
--------------
++++++++++++++
 
 If you do not have a user yet to log in with, you can create the first admin user manually, once.
 By default |authentik| has a flow to do this. To use a flow you must visit its URL.
@@ -33,7 +51,7 @@ Once you visit the page you will be walked through user creation via a set of te
 
 
 Ingress Forward Auth
---------------------
+++++++++++++++++++++
 
 Now that the chart is installed it will do... Nothing. Unless your ingress resource is configured to rely on |authentik| for authentication, everything in your cluster will not be affected.
 One of the more common ways to do this is via the forward auth header.
@@ -55,7 +73,7 @@ Each ingress resource is configured individually to listen to authentik but not 
       nginx.ingress.kubernetes.io/auth-snippet: proxy_set_header X-Forwarded-Host $http_host;
 
 PGAdmin
--------
++++++++
 
 To access pgadmin use the following commands while replacing CHART_NAMESPACE with whatever namespace you have installed this chart to and FORWARD_PORT to whichever port on your local machine you want it to be available from.
 
