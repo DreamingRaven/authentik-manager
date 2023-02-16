@@ -1,4 +1,4 @@
-apiVersion: sso.goauthentik.io/v1alpha1
+apiVersion: akm.goauthentik.io/v1alpha1
 kind: AkBlueprint
 metadata:
   labels:
