@@ -139,7 +139,6 @@ helm-chart-build:
   - export SRC_VER="$(cat ${CHARTS_DIR}/ak/values.yaml | grep -P -o '(?<=ghcr.io/goauthentik/server:).*(?=\")')"
   # gitlab trunicates to last 20 commits so if tag was older things will start breaking
   - git fetch --unshallow
-  - git fetch --tags
   - export HELM_VER="$(git describe --abbrev=0)" # helm does not like --long git tags
   - echo "src version ${SRC_VER}"
   - echo "helm version ${HELM_VER}"
