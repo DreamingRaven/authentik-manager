@@ -120,6 +120,10 @@ docker-build: test ## Build docker image with the manager.
 docker-push: ## Push docker image with the manager.
 	podman push ${IMG}
 
+.PHONY: docker-cross
+docker-cross:
+	sed -f cross.sed Dockerfile > Dockerfile.cross
+
 ##@ Deployment
 
 ifndef ignore-not-found
