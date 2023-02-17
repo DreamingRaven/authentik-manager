@@ -3,4 +3,5 @@
   version: v1alpha1
   kind: Ak
   chart: helm-charts/ak
+  # reconcilePeriod: 30s
 #+kubebuilder:scaffold:watch

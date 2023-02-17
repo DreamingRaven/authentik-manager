@@ -2,5 +2,6 @@ apiVersion: akm.goauthentik.io/v1alpha1
 kind: Ak
 metadata:
   name: ak-sample
-spec: {}
-  # Default values copied from <project_dir>/helm-charts/ak/values.yaml
+spec:
+  secret:
+    generate: false

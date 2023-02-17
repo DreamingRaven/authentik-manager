@@ -14,14 +14,104 @@ Authentik-Manager Usage
 
 By default AKM does nothing. You will just see the default AKM pods, as they do not have any instructions with anything to do yet.
 
-There are two types of things you will need to do. Tell AKM what sort of |authentik| instance you would like, and declare custom resources for any apps you would like to link |authentik| to.
+There are three things you will need to do.
 
-To do this we have various |crd|\ s. But the first one you should look at is called ``Ak``. A single |crd| of type ``Ak`` in whatever namespace the |operator| is watching, even if it is a mostly empty it is all that is needed to spin up an |authentik| instance with all of the |helm| defaults.
+- Generate a secret that will be used by the |authentik| stack AKM will generate for you.
+- Tell AKM what sort of |authentik| instance you would like using the Ak CRD.
+- Tell AKM what you want to connect to |authentik| using higher level CRDs (WIP).
+
+Declare a Secret
+++++++++++++++++
+
+.. note::
+
+   Ideally we would have generated this secret for you, but a limitation of the operator SDK with hybrid plugins are that helm controllers cannot use the lookup function for us to generate and persist passwords for you.
+
+Authentik, redis, and postgres all use passwords between each other. We need to define a secret with all the passwords they will need. It must be called ``auth`` be in whatever namespace AKM is in, and must have the keys as per the following example. Feel free to use this one that I generated for testing, but please change all these values in production to something different.
+
+.. code-block:: yaml
+   :caption: auth.yaml | auth secret with base64 encoded passwords
+
+   apiVersion: v1
+   kind: Secret
+   metadata:
+     name: auth
+     namespace: default
+   type: Opaque
+   data:
+     authDuoApiKey: UUVXUWhUSTA2MXVaWWVLMlhCbEkzVE5IZDdzcWlC
+     authJwtToken: WG5taGl6aFRvcWdqYlhkWXlxY2s4QXgzeGFBTUFh
+     authSessionEncryptionKey: MXNqZ0pwVWdkdXNKSXdnT3dqb0FtV3JkOVVzQ0hC
+     authStorageEncryptionKey: NmZ2a1VQVVZsVVFMY2NYVjRudU1nRjEyT21CaTl2
+     ldapAdminPassword: cUpLZ1RtQVNKaEhiRUhGT1NVY3FGM2NsaGhOcE9C
+     oidcHmacSecret: eG1sN2k0TEYxTk1sN3ZDOHhEYWh6U1VYaDZLTG1J
+     oidcPrivateKey: Mm5NVFNNYW4zSUEwcGU4UXd6Y3huQ3FZdGNFVUlw
+     pgAdminPassword: MVRaNm9iWEI4Sk50V0NHR1FCd3NNTjM1WjdPQ210
+     postgresPassword: TUl3SHNja1NxaENsaTBLQ0VtcTVSWkRsZDc0NHZQ
+     postgresReplicationPassword: cGczYXVSd2VhcnNSc3QwSVBNQmpCVUhMMFVaYVBz
+     postgresUserPassword: WHB4aFJXY0l3NnhiNUFLbzhuWjdCWnJvR0dpZTl3
+     redisPassword: dnZyNmtJTFkweEEwMVlidlZJajN6OXY2SmZPSENk
+     redisSentinelPassword: dVR3bTdZdE4ydjh5cm5EY2RteWNMb1lyZjNhaVRp
+     sessionSecret: cFN4U1lZQVlncG1JVmlPek9hTVJkdjJZaTVkQ21t
+     smtpPassword: WWl4N1BXQVZLQ1JvSjdaRzF6U2QxT3FBVWlGV1F6
+
+.. code-block:: bash
+   :caption: example generating a single base64 encoded secret
+
+   echo "someReallyLongRandomPassword" | base64
+
+Once you have auth.yaml from the above example and your own passwords you can install it using kubectl:
+
+.. code-block:: bash
+   :caption: installing auth.yaml
+
+   kubectl apply -f auth.yaml
+
+Declare an Ak CRD
++++++++++++++++++
+
+Now that the secret exists we can tell AKM to create an |authentik| instance for us using the Ak CRD. Some examples of the Ak CRD can be found in ``operator/config/samples/*_ak.yaml``.
+
+.. code-block:: yaml
+   :caption: ak-sample.yaml | The most basic Ak CRD
+
+   apiVersion: akm.goauthentik.io/v1alpha1
+   kind: Ak
+   metadata:
+     name: ak-sample
+     # make sure this namespace matches where AKM is installed
+     namespace: default
+   spec:
+     secret:
+       generate: false
+
+Then apply it with:
+
+.. code-block:: bash
+
+   kubectl apply -f ak-sample.yaml
+
+This will create a complete |authentik| stack for you!
+You can override any of the values of the |helm| chart as normal through this CRD.
+
+.. note::
+
+   While you can enable secret generation it is highly discouraged, as the operator plugin we use to hybridise the sdk consumes an inordinate amount of resources trying to reconcile what is already reconciled.
+
+
+Declare an Application CRD
+++++++++++++++++++++++++++
+
+.. note::
+
+   We are still actively working on this! With this the most basic functions of the operator will be ready. We will add higher levels of automation as we go forward.
 
 .. _section_usage_ak:
 
 Authentik Usage
 ---------------
+
+If you installed |authentik| directly via the static helm chart you will need to know the following:
 
 User creation
 +++++++++++++
