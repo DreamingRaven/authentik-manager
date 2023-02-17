@@ -277,7 +277,10 @@ authentik:
 # Authentik Manager
 akm:
   operator:
-    enabled: true
+    # you probably dont want AKM to be loaded by this chart but we leave this option here for you
+    # you should probably load the operator seperately and without this chart installed so it can
+    # manage everything
+    enabled: false
 
 # postgres admin dashboard
 pgadmin:

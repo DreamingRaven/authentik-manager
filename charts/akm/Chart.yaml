@@ -1,6 +1,6 @@
 apiVersion: v2
-name: ak
-description: Unofficial Authentik single-sign-on chart
+name: akm
+description: 
 
 # A chart can be either an 'application' or a 'library' chart.
 #
@@ -15,7 +15,7 @@ type: application
 # This is the chart version. This version number should be incremented each time you make changes
 # to the chart and its templates, including the app version.
 # Versions are expected to follow Semantic Versioning (https://semver.org/)
-version: 0.1.1
+version: 0.1.0
 
 # This is the version number of the application being deployed. This version number should be
 # incremented each time you make changes to the application. Versions are not expected to
@@ -24,13 +24,6 @@ version: 0.1.1
 appVersion: "2022.11.3"
 
 dependencies:
-- name: redis
-  version: "17.6.0"
-  repository: "https://charts.bitnami.com/bitnami"
-- name: postgresql
-  version: "12.1.14"
-  repository: "https://charts.bitnami.com/bitnami"
-- name: akm
-  condition: akm.operator.enabled
+- name: akm-crds
   version: "0.1.0"
-  repository: "file://../operator"
+  repository: "file://../akm-crds"

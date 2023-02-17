@@ -2,5 +2,5 @@
 - group: akm.goauthentik.io
   version: v1alpha1
   kind: Ak
-  chart: helm-charts/auth
+  chart: helm-charts/ak
 #+kubebuilder:scaffold:watch

@@ -1,5 +1,5 @@
-CHART_DIR_PATH="charts/auth"
-CHART_NAME="auth"
+CHART_DIR_PATH="charts/akm"
+CHART_NAME="akm"
 CHART_NAMESPACE="auth"
 FORWARD_PORT=8079
 PRIVATE_REGISTRY="registry.gitlab.com"
