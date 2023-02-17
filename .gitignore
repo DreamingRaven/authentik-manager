@@ -2,4 +2,5 @@ charts/**/charts
 **Chart.lock
 **.key
 **build
+**.tgz
 export_blueprint*.yaml

@@ -7,6 +7,7 @@ DOCKER_AUTH_FILE="${HOME}/.docker/config.json"
 # https://docs.podman.io/en/latest/markdown/podman-login.1.html#authfile-path
 REGISTRY_AUTH_FILE=${DOCKER_AUTH_FILE}
 # CONTAINER_IMAGE=$(cat charts/akm/values.yaml | grep -P -o '(?<=image:\s\").*(?=\")')
+CONTAINER_TAG=registry.gitlab.com/georgeraven/authentik-manager:ldev
 
 # Docs arguments
 TAG=akm/docs
@@ -67,7 +68,7 @@ templates.yaml:
 .PHONY: akm-build
 akm-build:
 	# just in case things change get the specific image that would have been pulled and build it
-	@cd operator && podman build -t registry.gitlab.com/georgeraven/authentik-manager:latest -f Dockerfile .
+	@cd operator && podman build -t ${CONTAINER_TAG} -f Dockerfile .
 
 .PHONY: install
 install: akm-build # login.lock
