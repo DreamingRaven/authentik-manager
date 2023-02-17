@@ -12,7 +12,7 @@ metadata:
   name: akblueprint-viewer-role
 rules:
 - apiGroups:
-  - sso.goauthentik.io
+  - akm.goauthentik.io
   resources:
   - akblueprints
   verbs:
@@ -20,7 +20,7 @@ rules:
   - list
   - watch
 - apiGroups:
-  - sso.goauthentik.io
+  - akm.goauthentik.io
   resources:
   - akblueprints/status
   verbs:

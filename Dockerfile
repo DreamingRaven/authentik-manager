@@ -21,13 +21,16 @@ RUN go version && \
 FROM python as docpiler
 ARG PKG_DIR
 ARG DOC_DIR
-RUN mkdir -p /app/docs
+RUN mkdir -p /app/docs && \
+    apt update && \
+    apt install -y tree
 COPY ${DOC_DIR}/requirements.txt ${PKG_DIR}/${DOC_DIR}/requirements.txt
 WORKDIR ${PKG_DIR}/${DOC_DIR}
 RUN pip3 install -r requirements.txt
 COPY .git ${PKG_DIR}/${DOC_DIR}
 COPY ${DOC_DIR} ${PKG_DIR}/${DOC_DIR}
 RUN make html
+RUN tree ${PKG_DIR}/${DOC_DIR}/build/
 
 
 FROM alpine as runner

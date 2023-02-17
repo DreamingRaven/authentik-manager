@@ -7,7 +7,9 @@ Authentik Manager
 
 |akm_ver|
 
-Authentik-Manager (AKM) is a custom authentik-helm chart with an additional operator. The helm chart helps deploy the base authentik stack, and the operator with its additional CRDs makes it easier to declaratively define your authentik setup.
+Authentik-Manager (AKM) is a hybrid operator that deploys, configures, and manages the life-cycle of authentik, declaratively. This operator is primarily geared towards GitOps and enabling authentik to be consistently, reproducibly, and collaboratively managed.
+
+This work is still under heavy development, but please submit an issue if you do try it out, and let us know if there are any problems.
 
 Documentation Versions
 ++++++++++++++++++++++

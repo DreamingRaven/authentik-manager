@@ -1,3 +1,13 @@
+/*
+Copyright 2023 George Onoufriou.
+
+Licensed under the Open Software Licence, Version 3.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License in the project root (LICENSE) or at
+
+    https://opensource.org/license/osl-3-0-php/
+*/
+
 package controllers
 
 import (
@@ -16,6 +26,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
+	// akmv1alpha1 "gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1"
 	ssov1alpha1 "gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1"
 )
 

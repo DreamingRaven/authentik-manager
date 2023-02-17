@@ -5,6 +5,47 @@
 Install
 =======
 
+We assume you want to get started with AKM, however if you want to install just |authentik| then we also have subsequent instructions for that. Please choose one from either :ref:`section_install_akm` or :ref:`section_install_ak`, it is not necessary and not recommended to install both.
+
+.. _section_install_akm:
+
+Authentik Manager Install
+-------------------------
+
+AKM is installed via helm chart.
+You will need:
+
+- A functioning |k8s| cluster
+- Permissions to create AKM inside the cluster
+- Kubectl to communicate with the cluster
+- |helm| to actually install the |helm| chart
+
+To add the helm repo:
+
+.. code-block:: bash
+
+   helm repo add akm-registry https://gitlab.com/api/v4/projects/41806964/packages/helm/stable
+   helm repo update akm-registry
+
+Choose the version of AKM you want to install:
+
+.. code-block:: bash
+
+   helm search repo akm-registry/akm --versions
+
+Then you can install your favoured version:
+
+.. code-block:: bash
+
+   helm install akm akm-registry/akm --version MAJOR.MINOR.PATCH
+
+Congratulations that's it! Go straight to :ref:`section_usage`
+
+.. _section_install_ak:
+
+Authentik Install
+-----------------
+
 This chart is served right here as a Gitlab helm package.
 
 Adding our helm chart package registry on gitlab.
@@ -34,13 +75,13 @@ Installing a specific version of the helm chart we would like from our search pr
 
 .. code-block:: bash
 
-   helm install akm-registry/ak --version MAJOR.MINOR.PATCH
+   helm install ak akm-registry/ak --version MAJOR.MINOR.PATCH
 
 #OR just install the latest our local index knows about.
 
 .. code-block:: bash
 
-   helm install akm-registry/ak
+   helm install ak akm-registry/ak
 
 Now lets install everything properly, in its own namespace and with your own values. This command does not enable SMTP as this gives you a simple proof of concept install. Once you are sure this is what you are after you will then need to replace the SMTP details with some of your own beyond this short guide. Most settings you might want to change are at the top of the values.yaml file. The big exception being images and tags.
 

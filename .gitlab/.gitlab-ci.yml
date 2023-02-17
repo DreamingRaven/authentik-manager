@@ -136,9 +136,12 @@ helm-chart-build:
   - apk add --no-cache grep
   - helm plugin install https://github.com/chartmuseum/helm-push.git
   # - export SRC_VER="$(set -o pipefail && git describe --long 2>/dev/null | sed 's/\([^-]*-g\)/r\1/;s/-/./g' || printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)")"
-  - export SRC_VER="$(cat ${CHARTS_DIR}/auth/values.yaml | grep -P -o '(?<=ghcr.io/goauthentik/server:).*(?=\")')"
+  - export SRC_VER="$(cat ${CHARTS_DIR}/ak/values.yaml | grep -P -o '(?<=ghcr.io/goauthentik/server:).*(?=\")')"
+  # gitlab trunicates to last 20 commits so if tag was older things will start breaking
+  - git fetch --unshallow
   - export HELM_VER="$(git describe --abbrev=0)" # helm does not like --long git tags
-  - echo "src version ${SRC_VER}\nhelm version ${HELM_VER}"
+  - echo "src version ${SRC_VER}"
+  - echo "helm version ${HELM_VER}"
   - mkdir -p ./package
   - |
     for dir in ${CHARTS_DIR}/*/

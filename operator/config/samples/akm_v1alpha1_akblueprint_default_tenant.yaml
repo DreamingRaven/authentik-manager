@@ -1,0 +1,48 @@
+apiVersion: akm.goauthentik.io/v1alpha1
+kind: AkBlueprint
+metadata:
+  labels:
+    app.kubernetes.io/name: akblueprint
+    app.kubernetes.io/instance: akblueprint-sample
+    app.kubernetes.io/part-of: operator
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: operator
+  name: default-tenant
+spec:
+  # note: this will overwrite the default tenant by overwriting the existing blueprint file
+  # please ensure this file is still correct. I dont imagine it will change frequently but 
+  # just in case
+  file: /blueprints/default/90-default-tenant.yaml
+  blueprint: |-
+    version: 1
+    metadata:
+      name: Default - Tenant
+    entries:
+    - model: authentik_blueprints.metaapplyblueprint
+      attrs:
+        identifiers:
+          name: Default - Authentication flow
+        required: false
+    - model: authentik_blueprints.metaapplyblueprint
+      attrs:
+        identifiers:
+          name: Default - Invalidation flow
+        required: false
+    - model: authentik_blueprints.metaapplyblueprint
+      attrs:
+        identifiers:
+          name: Default - User settings flow
+        required: false
+    - model: authentik_tenants.tenant
+      attrs:
+        flow_authentication: !Find [authentik_flows.flow, [slug, default-authentication-flow]]
+        flow_invalidation: !Find [authentik_flows.flow, [slug, default-invalidation-flow]]
+        flow_user_settings: !Find [authentik_flows.flow, [slug, default-user-settings-flow]]
+        # # TODO: (END USER) some of your customisations will likely be here
+        # branding_favicon: https://URL_TO_YOUR_FAVICON.ico
+        # branding_logo: https://URL_TO_YOUR_LOGO.png
+        # branding_title: Your Organisation Name
+        branding_title: AwesomeCast
+      identifiers:
+        domain: authentik-default
+        default: True

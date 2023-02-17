@@ -1,11 +1,13 @@
-CHART_DIR_PATH="charts/auth"
-CHART_NAME="auth"
+CHART_DIR_PATH="charts/akm"
+CHART_NAME="akm"
 CHART_NAMESPACE="auth"
 FORWARD_PORT=8079
 PRIVATE_REGISTRY="registry.gitlab.com"
 DOCKER_AUTH_FILE="${HOME}/.docker/config.json"
 # https://docs.podman.io/en/latest/markdown/podman-login.1.html#authfile-path
 REGISTRY_AUTH_FILE=${DOCKER_AUTH_FILE}
+# CONTAINER_IMAGE=$(cat charts/akm/values.yaml | grep -P -o '(?<=image:\s\").*(?=\")')
+CONTAINER_TAG=registry.gitlab.com/georgeraven/authentik-manager:ldev
 
 # Docs arguments
 TAG=akm/docs
@@ -62,6 +64,11 @@ template: templates.yaml
 
 templates.yaml:
 	helm template --set namespace.name=${CHART_NAMESPACE} --set namespace.create=true ${CHART_DIR_PATH}/. > templates.yaml
+
+.PHONY: akm-build
+akm-build:
+	# just in case things change get the specific image that would have been pulled and build it
+	@cd operator && podman build -t ${CONTAINER_TAG} -f Dockerfile .
 
 .PHONY: install
 install: # login.lock

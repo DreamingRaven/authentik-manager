@@ -19,46 +19,59 @@ package main
 import (
 	"flag"
 	"os"
+	"runtime"
+	"time"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
-	// to ensure that exec-entrypoint and run can make use of them.
+	"github.com/operator-framework/helm-operator-plugins/pkg/annotation"
+	"github.com/operator-framework/helm-operator-plugins/pkg/reconciler"
+	"github.com/operator-framework/helm-operator-plugins/pkg/watches"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
-	"k8s.io/apimachinery/pkg/runtime"
+	ctrlruntime "k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	ssov1alpha1 "gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1"
+	akmv1alpha1 "gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1"
 	"gitlab.com/GeorgeRaven/authentik-manager/operator/controllers"
 	//+kubebuilder:scaffold:imports
 )
 
 var (
-	scheme   = runtime.NewScheme()
-	setupLog = ctrl.Log.WithName("setup")
+	scheme                         = ctrlruntime.NewScheme()
+	setupLog                       = ctrl.Log.WithName("setup")
+	defaultMaxConcurrentReconciles = runtime.NumCPU()
+	defaultReconcilePeriod         = time.Minute
 )
 
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
-	utilruntime.Must(ssov1alpha1.AddToScheme(scheme))
+	utilruntime.Must(akmv1alpha1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 }
 
 func main() {
-	var metricsAddr string
-	var enableLeaderElection bool
-	var probeAddr string
+	var (
+		metricsAddr          string
+		leaderElectionID     string
+		watchesPath          string
+		probeAddr            string
+		enableLeaderElection bool
+	)
+
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
+	flag.StringVar(&watchesPath, "watches-file", "watches.yaml", "path to watches file")
+	flag.StringVar(&leaderElectionID, "leader-election-id", "d460f2c2.goauthentik.io", "provide leader election")
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
 	opts := zap.Options{
-		Development: true,
+		Development: false,
 	}
 	opts.BindFlags(flag.CommandLine)
 	flag.Parse()
@@ -71,82 +84,18 @@ func main() {
 		Port:                   9443,
 		HealthProbeBindAddress: probeAddr,
 		LeaderElection:         enableLeaderElection,
-		LeaderElectionID:       "d8948b43.goauthentik.io",
-		Namespace:              "",
-		// https://sdk.operatorframework.io/docs/building-operators/golang/operator-scope/
-		// https://sdk.operatorframework.io/docs/building-operators/golang/operator-scope/#configuring-watch-namespaces-dynamically
-
-		// LeaderElectionReleaseOnCancel defines if the leader should step down voluntarily
-		// when the Manager ends. This requires the binary to immediately end when the
-		// Manager is stopped, otherwise, this setting is unsafe. Setting this significantly
-		// speeds up voluntary leader transitions as the new leader don't have to wait
-		// LeaseDuration time first.
-		//
-		// In the default scaffold provided, the program ends immediately after
-		// the manager stops, so would be fine to enable this option. However,
-		// if you are doing or is intended to do any operation such as perform cleanups
-		// after the manager stops then its usage might be unsafe.
-		// LeaderElectionReleaseOnCancel: true,
+		LeaderElectionID:       leaderElectionID,
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
 		os.Exit(1)
 	}
 
-	if err = (&controllers.AuthReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
-	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "Auth")
-		os.Exit(1)
-	}
-	if err = (&controllers.AkApplicationReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
-	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "AkApplication")
-		os.Exit(1)
-	}
-	if err = (&controllers.AkOutpostReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
-	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "AkOutpost")
-		os.Exit(1)
-	}
-	if err = (&controllers.AkProviderReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
-	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "AkProvider")
-		os.Exit(1)
-	}
-	if err = (&controllers.AkWorkerReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
-	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "AkWorker")
-		os.Exit(1)
-	}
-	if err = (&controllers.AkServerReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
-	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "AkServer")
-		os.Exit(1)
-	}
 	if err = (&controllers.AkBlueprintReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "AkBlueprint")
-		os.Exit(1)
-	}
-	if err = (&controllers.AkReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
-	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "Ak")
 		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder
@@ -158,6 +107,46 @@ func main() {
 	if err := mgr.AddReadyzCheck("readyz", healthz.Ping); err != nil {
 		setupLog.Error(err, "unable to set up ready check")
 		os.Exit(1)
+	}
+
+	ws, err := watches.Load(watchesPath)
+	if err != nil {
+		setupLog.Error(err, "Failed to create new manager factories")
+		os.Exit(1)
+	}
+
+	for _, w := range ws {
+		// Register controller with the factory
+		reconcilePeriod := defaultReconcilePeriod
+		if w.ReconcilePeriod != nil {
+			reconcilePeriod = w.ReconcilePeriod.Duration
+		}
+
+		maxConcurrentReconciles := defaultMaxConcurrentReconciles
+		if w.MaxConcurrentReconciles != nil {
+			maxConcurrentReconciles = *w.MaxConcurrentReconciles
+		}
+
+		r, err := reconciler.New(
+			reconciler.WithChart(*w.Chart),
+			reconciler.WithGroupVersionKind(w.GroupVersionKind),
+			reconciler.WithOverrideValues(w.OverrideValues),
+			reconciler.SkipDependentWatches(w.WatchDependentResources != nil && !*w.WatchDependentResources),
+			reconciler.WithMaxConcurrentReconciles(maxConcurrentReconciles),
+			reconciler.WithReconcilePeriod(reconcilePeriod),
+			reconciler.WithInstallAnnotations(annotation.DefaultInstallAnnotations...),
+			reconciler.WithUpgradeAnnotations(annotation.DefaultUpgradeAnnotations...),
+			reconciler.WithUninstallAnnotations(annotation.DefaultUninstallAnnotations...),
+		)
+		if err != nil {
+			setupLog.Error(err, "unable to create helm reconciler", "controller", "Helm")
+			os.Exit(1)
+		}
+		if err := r.SetupWithManager(mgr); err != nil {
+			setupLog.Error(err, "unable to create controller", "controller", "Helm")
+			os.Exit(1)
+		}
+		setupLog.Info("configured watch", "gvk", w.GroupVersionKind, "chartPath", w.ChartPath, "maxConcurrentReconciles", maxConcurrentReconciles, "reconcilePeriod", reconcilePeriod)
 	}
 
 	setupLog.Info("starting manager")
