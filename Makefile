@@ -71,7 +71,7 @@ akm-build:
 	@cd operator && podman build -t ${CONTAINER_TAG} -f Dockerfile .
 
 .PHONY: install
-install: akm-build # login.lock
+install: # login.lock
 	helm dependency build ${CHART_DIR_PATH}
 	kubectl create namespace ${CHART_NAMESPACE}
 	# kubectl apply -f login.creds
