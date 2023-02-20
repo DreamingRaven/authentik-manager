@@ -20,7 +20,7 @@ rules:
   verbs:
   - "*"
 - apiGroups:
-  - "sso.goauthentik.io"
+  - "akm.goauthentik.io"
   resources:
   - "*"
   verbs:
