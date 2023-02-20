@@ -4,3 +4,5 @@ charts/**/charts
 **build
 **.tgz
 export_blueprint*.yaml
+./*.yaml
+*.cross
