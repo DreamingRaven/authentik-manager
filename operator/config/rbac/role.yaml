@@ -6,7 +6,7 @@ metadata:
   name: manager-role
 rules:
 - apiGroups:
-  - sso.goauthentik.io
+  - akm.goauthentik.io
   resources:
   - akblueprints
   verbs:
@@ -18,13 +18,13 @@ rules:
   - update
   - watch
 - apiGroups:
-  - sso.goauthentik.io
+  - akm.goauthentik.io
   resources:
   - akblueprints/finalizers
   verbs:
   - update
 - apiGroups:
-  - sso.goauthentik.io
+  - akm.goauthentik.io
   resources:
   - akblueprints/status
   verbs:
