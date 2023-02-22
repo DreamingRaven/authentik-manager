@@ -2,6 +2,7 @@ apiVersion: akm.goauthentik.io/v1alpha1
 kind: Ak
 metadata:
   name: ak-sample
+  # namespace: auth
 spec:
   secret:
     generate: false
