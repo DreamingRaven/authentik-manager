@@ -27,7 +27,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	// akmv1alpha1 "gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1"
-	ssov1alpha1 "gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1"
+	akmv1alpha1 "gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1"
 )
 
 // AkBlueprintReconciler reconciles a AkBlueprint object
@@ -36,9 +36,9 @@ type AkBlueprintReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-//+kubebuilder:rbac:groups=sso.goauthentik.io,resources=akblueprints,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=sso.goauthentik.io,resources=akblueprints/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=sso.goauthentik.io,resources=akblueprints/finalizers,verbs=update
+//+kubebuilder:rbac:groups=akm.goauthentik.io,resources=akblueprints,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=akm.goauthentik.io,resources=akblueprints/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=akm.goauthentik.io,resources=akblueprints/finalizers,verbs=update
 
 func (r *AkBlueprintReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	l := log.FromContext(ctx)
@@ -53,7 +53,7 @@ func (r *AkBlueprintReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	}
 
 	// GET CRD
-	crd := &ssov1alpha1.AkBlueprint{}
+	crd := &akmv1alpha1.AkBlueprint{}
 	err := r.Get(ctx, req.NamespacedName, crd)
 
 	if err != nil {
@@ -209,7 +209,7 @@ func (r *AkBlueprintReconciler) volumeForConfig(crd *corev1.ConfigMap, key strin
 }
 
 // configForBlueprint generates a configmap spec from a given blueprint that contains the blueprint data as a kube-native configmap to mount into our deployment later.
-func (r *AkBlueprintReconciler) configForBlueprint(crd *ssov1alpha1.AkBlueprint, name string, namespace string) (*corev1.ConfigMap, error) {
+func (r *AkBlueprintReconciler) configForBlueprint(crd *akmv1alpha1.AkBlueprint, name string, namespace string) (*corev1.ConfigMap, error) {
 	// create the map of key values for the data in configmap from blueprint contents
 	cleanFP := filepath.Clean(crd.Spec.File)
 	var dataMap = make(map[string]string)
@@ -219,7 +219,7 @@ func (r *AkBlueprintReconciler) configForBlueprint(crd *ssov1alpha1.AkBlueprint,
 
 	// create annotation for destination path
 	var annMap = make(map[string]string)
-	annMap["sso.goauthentik/v1alpha1"] = filepath.Dir(cleanFP)
+	annMap["akm.goauthentik/v1alpha1"] = filepath.Dir(cleanFP)
 
 	cm := corev1.ConfigMap{
 		// Metadata
@@ -238,6 +238,6 @@ func (r *AkBlueprintReconciler) configForBlueprint(crd *ssov1alpha1.AkBlueprint,
 // SetupWithManager sets up the controller with the Manager.
 func (r *AkBlueprintReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&ssov1alpha1.AkBlueprint{}).
+		For(&akmv1alpha1.AkBlueprint{}).
 		Complete(r)
 }
