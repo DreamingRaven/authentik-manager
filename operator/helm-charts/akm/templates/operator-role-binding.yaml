@@ -9,4 +9,4 @@ subjects:
 roleRef:
   kind: Role
   name: {{ .Values.operator.role.name }}
-  apiGroup: ""
+  apiGroup: rbac.authorization.k8s.io

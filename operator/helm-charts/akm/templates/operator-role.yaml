@@ -23,6 +23,7 @@ rules:
   - "svc"
   verbs:
   - "*"
+
 - apiGroups:
   - "apps/v1"
   - "batch/v1"
@@ -30,30 +31,35 @@ rules:
   - "*"
   verbs:
   - "*"
+
 - apiGroups:
   - "autoscaling/v2"
   resources:
   - "hpa"
   verbs:
   - "*"
+
 - apiGroups:
   - "batch/v1"
   resources:
   - "*"
   verbs:
   - "*"
+
 - apiGroups:
   - "discovery.k8s.io/v1"
   resources:
   - "*"
   verbs:
   - "*"
+
 - apiGroups:
   - "events.k8s.io/v1"
   resources:
   - "*"
   verbs:
   - "*"
+
 - apiGroups:
   - "networking.k8s.io/v1"
   resources:
@@ -61,12 +67,14 @@ rules:
   - "netpol"
   verbs:
   - "*"
+
 - apiGroups:
   - "policy/v1"
   resources:
   - "*"
   verbs:
   - "*"
+
 - apiGroups:
   - "akm.goauthentik.io"
   resources:

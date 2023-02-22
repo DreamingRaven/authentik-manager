@@ -4,21 +4,17 @@ kind: ClusterRole
 metadata:
   name: {{ .Values.operator.clusterRole.name }}
 rules:
-# Ingress annotation modification for forward auth to authentik
+
 - apiGroups:
-  # the api group that the CRD belongs to for ingress
   - "networking.k8s.io"
   resources:
-  # the necessary ingress to modify with forward auth etc
-  - ingresses
+  - "ing"
   verbs:
-  - get
-  - list
-  - watch
-  - update
-  - patch
-# List configmaps to locate are necessary apparently
-# TODO: check why operator-SDK insists on this permission
+  - "*"
+
+# # List configmaps and secrets
+# # Operator SDK insists on this apparently
+# # TODO: check why operator-SDK insists on this permission
 - apiGroups:
   - ""
   resources:
@@ -27,23 +23,29 @@ rules:
   verbs:
   - list
   - watch
+
+# - apiGroups:
+#   - "apps"
+#   resources:
+#   - deployments
+#   verbs:
+#   - list
+#   - watch
+
 - apiGroups:
-  - "apps"
-  resources:
-  - deployments
-  verbs:
-  - list
-  - watch
-# See and update all of our own operator specific CRDs that arent namespace bound
-- apiGroups:
-  # our apiGroup
   - "akm.goauthentik.io"
   resources:
-  # all of our resources
   - "*"
   verbs:
-  - get
-  - list
-  - watch
-  - update
-  - patch
+  - "*"
+
+# # BREAK GLASS in case of debug
+# - apiGroups:
+#   # all api groups
+#   - "*"
+#   resources:
+#   # all resources
+#   - "*"
+#   verbs:
+#   # do anything
+#   - "*"

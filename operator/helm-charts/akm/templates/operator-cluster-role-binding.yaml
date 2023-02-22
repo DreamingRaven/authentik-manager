@@ -9,4 +9,4 @@ subjects:
 roleRef:
   kind: ClusterRole
   name: {{ .Values.operator.clusterRole.name }}
-  apiGroup: ""
+  apiGroup: rbac.authorization.k8s.io
