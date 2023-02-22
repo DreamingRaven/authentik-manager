@@ -29,6 +29,12 @@ spec:
     - namespaceSelector:
         matchLabels:
           kubernetes.io/metadata.name: kube-system
+  # Also
+  - to:
+    # allow to communicate to kube-api default service
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: default
     # # on specific ports for DNS
     # ports:
     # - protocol: UDP
