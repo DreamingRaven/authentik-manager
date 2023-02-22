@@ -183,3 +183,14 @@ doc-test:
 doc-run: doc-build
 	xdg-open "http://127.0.0.1:8080" &
 	sudo podman run -p 127.0.0.1:8080:8080 -it ${TAG}
+
+.PHONY: dbg-sa
+dbg-sa: ## Debug the service account
+	@echo
+	@echo "NAMESPACED permissions (${CHART_NAMESPACE})"
+	@echo "*******************************************"
+	@kubectl auth can-i --as=system:serviceaccount:${CHART_NAMESPACE}:authentik-manager --namespace=${CHART_NAMESPACE} --list
+	@echo
+	@echo "CLUSTER-WIDE permissions"
+	@echo "*******************************************"
+	@kubectl auth can-i --as=system:serviceaccount:${CHART_NAMESPACE}:authentik-manager --list
