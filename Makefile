@@ -164,10 +164,6 @@ clean:
 	minikube delete
 	# podman logout {PRIVATE_REGISTRY}
 
-.PHONY: stuck
-stuck:
-	kubectl api-resources --verbs=list --namespaced -o name | xargs -n 1 kubectl get --show-kind --ignore-not-found -n ${CHART_NAMESPACE}
-
 .PHONY: docs
 docs: doc-build doc-test doc-run
 
