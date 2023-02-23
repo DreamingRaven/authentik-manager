@@ -15,14 +15,14 @@ rules:
 # # List configmaps and secrets
 # # Operator SDK insists on this apparently
 # # TODO: check why operator-SDK insists on this permission
-# - apiGroups:
-#   - ""
-#   resources:
-#   - configmaps
-#   - secrets
-#   verbs:
-#   - list
-#   - watch
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  - secrets
+  verbs:
+  - list
+  - watch
 
 # - apiGroups:
 #   - "apps"
