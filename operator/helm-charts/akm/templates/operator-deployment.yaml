@@ -26,6 +26,9 @@ spec:
         - name: operator
           image: {{ .Values.operator.deployment.image | quote }}
           imagePullPolicy: {{ .Values.operator.deployment.imagePullPolicy }}
+          args:
+          - "--leader-elect"
+          - "--debug"
           ports:
             {{- range .Values.operator.ports }}
             - name: {{ .name }}
@@ -34,7 +37,9 @@ spec:
           env:
             # lets the manager know which namespace is the authentication core namespace
             # which may not actually be the same one it is in
-            - name: AUTHENTIK_MANAGER_NAMESPACE
+            - name: OPERATOR_NAMESPACE
+              value: {{ .Release.Namespace }}
+            - name: WATCHED_NAMESPACE
               value: {{ .Release.Namespace }}
             #TODO template worker name
             - name: AUTHENTIK_WORKER_NAME

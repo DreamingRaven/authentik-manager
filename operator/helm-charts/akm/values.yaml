@@ -4,10 +4,10 @@ operator:
     imagePullPolicy: Always
     image: "registry.gitlab.com/georgeraven/authentik-manager:latest"
     name: authentik-manager
-    replicas: 1
-    env: [] # statically defined environment variables can be as many as desired
-    # - name: AUTHENTIK_LISTERN__HTTP
-    #   value: 0.0.0.0:9000
+    replicas: 3
+    env: # statically defined environment variables can be as many as desired
+    - name: LEADER_ELECT
+      value: "true"
   ports: []
   # - name: http
   #   containerPort: 9000

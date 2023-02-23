@@ -11,6 +11,8 @@ You may obtain a copy of the License in the project root (LICENSE) or at
 package main
 
 import (
+	"encoding/json"
+	"fmt"
 	"os"
 	"runtime"
 	"time"
@@ -58,6 +60,12 @@ type Opts struct {
 	EnableLeaderElection bool   `arg:"--leader-elect" json:"enableLeaderElection,omitempty" help:"To elect a leader to be active else all active."`
 	OperatorNamespace    string `arg:"--operator-namespace" default:"auth" json:"operatorNamespace,omitempty" help:"The operators namespace for leader election."`
 	WatchedNamespace     string `arg:"--watched-namespace" default:"" json:"watchedNamespace,omitempty" help:"The operators watched namespace. Defaults to empty (which watches all)."`
+	Debug                bool   `arg:"-d,--debug" json:"debug,omitempty" help:"We should run in debug mode."`
+}
+
+func prettyPrint(i interface{}) string {
+	s, _ := json.MarshalIndent(i, "", "\t")
+	return string(s)
 }
 
 func main() {
@@ -65,7 +73,11 @@ func main() {
 	arg.MustParse(&o)
 
 	opts := zap.Options{
-		Development: false,
+		Development: o.Debug,
+	}
+
+	if o.Debug {
+		fmt.Println(prettyPrint(o))
 	}
 
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
