@@ -73,10 +73,10 @@ akm-build:
 .PHONY: install
 install: # login.lock
 	helm dependency build ${CHART_DIR_PATH}
-	kubectl create namespace ${CHART_NAMESPACE}
+	# kubectl create namespace ${CHART_NAMESPACE}
 	# kubectl apply -f login.creds
 	# kubectl get -n ${CHART_NAMESPACE} secret regcred --output="jsonpath={.data.\.dockerconfigjson}" | base64 --decode
-	helm install --namespace ${CHART_NAMESPACE} ${CHART_NAME} ${CHART_DIR_PATH}/.
+	helm upgrade --install --create-namespace --namespace ${CHART_NAMESPACE} ${CHART_NAME} ${CHART_DIR_PATH}/.
 
 .PHONY: forward
 forward:
@@ -144,7 +144,7 @@ upgrade:
 .PHONY: uninstall
 uninstall:
 	helm uninstall --namespace ${CHART_NAMESPACE} ${CHART_NAME}
-	kubectl delete namespace ${CHART_NAMESPACE}
+	# kubectl delete namespace ${CHART_NAMESPACE}
 
 .PHONY: getBlueprint
 getBlueprint:
@@ -194,3 +194,7 @@ dbg-sa: ## Debug the service account
 	@echo "CLUSTER-WIDE permissions"
 	@echo "*******************************************"
 	@kubectl auth can-i --as=system:serviceaccount:${CHART_NAMESPACE}:authentik-manager --list
+
+.PHONY: stuck
+stuck: ## Find any resources with finalizers that are blocking deletion
+	kubectl api-resources --verbs=list --namespaced -o name | xargs -n 1 kubectl get --show-kind --ignore-not-found -n ${CHART_NAMESPACE}
