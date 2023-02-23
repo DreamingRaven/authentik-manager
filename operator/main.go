@@ -17,7 +17,6 @@ limitations under the License.
 package main
 
 import (
-	"flag"
 	"os"
 	"runtime"
 	"time"
@@ -56,34 +55,13 @@ func init() {
 	//+kubebuilder:scaffold:scheme
 }
 
-// // Opts option struct for this operator.
-// // Optins are populated by a seperate function, that may or may not use the struct tags to reflect and auto-populate fields.
-// type Opts struct {
-// 	MetricsAddr          string `json:"metricsAddr,omitempty" opts:"metrics-bind-address,:8080,Address the metrics endpoint binds to."`
-// 	LeaderElectionID     string `json:"leaderElectionID,omitempty" opts:"leader-election-id,d460f2c2.goauthentik.io,Leader election lease name."`
-// 	WatchesPath          string `json:"watchesPath,omitempty" opts:"watches-file,watches.yaml,Path to watches file."`
-// 	ProbeAddr            string `json:"probeAddr,omitempty" opts:"health-probe-bind-address,:8081,Address the probe endpoint binds to."`
-// 	EnableLeaderElection bool   `json:"enableLeaderElection,omitempty" opts:"leader-elect,false,Should we try to elect a leader."`
-// 	OperatorNamespace    string `json:"operatorNamespace,omitempty" opts:"operator-namespace,auth,The operators namespace for leader election."`
-// 	WatchedNamespace     string `json:"watchedNamespace,omitempty" opts:"watched-namespace,,The operators watched namespace. Defaults to empty (which watches all)."`
-// }
-//
-// func NewOpts() {
-// 	o := Opts{}
-// 	fields := reflect.VisibleFields(reflect.TypeOf(o))
-// 	for _, field := range fields {
-// 		fmt.Println(fmt.Sprintf("Field: `%v`, Type: `%v`", field.Name, field.Type))
-//
-// 	}
-//
-// }
-
+// Opts options struct for the operator to autopopulate help templates, autogenerate options, and ensure consistency between env and cli.
 type Opts struct {
 	MetricsAddr          string `arg:"--metrics-bind-address" default:":8080" json:"metricsAddr,omitempty" help:"The address the metric endpoint binds to."`
 	LeaderElectionID     string `arg:"--leader-election-id" default:"d460f2c2.goauthentik.io" json:"leaderElectionID,omitempty" help:"Lease name to use for leader election."`
 	WatchesPath          string `arg:"--watches-file" default:"watches.yaml" json:"watchesPath,omitempty" help:"Path to watches file."`
 	ProbeAddr            string `arg:"--health-probe-bind-address" default:":8081" json:"probeAddr,omitempty" help:"The address the probe endpoint binds to."`
-	EnableLeaderElection bool   `arg:"--leader-elect" default:"false" json:"enableLeaderElection,omitempty" help:"To elect a leader to be active else all active."`
+	EnableLeaderElection bool   `arg:"--leader-elect" json:"enableLeaderElection,omitempty" help:"To elect a leader to be active else all active."`
 	OperatorNamespace    string `arg:"--operator-namespace" default:"auth" json:"operatorNamespace,omitempty" help:"The operators namespace for leader election."`
 	WatchedNamespace     string `arg:"--watched-namespace" default:"" json:"watchedNamespace,omitempty" help:"The operators watched namespace. Defaults to empty (which watches all)."`
 }
@@ -95,8 +73,6 @@ func main() {
 	opts := zap.Options{
 		Development: false,
 	}
-	opts.BindFlags(flag.CommandLine)
-	flag.Parse()
 
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 
