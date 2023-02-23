@@ -22,6 +22,8 @@ import (
 	"runtime"
 	"time"
 
+	arg "github.com/alexflint/go-arg"
+
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	"github.com/operator-framework/helm-operator-plugins/pkg/annotation"
 	"github.com/operator-framework/helm-operator-plugins/pkg/reconciler"
@@ -54,22 +56,42 @@ func init() {
 	//+kubebuilder:scaffold:scheme
 }
 
-func main() {
-	var (
-		metricsAddr          string
-		leaderElectionID     string
-		watchesPath          string
-		probeAddr            string
-		enableLeaderElection bool
-	)
+// // Opts option struct for this operator.
+// // Optins are populated by a seperate function, that may or may not use the struct tags to reflect and auto-populate fields.
+// type Opts struct {
+// 	MetricsAddr          string `json:"metricsAddr,omitempty" opts:"metrics-bind-address,:8080,Address the metrics endpoint binds to."`
+// 	LeaderElectionID     string `json:"leaderElectionID,omitempty" opts:"leader-election-id,d460f2c2.goauthentik.io,Leader election lease name."`
+// 	WatchesPath          string `json:"watchesPath,omitempty" opts:"watches-file,watches.yaml,Path to watches file."`
+// 	ProbeAddr            string `json:"probeAddr,omitempty" opts:"health-probe-bind-address,:8081,Address the probe endpoint binds to."`
+// 	EnableLeaderElection bool   `json:"enableLeaderElection,omitempty" opts:"leader-elect,false,Should we try to elect a leader."`
+// 	OperatorNamespace    string `json:"operatorNamespace,omitempty" opts:"operator-namespace,auth,The operators namespace for leader election."`
+// 	WatchedNamespace     string `json:"watchedNamespace,omitempty" opts:"watched-namespace,,The operators watched namespace. Defaults to empty (which watches all)."`
+// }
+//
+// func NewOpts() {
+// 	o := Opts{}
+// 	fields := reflect.VisibleFields(reflect.TypeOf(o))
+// 	for _, field := range fields {
+// 		fmt.Println(fmt.Sprintf("Field: `%v`, Type: `%v`", field.Name, field.Type))
+//
+// 	}
+//
+// }
 
-	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
-	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
-	flag.StringVar(&watchesPath, "watches-file", "watches.yaml", "path to watches file")
-	flag.StringVar(&leaderElectionID, "leader-election-id", "d460f2c2.goauthentik.io", "provide leader election")
-	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
-		"Enable leader election for controller manager. "+
-			"Enabling this will ensure there is only one active controller manager.")
+type Opts struct {
+	MetricsAddr          string `arg:"--metrics-bind-address" default:":8080" json:"metricsAddr,omitempty" help:"The address the metric endpoint binds to."`
+	LeaderElectionID     string `arg:"--leader-election-id" default:"d460f2c2.goauthentik.io" json:"leaderElectionID,omitempty" help:"Lease name to use for leader election."`
+	WatchesPath          string `arg:"--watches-file" default:"watches.yaml" json:"watchesPath,omitempty" help:"Path to watches file."`
+	ProbeAddr            string `arg:"--health-probe-bind-address" default:":8081" json:"probeAddr,omitempty" help:"The address the probe endpoint binds to."`
+	EnableLeaderElection bool   `arg:"--leader-elect" default:"false" json:"enableLeaderElection,omitempty" help:"To elect a leader to be active else all active."`
+	OperatorNamespace    string `arg:"--operator-namespace" default:"auth" json:"operatorNamespace,omitempty" help:"The operators namespace for leader election."`
+	WatchedNamespace     string `arg:"--watched-namespace" default:"" json:"watchedNamespace,omitempty" help:"The operators watched namespace. Defaults to empty (which watches all)."`
+}
+
+func main() {
+	o := Opts{}
+	arg.MustParse(&o)
+
 	opts := zap.Options{
 		Development: false,
 	}
@@ -80,11 +102,16 @@ func main() {
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:                 scheme,
-		MetricsBindAddress:     metricsAddr,
+		MetricsBindAddress:     o.MetricsAddr,
 		Port:                   9443,
-		HealthProbeBindAddress: probeAddr,
-		LeaderElection:         enableLeaderElection,
-		LeaderElectionID:       leaderElectionID,
+		HealthProbeBindAddress: o.ProbeAddr,
+		LeaderElection:         o.EnableLeaderElection,
+		LeaderElectionID:       o.LeaderElectionID,
+		// Specified the namespace the leader "lease" resource belongs
+		// this will also affect clusterwide searches by operator which we dont want
+		// so we specify so that these roles do not need to be granted
+		LeaderElectionNamespace: o.OperatorNamespace,
+		Namespace:               o.WatchedNamespace,
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
@@ -109,7 +136,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	ws, err := watches.Load(watchesPath)
+	ws, err := watches.Load(o.WatchesPath)
 	if err != nil {
 		setupLog.Error(err, "Failed to create new manager factories")
 		os.Exit(1)
