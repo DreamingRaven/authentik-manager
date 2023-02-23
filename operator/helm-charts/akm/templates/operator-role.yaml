@@ -7,76 +7,76 @@ rules:
 # do anything with namespaced resources in our own namespace
 # excludes the ability to modify roles, service accounts, and bindings for obvious reasons
 - apiGroups:
-  - "v1"
+  - ""
   resources:
-  - "bindings"
-  - "configmaps"
-  - "endpoints"
-  - "events"
-  - "limits"
-  - "pvc"
-  - "pods"
-  - "podtemplates"
-  - "rc"
-  - "quota"
-  - "secrets"
-  - "svc"
+  - bindings
+  - configmaps
+  - endpoints
+  - events
+  - limitranges
+  - persistentvolumeclaims
+  - pods
+  - podtemplates
+  - replicationcontrollers
+  - resourcequotas
+  - secrets
+  - services
   verbs:
   - "*"
 
 - apiGroups:
-  - "apps/v1"
-  - "batch/v1"
-  resources:
-  - "*"
-  verbs:
-  - "*"
-
-- apiGroups:
-  - "autoscaling/v2"
-  resources:
-  - "hpa"
-  verbs:
-  - "*"
-
-- apiGroups:
-  - "batch/v1"
+  - apps
+  - batch
   resources:
   - "*"
   verbs:
   - "*"
 
 - apiGroups:
-  - "discovery.k8s.io/v1"
+  - autoscaling
+  resources:
+  - horizontalpodautoscalers
+  verbs:
+  - "*"
+
+- apiGroups:
+  - batch/v1
   resources:
   - "*"
   verbs:
   - "*"
 
 - apiGroups:
-  - "events.k8s.io/v1"
+  - discovery.k8s.io
   resources:
   - "*"
   verbs:
   - "*"
 
 - apiGroups:
-  - "networking.k8s.io/v1"
-  resources:
-  - "ing"
-  - "netpol"
-  verbs:
-  - "*"
-
-- apiGroups:
-  - "policy/v1"
+  - events.k8s.io
   resources:
   - "*"
   verbs:
   - "*"
 
 - apiGroups:
-  - "akm.goauthentik.io"
+  - networking.k8s.io
+  resources:
+  - ingresses
+  - networkpolicies
+  verbs:
+  - "*"
+
+- apiGroups:
+  - policy
+  resources:
+  - "*"
+  verbs:
+  - "*"
+
+- apiGroups:
+  - akm.goauthentik.io
   resources:
   - "*"
   verbs:

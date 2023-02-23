@@ -6,23 +6,23 @@ metadata:
 rules:
 
 - apiGroups:
-  - "networking.k8s.io"
+  - networking.k8s.io
   resources:
-  - "ing"
+  - ingresses
   verbs:
   - "*"
 
 # # List configmaps and secrets
 # # Operator SDK insists on this apparently
 # # TODO: check why operator-SDK insists on this permission
-- apiGroups:
-  - ""
-  resources:
-  - configmaps
-  - secrets
-  verbs:
-  - list
-  - watch
+# - apiGroups:
+#   - ""
+#   resources:
+#   - configmaps
+#   - secrets
+#   verbs:
+#   - list
+#   - watch
 
 # - apiGroups:
 #   - "apps"
@@ -33,7 +33,7 @@ rules:
 #   - watch
 
 - apiGroups:
-  - "akm.goauthentik.io"
+  - akm.goauthentik.io
   resources:
   - "*"
   verbs:
