@@ -10,9 +10,7 @@ metadata:
     app.kubernetes.io/part-of: operator
     app.kubernetes.io/managed-by: kustomize
   name: controller-manager-metrics-service
-  # {{ if false }}
   namespace: system
-  # {{ end }} why did they add a service in with their rbac
 spec:
   ports:
   - name: https

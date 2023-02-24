@@ -66,9 +66,10 @@ spec:
         # seccompProfile:
         #   type: RuntimeDefault
       containers:
-      - args:
+      - command:
+        - /manager
+        args:
         - --leader-elect
-        - --leader-election-id=operator
         image: controller:latest
         name: manager
         securityContext:

@@ -1,26 +1,9 @@
 domain: goauthentik.io
 layout:
-- hybrid.helm.sdk.operatorframework.io/v1-alpha
+- go.kubebuilder.io/v3
 plugins:
   manifests.sdk.operatorframework.io/v2: {}
   scorecard.sdk.operatorframework.io/v2: {}
 projectName: operator
 repo: gitlab.com/GeorgeRaven/authentik-manager/operator
-resources:
-- api:
-    crdVersion: v1
-    namespaced: true
-  controller: true
-  domain: goauthentik.io
-  group: akm
-  kind: AkBlueprint
-  path: gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1
-  version: v1alpha1
-- api:
-    crdVersion: v1
-    namespaced: true
-  domain: goauthentik.io
-  group: akm
-  kind: Ak
-  version: v1alpha1
 version: "3"
