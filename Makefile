@@ -8,7 +8,7 @@ DOCKER_AUTH_FILE="${HOME}/.docker/config.json"
 REGISTRY_AUTH_FILE=${DOCKER_AUTH_FILE}
 # CONTAINER_IMAGE=$(cat charts/akm/values.yaml | grep -P -o '(?<=image:\s\").*(?=\")')
 # CONTAINER_TAG=registry.gitlab.com/georgeraven/authentik-manager:ldev
-LOCAL_TAG=localhost/controller:latest
+LOCAL_TAG=localhost/controller:local
 
 # Docs arguments
 TAG=akm/docs
@@ -35,7 +35,7 @@ deps:	## Update all helm chart dependencies
 .PHONY: minikube
 minikube: ## Create a local minikube testing cluster
 	minikube delete
-	minikube start
+	minikube start --driver=podman
 	# minikube addons enable ingress
 
 .PHONY: ingress
@@ -58,6 +58,7 @@ login.lock:
 	# please use your username and a token with sufficient permissions to access the repo / registry
 	sudo podman login ${PRIVATE_REGISTRY} --authfile ${REGISTRY_AUTH_FILE}
 	sudo kubectl create -n ${REGCRED_NAMESPACE} secret generic ${REGCRED_NAME} --from-file=.dockerconfigjson=${REGISTRY_AUTH_FILE} --type=kubernetes.io/dockerconfigjson --dry-run=client -o yaml > login.creds
+	# eval $(minikube docker-env)
 	sudo podman logout ${PRIVATE_REGISTRY} --authfile ${REGISTRY_AUTH_FILE}
 	# podman protects the registry file unlike docker. If it exists it will throw a permission error for other apps that expect it unpermed.
 	sudo rm ${REGISTRY_AUTH_FILE}
@@ -84,13 +85,18 @@ install: ## Install helm chart to default cluster with registry images
 
 .PHONY: build
 build: ## Build the container image
-	cd operator && podman build -t ${LOCAL_TAG} -f Dockerfile .
+	# https://stackoverflow.com/questions/42564058/how-to-use-local-docker-images-with-minikube
+	@cd operator && podman build -t ${LOCAL_TAG} -f Dockerfile .
+	@rm -f controller.tar
+	@podman save ${LOCAL_TAG} -o controller.tar
+	@minikube image load controller.tar
+	@rm -f controller.tar
 
 
 .PHONY: install-local
 install-local: build ## Install helm chart to default cluster with local images
 	helm dependency build ${CHART_DIR_PATH}
-	helm upgrade --install --create-namespace --namespace ${CHART_NAMESPACE} --set operator.deployment.image=${LOCAL_TAG} ${CHART_NAME} ${CHART_DIR_PATH}/.
+	helm upgrade --install --create-namespace --namespace ${CHART_NAMESPACE} --set operator.deployment.imagePullPolicy=Never --set operator.deployment.image=${LOCAL_TAG} ${CHART_NAME} ${CHART_DIR_PATH}/.
 
 .PHONY: forward
 forward: ## Forward authentik worker
@@ -157,7 +163,7 @@ upgrade: ## Upgrade the operator helm chart using registry
 .PHONY: upgrade-local
 upgrade-local: build ## Upgrade the operator helm chart using the local images
 	helm dependency build ${CHART_DIR_PATH}
-	helm upgrade --namespace ${CHART_NAMESPACE} ${CHART_NAME} --set operator.deployment.image=${LOCAL_TAG} ${CHART_DIR_PATH}/.
+	helm upgrade --namespace ${CHART_NAMESPACE} ${CHART_NAME} --set operator.deployment.imagePullPolicy=Never --set operator.deployment.image=${LOCAL_TAG} ${CHART_DIR_PATH}/.
 
 
 .PHONY: uninstall
