@@ -14,15 +14,18 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"path/filepath"
 
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/util/validation/field"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	// "helm.sh/helm/v3/pkg/chart"
-	// chartLoader "helm.sh/helm/v3/pkg/chart/loader"
+	"helm.sh/helm/v3/pkg/chart"
+	chartLoader "helm.sh/helm/v3/pkg/chart/loader"
 
 	akmv1a1 "gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1"
 )
@@ -70,11 +73,11 @@ func (r *AkReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Re
 	}
 	fmt.Println(u)
 
-	// c, err := r.GetHelmChart(u)
-	// if err != nil {
-	// 	return ctrl.Result{}, err
-	// }
-	// fmt.Println(c)
+	c, err := r.GetHelmChart(u)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+	fmt.Println(c)
 
 	// Authenticate to Kubernetes
 	// https://stackoverflow.com/questions/66730436/how-to-connect-to-kubernetes-cluster-using-serviceaccount-token
@@ -82,24 +85,38 @@ func (r *AkReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Re
 	return ctrl.Result{}, nil
 }
 
-// func (r *AkReconciler) GetHelmChart(u *url.URL) (*chart.Chart, error) {
-// 	fmt.Println("Scheme:", u.Scheme)
-// 	fmt.Println("Opaque:", u.Opaque)
-// 	fmt.Println("User:", u.User)
-// 	fmt.Println("Host:", u.Host)
-// 	fmt.Println("Path:", u.Path)
-// 	fmt.Println("RawPath:", u.RawPath)
-// 	fmt.Println("ForceQuery:", u.ForceQuery)
-// 	fmt.Println("RawQuery:", u.RawQuery)
-// 	fmt.Println("Fragment:", u.Fragment)
-// 	fmt.Println("RawFragment:", u.RawFragment)
-// 	// GET HELM CHART
-// 	c, err := chartLoader.Load(u.Path)
-// 	if err != nil {
-// 		return c, err
-// 	}
-// 	return c, err
-// }
+// GetHelmChart loads a helm chart from a given file.
+func (r *AkReconciler) GetHelmChart(u *url.URL) (*chart.Chart, error) {
+	// fmt.Println("Scheme:", u.Scheme)
+	// fmt.Println("Opaque:", u.Opaque)
+	// fmt.Println("User:", u.User)
+	// fmt.Println("Host:", u.Host)
+	// fmt.Println("Path:", u.Path)
+	// fmt.Println("RawPath:", u.RawPath)
+	// fmt.Println("ForceQuery:", u.ForceQuery)
+	// fmt.Println("RawQuery:", u.RawQuery)
+	// fmt.Println("Fragment:", u.Fragment)
+	// fmt.Println("RawFragment:", u.RawFragment)
+
+	// GET HELM CHART
+	if u.Scheme != "file" {
+
+		err := errors.NewInvalid(
+			schema.GroupKind{
+				Group: "akm.goauthentik.io",
+				Kind:  "Ak",
+			},
+			fmt.Sprintf("Url scheme `%v` != `file`, unsupported scheme.", u.Scheme),
+			field.ErrorList{})
+		return nil, err
+	}
+	// load chart from filepath (which is part of host in url)
+	path, err := filepath.Abs(u.Host)
+	if err != nil {
+		return nil, err
+	}
+	return chartLoader.Load(path)
+}
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *AkReconciler) SetupWithManager(mgr ctrl.Manager) error {
