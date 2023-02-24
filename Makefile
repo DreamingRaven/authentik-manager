@@ -89,6 +89,7 @@ upgrade-full: install-full ## Upgrade the operator helm chart using registry
 .PHONY: build
 build: ## Build the container image
 	# https://stackoverflow.com/questions/42564058/how-to-use-local-docker-images-with-minikube
+	@cd operator && go mod tidy
 	@cd operator && podman build -t ${LOCAL_TAG} -f Dockerfile .
 	@rm -f controller.tar
 	@podman save ${LOCAL_TAG} -o controller.tar
