@@ -14,25 +14,31 @@ TAG=akm/docs
 CONTAINER_NAME=authentik-manager-docs
 DOCS_DOCKERFILE=Dockerfile
 
+.PHONY: help
+help: ## display this auto generated help message
+	@echo "Please provide a make target:"
+	@grep -F -h "##" $(MAKEFILE_LIST) | grep -F -v fgrep | sed -e 's/\\$$//' | sed -e 's/##//'
+
+
 .PHONY: all
-all: lint minikube install ingress
+all: lint minikube install ingress ## Create minikube cluster and apply operator to it
 
 .PHONY: lint
-lint: deps
+lint: deps ## Lint the helm chart
 	helm lint ${CHART_DIR_PATH}/.
 
 .PHONY: deps
-deps:
+deps:	## Update all helm chart dependencies
 	helm dependency update ${CHART_DIR_PATH}/.
 
 .PHONY: minikube
-minikube:
+minikube: ## Create a local minikube testing cluster
 	minikube delete
 	minikube start
 	# minikube addons enable ingress
 
 .PHONY: ingress
-ingress:
+ingress: ## Enable minikube ingress addon
 	minikube addons enable ingress
 
 # .PHONY: login
@@ -57,21 +63,21 @@ login.lock:
 	touch login.lock
 
 .PHONY: test
-test: lint minikube install
+test: lint minikube install ## Test application (current does not)
 
 .PHONY: template
-template: templates.yaml
+template: templates.yaml ## Generate a concrete template for inspection
 
 templates.yaml:
 	helm template --set namespace.name=${CHART_NAMESPACE} --set namespace.create=true ${CHART_DIR_PATH}/. > templates.yaml
 
 .PHONY: akm-build
-akm-build:
+akm-build: ## Build the operator dockerfile
 	# just in case things change get the specific image that would have been pulled and build it
 	@cd operator && podman build -t ${CONTAINER_TAG} -f Dockerfile .
 
 .PHONY: install
-install: # login.lock
+install: ## Install help chart to default cluster
 	helm dependency build ${CHART_DIR_PATH}
 	# kubectl create namespace ${CHART_NAMESPACE}
 	# kubectl apply -f login.creds
@@ -79,7 +85,7 @@ install: # login.lock
 	helm upgrade --install --create-namespace --namespace ${CHART_NAMESPACE} ${CHART_NAME} ${CHART_DIR_PATH}/.
 
 .PHONY: forward
-forward:
+forward: ## Forward authentik worker
 	kubectl wait --timeout=600s --for=condition=Available=True -n ${CHART_NAMESPACE} deployment authentik-worker
 	kubectl wait --timeout=600s --for=condition=Available=True -n ${CHART_NAMESPACE} deployment authentik-server
 	@echo NOTE: the full domain is the .global.domain.full value in the auth chart that you probably set to something else
@@ -97,7 +103,7 @@ forward:
 	kubectl port-forward svc/authentik-server -n ${CHART_NAMESPACE} ${FORWARD_PORT}:443
 
 .PHONY: proxy
-proxy:
+proxy: ## Proxy ingress for local testing through ingress
 	kubectl wait --timeout=600s --for=condition=Available=True -n ${CHART_NAMESPACE} deployment authentik-worker
 	kubectl wait --timeout=600s --for=condition=Available=True -n ${CHART_NAMESPACE} deployment authentik-server
 	minikube -n ingress-nginx service ingress-nginx-controller --url
@@ -105,7 +111,7 @@ proxy:
 
 
 .PHONY: users
-users:
+users: ## Defunkt
 	@echo "Admin pass in secret:"
 	@kubectl get secret -n ${CHART_NAMESPACE} auth -o=jsonpath='{.data.ldapAdminPassword}' | base64 -d
 	@echo ""
@@ -115,7 +121,7 @@ users:
 	# @kubectl get pods -n ${CAHRT_NAMESPACE} -l=app=authelia -o jsonpath='{.metadata.name}' | xargs -I {} kubectl exec --stdin --tty -n ${CHART_NAMESPACE} {} -- ldapsearch -H ldap://127.0.0.1:1389 -x -b "dc=example,dc=org" -D "cn=admin,dc=example,dc=org" -W
 
 .PHONY: pgadmin
-pgadmin:
+pgadmin: ## Defunkt
 	@kubectl wait --timeout=600s --for=condition=Available=True -n ${CHART_NAMESPACE} deployment pgadmin-deployment
 	@echo "admin username:"
 	@kubectl -n ${CHART_NAMESPACE} get deployment pgadmin -o jsonpath="{.spec.template.spec.containers[0].env[0].value}"
@@ -125,7 +131,7 @@ pgadmin:
 	@kubectl port-forward svc/pgadmin -n ${CHART_NAMESPACE} ${FORWARD_PORT}:http-port
 
 .PHONY: pla
-pla:
+pla: ## Defunkt
 	@kubectl wait --timeout=600s --for=condition=Available=True -n ${CHART_NAMESPACE} deployment pla-deployment
 	@echo "admin username:"
 	@kubectl -n ${CHART_NAMESPACE} get deployment pla-deployment -o jsonpath="{.spec.template.spec.containers[0].env[0].value}"
@@ -136,47 +142,47 @@ pla:
 	@kubectl port-forward svc/pla -n ${CHART_NAMESPACE} ${FORWARD_PORT}:http
 
 .PHONY: upgrade
-upgrade:
+upgrade: ## Upgrade the operator help chart
 	helm dependency build ${CHART_DIR_PATH}
 	helm upgrade --namespace ${CHART_NAMESPACE} ${CHART_NAME} ${CHART_DIR_PATH}/.
 
 
 .PHONY: uninstall
-uninstall:
+uninstall: ## uninstall the operator helm chart
 	helm uninstall --namespace ${CHART_NAMESPACE} ${CHART_NAME}
 	# kubectl delete namespace ${CHART_NAMESPACE}
 
 .PHONY: getBlueprint
-getBlueprint:
+getBlueprint: ## Fetch currently running blueprints in authentik-worker
 	kubectl exec --namespace ${CHART_NAMESPACE} -it deployment/authentik-worker -- ak export_blueprint > export_blueprint.yaml
 
 .PHONY: perm
-perm:
+perm: ## Change users groups to add docker (Defunkt)
 	sudo usermod -aG docker ${USER}
 
 .PHONY: unperm
-unperm:
+unperm: ## Remove user from docker group (Defunkt)
 	sudo gpasswd -d ${USER} docker
 
 .PHONY: clean
-clean:
+clean: ## Wipe most residuals and clean up minikube
 	rm -f login.lock login.creds templates.yaml
 	minikube delete
 	# podman logout {PRIVATE_REGISTRY}
 
 .PHONY: docs
-docs: doc-build doc-test doc-run
+docs: doc-build doc-test doc-run ## Build, test, and run the docs
 
 .PHONY: doc-build
-doc-build:
+doc-build: ## Build the docs in a container
 	sudo podman build -t ${TAG} -f ${DOCS_DOCKERFILE} .
 
 .PHONY: doc-test
-doc-test:
+doc-test: ## Test the docs
 	cd docs/server && go test -short $(go list ./... | grep -v /vendor/)
 
 .PHONY: doc-run
-doc-run: doc-build
+doc-run: doc-build ## Run the docs in a container and open a connection to it
 	xdg-open "http://127.0.0.1:8080" &
 	sudo podman run -p 127.0.0.1:8080:8080 -it ${TAG}
 
