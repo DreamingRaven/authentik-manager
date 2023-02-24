@@ -1,0 +1,12 @@
+apiVersion: akm.goauthentik.io/v1alpha1
+kind: Ak
+metadata:
+  labels:
+    app.kubernetes.io/name: ak
+    app.kubernetes.io/instance: ak-sample
+    app.kubernetes.io/part-of: operator
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: operator
+  name: ak-sample
+spec:
+  # TODO(user): Add fields here
