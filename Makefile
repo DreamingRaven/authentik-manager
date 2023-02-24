@@ -78,10 +78,13 @@ akm-build: ## Build the operator dockerfile
 	# just in case things change get the specific image that would have been pulled and build it
 	@cd operator && podman build -t ${CONTAINER_TAG} -f Dockerfile .
 
-.PHONY: install
+.PHONY: install-full
 install: ## Install helm chart to default cluster with registry images
 	helm dependency build ${CHART_DIR_PATH}
 	helm upgrade --install --create-namespace --namespace ${CHART_NAMESPACE} ${CHART_NAME} ${CHART_DIR_PATH}/.
+
+.PHONY: upgrade-full
+upgrade: install-full ## Upgrade the operator helm chart using registry
 
 .PHONY: build
 build: ## Build the container image
@@ -93,10 +96,14 @@ build: ## Build the container image
 	@rm -f controller.tar
 
 
-.PHONY: install-local
+.PHONY: install
 install-local: build ## Install helm chart to default cluster with local images
 	helm dependency build ${CHART_DIR_PATH}
 	helm upgrade --install --create-namespace --namespace ${CHART_NAMESPACE} --set operator.deployment.imagePullPolicy=Never --set operator.deployment.image=${LOCAL_TAG} ${CHART_NAME} ${CHART_DIR_PATH}/.
+
+.PHONY: upgrade
+upgrade: install
+
 
 .PHONY: forward
 forward: ## Forward authentik worker
@@ -154,16 +161,6 @@ pla: ## Defunkt
 	@kubectl -n ${CHART_NAMESPACE} get secret auth -o jsonpath="{.data.pgAdminPassword}" | base64 -d && echo
 	@xdg-open "http://localhost:${FORWARD_PORT}" &
 	@kubectl port-forward svc/pla -n ${CHART_NAMESPACE} ${FORWARD_PORT}:http
-
-.PHONY: upgrade
-upgrade: ## Upgrade the operator helm chart using registry
-	helm dependency build ${CHART_DIR_PATH}
-	helm upgrade --namespace ${CHART_NAMESPACE} ${CHART_NAME} ${CHART_DIR_PATH}/.
-
-.PHONY: upgrade-local
-upgrade-local: build ## Upgrade the operator helm chart using the local images
-	helm dependency build ${CHART_DIR_PATH}
-	helm upgrade --namespace ${CHART_NAMESPACE} ${CHART_NAME} --set operator.deployment.imagePullPolicy=Never --set operator.deployment.image=${LOCAL_TAG} ${CHART_DIR_PATH}/.
 
 
 .PHONY: uninstall
