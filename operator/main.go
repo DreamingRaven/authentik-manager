@@ -18,7 +18,6 @@ package main
 
 import (
 	"encoding/json"
-	"flag"
 	"fmt"
 	"os"
 
@@ -81,8 +80,6 @@ func main() {
 	opts := zap.Options{
 		Development: o.Debug,
 	}
-	opts.BindFlags(flag.CommandLine)
-	flag.Parse()
 
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 
