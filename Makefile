@@ -7,7 +7,8 @@ DOCKER_AUTH_FILE="${HOME}/.docker/config.json"
 # https://docs.podman.io/en/latest/markdown/podman-login.1.html#authfile-path
 REGISTRY_AUTH_FILE=${DOCKER_AUTH_FILE}
 # CONTAINER_IMAGE=$(cat charts/akm/values.yaml | grep -P -o '(?<=image:\s\").*(?=\")')
-CONTAINER_TAG=registry.gitlab.com/georgeraven/authentik-manager:ldev
+# CONTAINER_TAG=registry.gitlab.com/georgeraven/authentik-manager:ldev
+LOCAL_TAG=localhost/controller:latest
 
 # Docs arguments
 TAG=akm/docs
@@ -21,7 +22,7 @@ help: ## display this auto generated help message
 
 
 .PHONY: all
-all: lint minikube install ingress ## Create minikube cluster and apply operator to it
+all: lint minikube install-local ingress ## Create minikube cluster and apply operator to it
 
 .PHONY: lint
 lint: deps ## Lint the helm chart
@@ -77,12 +78,19 @@ akm-build: ## Build the operator dockerfile
 	@cd operator && podman build -t ${CONTAINER_TAG} -f Dockerfile .
 
 .PHONY: install
-install: ## Install help chart to default cluster
+install: ## Install helm chart to default cluster with registry images
 	helm dependency build ${CHART_DIR_PATH}
-	# kubectl create namespace ${CHART_NAMESPACE}
-	# kubectl apply -f login.creds
-	# kubectl get -n ${CHART_NAMESPACE} secret regcred --output="jsonpath={.data.\.dockerconfigjson}" | base64 --decode
 	helm upgrade --install --create-namespace --namespace ${CHART_NAMESPACE} ${CHART_NAME} ${CHART_DIR_PATH}/.
+
+.PHONY: build
+build: ## Build the container image
+	cd operator && podman build -t ${LOCAL_TAG} -f Dockerfile .
+
+
+.PHONY: install-local
+install-local: build ## Install helm chart to default cluster with local images
+	helm dependency build ${CHART_DIR_PATH}
+	helm upgrade --install --create-namespace --namespace ${CHART_NAMESPACE} --set operator.deployment.image=${LOCAL_TAG} ${CHART_NAME} ${CHART_DIR_PATH}/.
 
 .PHONY: forward
 forward: ## Forward authentik worker
@@ -142,9 +150,14 @@ pla: ## Defunkt
 	@kubectl port-forward svc/pla -n ${CHART_NAMESPACE} ${FORWARD_PORT}:http
 
 .PHONY: upgrade
-upgrade: ## Upgrade the operator help chart
+upgrade: ## Upgrade the operator helm chart using registry
 	helm dependency build ${CHART_DIR_PATH}
 	helm upgrade --namespace ${CHART_NAMESPACE} ${CHART_NAME} ${CHART_DIR_PATH}/.
+
+.PHONY: upgrade-local
+upgrade-local: build ## Upgrade the operator helm chart using the local images
+	helm dependency build ${CHART_DIR_PATH}
+	helm upgrade --namespace ${CHART_NAMESPACE} ${CHART_NAME} --set operator.deployment.image=${LOCAL_TAG} ${CHART_DIR_PATH}/.
 
 
 .PHONY: uninstall
