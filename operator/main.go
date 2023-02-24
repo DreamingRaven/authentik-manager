@@ -17,8 +17,12 @@ limitations under the License.
 package main
 
 import (
+	"encoding/json"
 	"flag"
+	"fmt"
 	"os"
+
+	arg "github.com/alexflint/go-arg"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
@@ -48,17 +52,34 @@ func init() {
 	//+kubebuilder:scaffold:scheme
 }
 
+// Opts options struct for the operator to autopopulate help templates, autogenerate options, and ensure consistency between env and cli.
+type Opts struct {
+	MetricsAddr          string `arg:"--metrics-bind-address" default:":8080" json:"metricsAddr,omitempty" help:"The address the metric endpoint binds to."`
+	LeaderElectionID     string `arg:"--leader-election-id" default:"d460f2c2.goauthentik.io" json:"leaderElectionID,omitempty" help:"Lease name to use for leader election."`
+	WatchesPath          string `arg:"--watches-file" default:"watches.yaml" json:"watchesPath,omitempty" help:"Path to watches file."`
+	ProbeAddr            string `arg:"--health-probe-bind-address" default:":8081" json:"probeAddr,omitempty" help:"The address the probe endpoint binds to."`
+	EnableLeaderElection bool   `arg:"--leader-elect" json:"enableLeaderElection,omitempty" help:"To elect a leader to be active else all active."`
+	OperatorNamespace    string `arg:"--operator-namespace" default:"auth" json:"operatorNamespace,omitempty" help:"The operators namespace for leader election."`
+	WatchedNamespace     string `arg:"--watched-namespace" default:"" json:"watchedNamespace,omitempty" help:"The operators watched namespace. Defaults to empty (which watches all)."`
+	Debug                bool   `arg:"-d,--debug" json:"debug,omitempty" help:"We should run in debug mode."`
+	Port                 int    `arg:"-p,--port" default:"9443" json:"port,omitempty" help:"What port should the controller bind to."`
+}
+
+func prettyPrint(i interface{}) string {
+	s, _ := json.MarshalIndent(i, "", "\t")
+	return string(s)
+}
+
 func main() {
-	var metricsAddr string
-	var enableLeaderElection bool
-	var probeAddr string
-	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
-	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
-	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
-		"Enable leader election for controller manager. "+
-			"Enabling this will ensure there is only one active controller manager.")
+	o := Opts{}
+	arg.MustParse(&o)
+
+	if o.Debug {
+		fmt.Println(prettyPrint(o))
+	}
+
 	opts := zap.Options{
-		Development: true,
+		Development: o.Debug,
 	}
 	opts.BindFlags(flag.CommandLine)
 	flag.Parse()
@@ -67,22 +88,16 @@ func main() {
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:                 scheme,
-		MetricsBindAddress:     metricsAddr,
-		Port:                   9443,
-		HealthProbeBindAddress: probeAddr,
-		LeaderElection:         enableLeaderElection,
-		LeaderElectionID:       "d460f2c2.goauthentik.io",
-		// LeaderElectionReleaseOnCancel defines if the leader should step down voluntarily
-		// when the Manager ends. This requires the binary to immediately end when the
-		// Manager is stopped, otherwise, this setting is unsafe. Setting this significantly
-		// speeds up voluntary leader transitions as the new leader don't have to wait
-		// LeaseDuration time first.
-		//
-		// In the default scaffold provided, the program ends immediately after
-		// the manager stops, so would be fine to enable this option. However,
-		// if you are doing or is intended to do any operation such as perform cleanups
-		// after the manager stops then its usage might be unsafe.
-		// LeaderElectionReleaseOnCancel: true,
+		MetricsBindAddress:     o.MetricsAddr,
+		Port:                   o.Port,
+		HealthProbeBindAddress: o.ProbeAddr,
+		LeaderElection:         o.EnableLeaderElection,
+		LeaderElectionID:       o.LeaderElectionID,
+		// Specified the namespace the leader "lease" resource belongs
+		// this will also affect clusterwide searches by operator which we dont want
+		// so we specify so that these roles do not need to be granted
+		LeaderElectionNamespace: o.OperatorNamespace,
+		Namespace:               o.WatchedNamespace,
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
