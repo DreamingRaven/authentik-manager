@@ -4,7 +4,7 @@ operator:
     imagePullPolicy: Always
     image: "registry.gitlab.com/georgeraven/authentik-manager:latest"
     name: authentik-manager
-    replicas: 3
+    replicas: 1
     env: # statically defined environment variables can be as many as desired
     - name: LEADER_ELECT
       value: "true"

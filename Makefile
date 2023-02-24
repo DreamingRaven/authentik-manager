@@ -79,16 +79,17 @@ akm-build: ## Build the operator dockerfile
 	@cd operator && podman build -t ${CONTAINER_TAG} -f Dockerfile .
 
 .PHONY: install-full
-install: ## Install helm chart to default cluster with registry images
+install-full: ## Install helm chart to default cluster with registry images
 	helm dependency build ${CHART_DIR_PATH}
 	helm upgrade --install --create-namespace --namespace ${CHART_NAMESPACE} ${CHART_NAME} ${CHART_DIR_PATH}/.
 
 .PHONY: upgrade-full
-upgrade: install-full ## Upgrade the operator helm chart using registry
+upgrade-full: install-full ## Upgrade the operator helm chart using registry
 
 .PHONY: build
 build: ## Build the container image
 	# https://stackoverflow.com/questions/42564058/how-to-use-local-docker-images-with-minikube
+	@cd operator && go mod tidy
 	@cd operator && podman build -t ${LOCAL_TAG} -f Dockerfile .
 	@rm -f controller.tar
 	@podman save ${LOCAL_TAG} -o controller.tar
@@ -97,12 +98,13 @@ build: ## Build the container image
 
 
 .PHONY: install
-install-local: build ## Install helm chart to default cluster with local images
+install: build ## Install helm chart to default cluster with local images
 	helm dependency build ${CHART_DIR_PATH}
 	helm upgrade --install --create-namespace --namespace ${CHART_NAMESPACE} --set operator.deployment.imagePullPolicy=Never --set operator.deployment.image=${LOCAL_TAG} ${CHART_NAME} ${CHART_DIR_PATH}/.
 
 .PHONY: upgrade
 upgrade: install
+	kubectl rollout restart -n auth deployment/authentik-manager
 
 
 .PHONY: forward
