@@ -13,17 +13,25 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/url"
+	"os"
 	"path/filepath"
 
+	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/validation/field"
+	"k8s.io/cli-runtime/pkg/genericclioptions"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/log"
+	klog "sigs.k8s.io/controller-runtime/pkg/log"
 
+	"helm.sh/helm/v3/pkg/action"
 	"helm.sh/helm/v3/pkg/chart"
 	chartLoader "helm.sh/helm/v3/pkg/chart/loader"
 
@@ -46,8 +54,7 @@ type AkReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.13.0/pkg/reconcile
 func (r *AkReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	l := log.FromContext(ctx)
-
+	l := klog.FromContext(ctx)
 	// GET CRD
 	crd := &akmv1a1.Ak{}
 	err := r.Get(ctx, req.NamespacedName, crd)
@@ -65,6 +72,26 @@ func (r *AkReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Re
 	}
 	l.Info(fmt.Sprintf("Found Ak resource `%v` in `%v`.", crd.Name, crd.Namespace))
 
+	// Helm Action Config
+	wantChart := types.NamespacedName{
+		Namespace: crd.Namespace,
+		Name:      crd.Name,
+	}
+	actionConfig, err := r.GetActionConfig(wantChart.Namespace, l)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	// Helm List Action
+	listAction := action.NewList(actionConfig)
+	releases, err := listAction.Run()
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+	for _, release := range releases {
+		fmt.Println("Release: " + release.Name + " Status: " + release.Info.Status.String())
+	}
+
 	// GET SOURCE HELM CHART
 	// [scheme:][//[userinfo@]host][/]path[?query][#fragment]
 	u, err := url.Parse("file://somefile.tar.gz")
@@ -73,7 +100,7 @@ func (r *AkReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Re
 	}
 	fmt.Println(u)
 
-	c, err := r.GetHelmChart(u)
+	c, err := r.LoadHelmChart(u)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
@@ -85,8 +112,42 @@ func (r *AkReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Re
 	return ctrl.Result{}, nil
 }
 
+// GetActionConfig Get the Helm action config from in cluster service account
+func (r *AkReconciler) GetActionConfig(namespace string, l logr.Logger) (*action.Configuration, error) {
+	actionConfig := new(action.Configuration)
+	var kubeConfig *genericclioptions.ConfigFlags
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		return nil, err
+	}
+	// Set properties manually from official rest config
+	kubeConfig = genericclioptions.NewConfigFlags(false)
+	kubeConfig.APIServer = &config.Host
+	kubeConfig.BearerToken = &config.BearerToken
+	kubeConfig.CAFile = &config.CAFile
+	kubeConfig.Namespace = &namespace
+	if err := actionConfig.Init(kubeConfig, namespace, os.Getenv("HELM_DRIVER"), log.Printf); err != nil {
+
+	}
+	return actionConfig, nil
+}
+
+// Get Connection Client to Kubernetes
+func (r *AkReconciler) GetKubeClient() (*kubernetes.Clientset, error) {
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		return nil, err
+	}
+	// creates the clientset
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		return nil, err
+	}
+	return clientset, nil
+}
+
 // GetHelmChart loads a helm chart from a given file.
-func (r *AkReconciler) GetHelmChart(u *url.URL) (*chart.Chart, error) {
+func (r *AkReconciler) LoadHelmChart(u *url.URL) (*chart.Chart, error) {
 	// fmt.Println("Scheme:", u.Scheme)
 	// fmt.Println("Opaque:", u.Opaque)
 	// fmt.Println("User:", u.User)
