@@ -95,7 +95,7 @@ build: ## Build the container image
 	@cd operator && go mod tidy
 	@echo "Packaging authentik ${APP_VERSION} in authentik-manager ${SRC_VERSION}"
 	@helm package --dependency-update --app-version ${APP_VERSION} --version ${SRC_VERSION} --destination operator/helm-charts/. ${CHART_DIR_PATH}
-	@cd operator && podman build -t ${LOCAL_TAG} -f Dockerfile .
+	@cd operator && podman build --build-arg AK_VERSION=${APP_VERSION} --build-arg AKM_VERSION=${SRC_VERSION} -t ${LOCAL_TAG} -f Dockerfile .
 	@rm -f controller.tar
 	@podman save ${LOCAL_TAG} -o controller.tar
 	@minikube image load controller.tar

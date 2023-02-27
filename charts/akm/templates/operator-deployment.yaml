@@ -28,7 +28,7 @@ spec:
           imagePullPolicy: {{ .Values.operator.deployment.imagePullPolicy }}
           args:
           - "--leader-elect"
-          # - "--debug"
+          - "--debug"
           ports:
             {{- range .Values.operator.ports }}
             - name: {{ .name }}
