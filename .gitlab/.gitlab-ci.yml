@@ -37,9 +37,9 @@ docker_build_branch:
     - docker:dind
   before_script:
     - docker info
-  rules:
-   - !reference [.rules_default_branch_push, rules]
-   - !reference [.rules_nondefault_branch_push, rules]
+  # rules:
+  #  - !reference [.rules_default_branch_push, rules]
+  #  - !reference [.rules_nondefault_branch_push, rules]
   before_script:
     - apk add git make bash sed
     - sed --version
@@ -50,16 +50,20 @@ docker_build_branch:
       https://github.com/docker/buildx/releases/download/${BUILDX_VERSION}/buildx-${BUILDX_VERSION}.${BUILDX_ARCH}
     - chmod +x /usr/bin/docker-buildx
   script:
+    - export APP_VER="$(cat ${CHARTS_DIR}/ak/values.yaml | grep -P -o '(?<=ghcr.io/goauthentik/server:).*(?=\")')"
     - export SRC_VER="$(set -o pipefail && git describe --long 2>/dev/null | sed 's/\([^-]*-g\)/r\1/;s/-/./g' || printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)")"
+    - export SRC_VER_SHORT="$(git describe --abbrev=0)"
     # - sed -e '1 s/\(^FROM\)/FROM --platform=\$$\{BUILDPLATFORM\}/; t' -e ' 1,// s//FROM --platform=\$$\{BUILDPLATFORM\}/' ${DOCKERFILE_PATH} > ${DOCKERFILE_PATH}.cross
-    - echo "src_ver ${SRC_VER}"
     - make -C ${DOCKERFILE_DIR} docker-cross
+    - cp package/* operator/helm-charts/.
     - cd ${DOCKERFILE_DIR}
     - docker-buildx create
       --use
     - docker-buildx build
       --platform "linux/amd64"
-      --label "version=${SRC_VER}"
+      --build-arg "AK_VERSION=${APP_VERSION}"
+      --build-arg "AKM_VERSION=${SRC_VERSION_SHORT}"
+      --label "version=${SRC_VER_SHORT}"
       --label "commit=$(git rev-parse HEAD)"
       --build-arg GIN_MODE="release"
       -t "$(echo ${CI_REGISTRY}/${CI_PROJECT_PATH}:${CI_COMMIT_BRANCH} | tr "[:upper:]" "[:lower:]")"
@@ -69,6 +73,9 @@ docker_build_branch:
     - docker logout ${CI_REGISTRY}
   tags:
     - docker
+  needs:
+  - job: helm-chart-build
+    artifacts: true
 
 docker_build_multi_arch_tag:
   stage: build
@@ -91,17 +98,20 @@ docker_build_multi_arch_tag:
       https://github.com/docker/buildx/releases/download/${BUILDX_VERSION}/buildx-${BUILDX_VERSION}.${BUILDX_ARCH}
     - chmod +x /usr/bin/docker-buildx
   script:
+    - export APP_VER="$(cat ${CHARTS_DIR}/ak/values.yaml | grep -P -o '(?<=ghcr.io/goauthentik/server:).*(?=\")')"
     - export SRC_VER="$(set -o pipefail && git describe --long 2>/dev/null | sed 's/\([^-]*-g\)/r\1/;s/-/./g' || printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)")"
     - export SRC_VER_SHORT="$(git describe --abbrev=0)"
     # - sed -e '1 s/\(^FROM\)/FROM --platform=\$$\{BUILDPLATFORM\}/; t' -e ' 1,// s//FROM --platform=\$$\{BUILDPLATFORM\}/' ${DOCKERFILE_PATH} > ${DOCKERFILE_PATH}.cross
-    - echo "src_ver_short ${SRC_VER_SHORT}\nsrc_ver ${SRC_VER}"
     - make -C ${DOCKERFILE_DIR} docker-cross
+    - cp package/* operator/helm-charts/.
     - cd ${DOCKERFILE_DIR}
     - docker-buildx create
       --use
     - docker-buildx build
       --platform ${BUILDX_TARGET_ARCHES}
-      --label "version=${SRC_VER}"
+      --build-arg "AK_VERSION=${APP_VERSION}"
+      --build-arg "AKM_VERSION=${SRC_VERSION_SHORT}"
+      --label "version=${SRC_VER_SHORT}"
       --label "commit=$(git rev-parse HEAD)"
       --build-arg GIN_MODE="release"
       -t "$(echo ${CI_REGISTRY}/${CI_PROJECT_PATH}:${SRC_VER_SHORT} | tr "[:upper:]" "[:lower:]")"
@@ -112,6 +122,9 @@ docker_build_multi_arch_tag:
     - docker logout ${CI_REGISTRY}
   tags:
     - docker
+  needs:
+  - job: helm-chart-build
+    artifacts: true
 
 helm-chart-lint:
   stage: lint
@@ -173,6 +186,10 @@ helm-chart-push:
       curl --request POST --fail-with-body --user gitlab-ci-token:${CI_JOB_TOKEN} --form "chart=@${file}" "${HELM_PACKAGE_REGISTRY}"
     done
   - echo "published to ${HELM_PACKAGE_REGISTRY}"
+  needs:
+  - job: helm-chart-build
+    artifacts: true
+
 
 pages:
   stage: deploy
