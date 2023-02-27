@@ -10,6 +10,9 @@ REGISTRY_AUTH_FILE=${DOCKER_AUTH_FILE}
 # CONTAINER_TAG=registry.gitlab.com/georgeraven/authentik-manager:ldev
 LOCAL_TAG=localhost/controller:local
 
+SRC_VERSION=$(shell git describe --abbrev=0)
+APP_VERSION=$(shell cat charts/ak/values.yaml | grep -P -o '(?<=ghcr.io/goauthentik/server:).*(?=\")')
+
 # Docs arguments
 TAG=akm/docs
 CONTAINER_NAME=authentik-manager-docs
@@ -37,6 +40,7 @@ minikube: ## Create a local minikube testing cluster
 	minikube delete
 	minikube start --driver=podman
 	# minikube addons enable ingress
+
 
 .PHONY: ingress
 ingress: ## Enable minikube ingress addon
@@ -82,7 +86,6 @@ akm-build: ## Build the operator dockerfile
 install-full: ## Install helm chart to default cluster with registry images
 	helm dependency build ${CHART_DIR_PATH}
 	helm upgrade --install --create-namespace --namespace ${CHART_NAMESPACE} ${CHART_NAME} ${CHART_DIR_PATH}/.
-
 .PHONY: upgrade-full
 upgrade-full: install-full ## Upgrade the operator helm chart using registry
 
@@ -90,6 +93,8 @@ upgrade-full: install-full ## Upgrade the operator helm chart using registry
 build: ## Build the container image
 	# https://stackoverflow.com/questions/42564058/how-to-use-local-docker-images-with-minikube
 	@cd operator && go mod tidy
+	@echo "Packaging authentik ${APP_VERSION} in authentik-manager ${SRC_VERSION}"
+	@helm package --dependency-update --app-version ${APP_VERSION} --version ${SRC_VERSION} --destination operator/helm-charts/. ${CHART_DIR_PATH}
 	@cd operator && podman build -t ${LOCAL_TAG} -f Dockerfile .
 	@rm -f controller.tar
 	@podman save ${LOCAL_TAG} -o controller.tar
