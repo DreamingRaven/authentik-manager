@@ -22,7 +22,7 @@ help: ## display this auto generated help message
 
 
 .PHONY: all
-all: lint minikube install-local ingress ## Create minikube cluster and apply operator to it
+all: lint minikube install ingress ## Create minikube cluster and apply operator to it
 
 .PHONY: lint
 lint: deps ## Lint the helm chart
