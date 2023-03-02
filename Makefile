@@ -41,7 +41,6 @@ minikube: ## Create a local minikube testing cluster
 	minikube start --driver=podman
 	# minikube addons enable ingress
 
-
 .PHONY: ingress
 ingress: ## Enable minikube ingress addon
 	minikube addons enable ingress
@@ -94,13 +93,12 @@ build: ## Build the container image
 	# https://stackoverflow.com/questions/42564058/how-to-use-local-docker-images-with-minikube
 	@cd operator && go mod tidy
 	@echo "Packaging authentik ${APP_VERSION} in authentik-manager ${SRC_VERSION}"
-	@helm package --dependency-update --app-version ${APP_VERSION} --version ${SRC_VERSION} --destination operator/helm-charts/. ${CHART_DIR_PATH}
+	@helm package --dependency-update --app-version ${APP_VERSION} --version ${SRC_VERSION} --destination operator/helm-charts/. charts/ak
 	@cd operator && podman build --build-arg AK_VERSION=${APP_VERSION} --build-arg AKM_VERSION=${SRC_VERSION} -t ${LOCAL_TAG} -f Dockerfile .
 	@rm -f controller.tar
 	@podman save ${LOCAL_TAG} -o controller.tar
 	@minikube image load controller.tar
 	@rm -f controller.tar
-
 
 .PHONY: install
 install: build ## Install helm chart to default cluster with local images
@@ -110,7 +108,6 @@ install: build ## Install helm chart to default cluster with local images
 .PHONY: upgrade
 upgrade: install
 	kubectl rollout restart -n auth deployment/authentik-manager
-
 
 .PHONY: forward
 forward: ## Forward authentik worker
@@ -136,7 +133,6 @@ proxy: ## Proxy ingress for local testing through ingress
 	kubectl wait --timeout=600s --for=condition=Available=True -n ${CHART_NAMESPACE} deployment authentik-server
 	minikube -n ingress-nginx service ingress-nginx-controller --url
 	#sudo socat TCP-LISTEN:443,fork TCP:192.168.49.2:30312
-
 
 .PHONY: users
 users: ## Defunkt
@@ -168,7 +164,6 @@ pla: ## Defunkt
 	@kubectl -n ${CHART_NAMESPACE} get secret auth -o jsonpath="{.data.pgAdminPassword}" | base64 -d && echo
 	@xdg-open "http://localhost:${FORWARD_PORT}" &
 	@kubectl port-forward svc/pla -n ${CHART_NAMESPACE} ${FORWARD_PORT}:http
-
 
 .PHONY: uninstall
 uninstall: ## uninstall the operator helm chart

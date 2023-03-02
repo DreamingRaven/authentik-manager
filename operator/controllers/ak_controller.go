@@ -18,6 +18,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/alexflint/go-arg"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -36,6 +37,7 @@ import (
 	chartLoader "helm.sh/helm/v3/pkg/chart/loader"
 
 	akmv1a1 "gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1"
+	"gitlab.com/GeorgeRaven/authentik-manager/operator/utils"
 )
 
 // AkReconciler reconciles a Ak object
@@ -55,6 +57,11 @@ type AkReconciler struct {
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.13.0/pkg/reconcile
 func (r *AkReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	l := klog.FromContext(ctx)
+
+	// Parsing options to make them available TODO: pass them in rather than read continuously
+	o := utils.Opts{}
+	arg.MustParse(&o)
+
 	// GET CRD
 	crd := &akmv1a1.Ak{}
 	err := r.Get(ctx, req.NamespacedName, crd)
@@ -94,7 +101,7 @@ func (r *AkReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Re
 
 	// GET SOURCE HELM CHART
 	// [scheme:][//[userinfo@]host][/]path[?query][#fragment]
-	u, err := url.Parse("file://somefile.tar.gz")
+	u, err := url.Parse(fmt.Sprintf("file://workspace/helm-charts/ak-%v.tgz", o.SrcVersion))
 	if err != nil {
 		return ctrl.Result{}, err
 	}
@@ -146,7 +153,7 @@ func (r *AkReconciler) GetKubeClient() (*kubernetes.Clientset, error) {
 	return clientset, nil
 }
 
-// GetHelmChart loads a helm chart from a given file.
+// GetHelmChart loads a helm chart from a given file as URL
 func (r *AkReconciler) LoadHelmChart(u *url.URL) (*chart.Chart, error) {
 	// fmt.Println("Scheme:", u.Scheme)
 	// fmt.Println("Opaque:", u.Opaque)
@@ -161,7 +168,6 @@ func (r *AkReconciler) LoadHelmChart(u *url.URL) (*chart.Chart, error) {
 
 	// GET HELM CHART
 	if u.Scheme != "file" {
-
 		err := errors.NewInvalid(
 			schema.GroupKind{
 				Group: "akm.goauthentik.io",
@@ -172,7 +178,11 @@ func (r *AkReconciler) LoadHelmChart(u *url.URL) (*chart.Chart, error) {
 		return nil, err
 	}
 	// load chart from filepath (which is part of host in url)
-	path, err := filepath.Abs(u.Host)
+	path, err := filepath.Abs(u.Host + u.Path)
+	if err != nil {
+		return nil, err
+	}
+	_, err = utils.Exists(path)
 	if err != nil {
 		return nil, err
 	}
