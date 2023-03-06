@@ -92,6 +92,7 @@ upgrade-full: install-full ## Upgrade the operator helm chart using registry
 build: ## Build the container image
 	# https://stackoverflow.com/questions/42564058/how-to-use-local-docker-images-with-minikube
 	@cd operator && go mod tidy
+	@make -C operator generate manifests
 	@echo "Packaging authentik ${APP_VERSION} in authentik-manager ${SRC_VERSION}"
 	@helm package --dependency-update --app-version ${APP_VERSION} --version ${SRC_VERSION} --destination operator/helm-charts/. charts/ak
 	@cd operator && podman build --build-arg AK_VERSION=${APP_VERSION} --build-arg AKM_VERSION=${SRC_VERSION} -t ${LOCAL_TAG} -f Dockerfile .
