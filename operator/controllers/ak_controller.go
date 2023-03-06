@@ -89,11 +89,31 @@ func (r *AkReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Re
 		return ctrl.Result{}, err
 	}
 
-	// Helm List Action
-	listAction := action.NewList(actionConfig)
-	releases, err := listAction.Run()
+	// Helm Chart Identification
+	u, err := url.Parse(fmt.Sprintf("file://workspace/helm-charts/ak-%v.tgz", o.SrcVersion))
 	if err != nil {
 		return ctrl.Result{}, err
+	}
+
+	// Helm Install or Upgrade Chart
+	err = r.UpgradeOrInstallChart(wantChart, u, actionConfig)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	// Authenticate to Kubernetes
+	// https://stackoverflow.com/questions/66730436/how-to-connect-to-kubernetes-cluster-using-serviceaccount-token
+
+	return ctrl.Result{}, nil
+}
+
+// UpgradeOrInstallChart upgrades a chart in cluster or installs it new if it does not already exist
+func (r *AkReconciler) UpgradeOrInstallChart(nn types.NamespacedName, u *url.URL, a *action.Configuration) error {
+	// Helm List Action
+	listAction := action.NewList(a)
+	releases, err := listAction.Run()
+	if err != nil {
+		return err
 	}
 	for _, release := range releases {
 		fmt.Println("Release: " + release.Name + " Status: " + release.Info.Status.String())
@@ -101,22 +121,21 @@ func (r *AkReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Re
 
 	// GET SOURCE HELM CHART
 	// [scheme:][//[userinfo@]host][/]path[?query][#fragment]
-	u, err := url.Parse(fmt.Sprintf("file://workspace/helm-charts/ak-%v.tgz", o.SrcVersion))
-	if err != nil {
-		return ctrl.Result{}, err
-	}
-	fmt.Println(u)
+	// TODO: abstract into argument
 
 	c, err := r.LoadHelmChart(u)
 	if err != nil {
-		return ctrl.Result{}, err
+		return err
 	}
-	fmt.Println(c)
 
-	// Authenticate to Kubernetes
-	// https://stackoverflow.com/questions/66730436/how-to-connect-to-kubernetes-cluster-using-serviceaccount-token
-
-	return ctrl.Result{}, nil
+	// Helm Install-or-Upgrade
+	updateAction := action.NewUpgrade(a)
+	release, err := updateAction.Run(nn.Name, c, nil)
+	if err != nil {
+		return err
+	}
+	fmt.Println(release)
+	return nil
 }
 
 // GetActionConfig Get the Helm action config from in cluster service account
