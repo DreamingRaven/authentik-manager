@@ -63,15 +63,29 @@ func (r *AkReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Re
 	o := utils.Opts{}
 	arg.MustParse(&o)
 
+	// Helm Action Config
+	// wantChart := types.NamespacedName{
+	// 	Namespace: crd.Namespace,
+	// 	Name:      crd.Name,
+	// }
+	actionConfig, err := r.GetActionConfig(req.NamespacedName.Namespace, l)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
 	// GET CRD
 	crd := &akmv1a1.Ak{}
-	err := r.Get(ctx, req.NamespacedName, crd)
+	err = r.Get(ctx, req.NamespacedName, crd)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Request object not found, could have been deleted after reconcile request.
 			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
 			// Return and don't requeue
-			l.Info("Ak resource changed but disappeared. Ignoring since object must have been deleted.")
+			l.Info("Ak resource reconciliation triggered but disappeared. Checking for residual chart for uninstall then ignoring since object must have been deleted.")
+			_, err := r.UninstallChart(req.NamespacedName, actionConfig)
+			if err != nil {
+				return ctrl.Result{}, err
+			}
 			return ctrl.Result{}, nil
 		}
 		// Error reading the object - requeue the request.
@@ -80,16 +94,6 @@ func (r *AkReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Re
 	}
 	l.Info(fmt.Sprintf("Found Ak resource `%v` in `%v`.", crd.Name, crd.Namespace))
 
-	// Helm Action Config
-	wantChart := types.NamespacedName{
-		Namespace: crd.Namespace,
-		Name:      crd.Name,
-	}
-	actionConfig, err := r.GetActionConfig(wantChart.Namespace, l)
-	if err != nil {
-		return ctrl.Result{}, err
-	}
-
 	// Helm Chart Identification
 	u, err := url.Parse(fmt.Sprintf("file://workspace/helm-charts/ak-%v.tgz", o.SrcVersion))
 	if err != nil {
@@ -97,13 +101,10 @@ func (r *AkReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Re
 	}
 
 	// Helm Install or Upgrade Chart
-	_, err = r.UpgradeOrInstallChart(wantChart, u, actionConfig, nil)
+	_, err = r.UpgradeOrInstallChart(req.NamespacedName, u, actionConfig, nil)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
-
-	// Authenticate to Kubernetes
-	// https://stackoverflow.com/questions/66730436/how-to-connect-to-kubernetes-cluster-using-serviceaccount-token
 
 	return ctrl.Result{}, nil
 }
@@ -151,6 +152,15 @@ func (r *AkReconciler) UpgradeOrInstallChart(nn types.NamespacedName, u *url.URL
 		}
 	}
 	return rel, nil
+}
+
+func (r *AkReconciler) UninstallChart(nn types.NamespacedName, a *action.Configuration) (*release.UninstallReleaseResponse, error) {
+	uninstallAction := action.NewUninstall(a)
+	releaseResponse, err := uninstallAction.Run(nn.Name)
+	if err != nil {
+		return nil, err
+	}
+	return releaseResponse, nil
 }
 
 // GetActionConfig Get the Helm action config from in cluster service account
