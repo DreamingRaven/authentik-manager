@@ -12,18 +12,21 @@ package v1alpha1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
+//+kubebuilder:validation:Optional
 
 // AkSpec defines the desired state of Ak
 type AkSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of Ak. Edit ak_types.go to remove/update
-	Values string `json:"values,omitempty"`
+	// Values is the helm chart values map to override chart defaults. This is often further adapted by the controller
+	// to add additional resources like declarative blueprints into the deployments. Values is a loose, and unstructured
+	// datatype. It will not complain if the values do not override anything, or do anything at all.
+	Values unstructured.Unstructured `json:"values,omitempty"`
+	// Values map[string]interface{} `json:"values,omitempty"`
 }
 
 // AkStatus defines the observed state of Ak

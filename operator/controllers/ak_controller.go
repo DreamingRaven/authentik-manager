@@ -63,11 +63,6 @@ func (r *AkReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Re
 	o := utils.Opts{}
 	arg.MustParse(&o)
 
-	// Helm Action Config
-	// wantChart := types.NamespacedName{
-	// 	Namespace: crd.Namespace,
-	// 	Name:      crd.Name,
-	// }
 	actionConfig, err := r.GetActionConfig(req.NamespacedName.Namespace, l)
 	if err != nil {
 		return ctrl.Result{}, err
@@ -101,7 +96,7 @@ func (r *AkReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Re
 	}
 
 	// Helm Install or Upgrade Chart
-	_, err = r.UpgradeOrInstallChart(req.NamespacedName, u, actionConfig, nil)
+	_, err = r.UpgradeOrInstallChart(req.NamespacedName, u, actionConfig, crd.Spec.Values.UnstructuredContent())
 	if err != nil {
 		return ctrl.Result{}, err
 	}
@@ -131,6 +126,8 @@ func (r *AkReconciler) UpgradeOrInstallChart(nn types.NamespacedName, u *url.URL
 	if err != nil {
 		return nil, err
 	}
+
+	fmt.Println(o)
 
 	var rel *release.Release
 	if toUpgrade {
