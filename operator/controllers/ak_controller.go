@@ -35,6 +35,7 @@ import (
 	"helm.sh/helm/v3/pkg/action"
 	"helm.sh/helm/v3/pkg/chart"
 	chartLoader "helm.sh/helm/v3/pkg/chart/loader"
+	"helm.sh/helm/v3/pkg/release"
 
 	akmv1a1 "gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1"
 	"gitlab.com/GeorgeRaven/authentik-manager/operator/utils"
@@ -96,7 +97,7 @@ func (r *AkReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Re
 	}
 
 	// Helm Install or Upgrade Chart
-	err = r.UpgradeOrInstallChart(wantChart, u, actionConfig)
+	_, err = r.UpgradeOrInstallChart(wantChart, u, actionConfig, nil)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
@@ -108,34 +109,48 @@ func (r *AkReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Re
 }
 
 // UpgradeOrInstallChart upgrades a chart in cluster or installs it new if it does not already exist
-func (r *AkReconciler) UpgradeOrInstallChart(nn types.NamespacedName, u *url.URL, a *action.Configuration) error {
+// ulr format is [scheme:][//[userinfo@]host][/]path[?query][#fragment] e.g file://workspace/helm-charts/ak-0.1.0.tgz"
+func (r *AkReconciler) UpgradeOrInstallChart(nn types.NamespacedName, u *url.URL, a *action.Configuration, o map[string]interface{}) (*release.Release, error) {
 	// Helm List Action
 	listAction := action.NewList(a)
 	releases, err := listAction.Run()
 	if err != nil {
-		return err
-	}
-	for _, release := range releases {
-		fmt.Println("Release: " + release.Name + " Status: " + release.Info.Status.String())
+		return nil, err
 	}
 
-	// GET SOURCE HELM CHART
-	// [scheme:][//[userinfo@]host][/]path[?query][#fragment]
-	// TODO: abstract into argument
+	toUpgrade := false
+	for _, release := range releases {
+		// fmt.Println("Release: " + release.Name + " Status: " + release.Info.Status.String())
+		if release.Name == nn.Name {
+			toUpgrade = true
+		}
+	}
 
 	c, err := r.LoadHelmChart(u)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	// Helm Install-or-Upgrade
-	updateAction := action.NewUpgrade(a)
-	release, err := updateAction.Run(nn.Name, c, nil)
-	if err != nil {
-		return err
+	var rel *release.Release
+	if toUpgrade {
+		// Helm Upgrade
+		updateAction := action.NewUpgrade(a)
+		rel, err = updateAction.Run(nn.Name, c, o)
+		if err != nil {
+			return nil, err
+		}
+
+	} else {
+		// Helm Install
+		installAction := action.NewInstall(a)
+		installAction.Namespace = nn.Namespace
+		installAction.ReleaseName = nn.Name
+		rel, err = installAction.Run(c, o)
+		if err != nil {
+			return nil, err
+		}
 	}
-	fmt.Println(release)
-	return nil
+	return rel, nil
 }
 
 // GetActionConfig Get the Helm action config from in cluster service account

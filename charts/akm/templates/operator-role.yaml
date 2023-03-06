@@ -6,6 +6,7 @@ metadata:
 rules:
 # do anything with namespaced resources in our own namespace
 # excludes the ability to modify roles, service accounts, and bindings for obvious reasons
+
 - apiGroups:
   - ""
   resources:
@@ -21,6 +22,14 @@ rules:
   - resourcequotas
   - secrets
   - services
+  verbs:
+  - "*"
+
+# The bitnami helm charts create service accounts in this namespacd
+- apiGroups:
+  - ""
+  resources:
+  - serviceaccounts
   verbs:
   - "*"
 
