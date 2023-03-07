@@ -1,41 +1,41 @@
-# apiVersion: networking.k8s.io/v1
-# kind: NetworkPolicy
-# metadata:
-#   name: operator-netpol
-# spec:
-#   podSelector:
-#     matchLabels:
-#       {{- range .Values.operator.labels }}
-#       {{ .key }}: {{ .value }}
-#       {{- end }}
-#   policyTypes:
-#   - Egress
-#   egress:
-#   - to:
-#     # allow to go to WAN internet
-#     - ipBlock:
-#         cidr: 0.0.0.0/0
-#         except:
-#         - 10.0.0.0/8
-#         - 192.168.0.0/16
-#         - 172.16.0.0/20
-#     # or allowed to go to local namespace
-#     - namespaceSelector:
-#         matchLabels:
-#           kubernetes.io/metadata.name: {{ .Release.Namespace }}
-#   # Also
-#   - to:
-#     # allow lookups to kube system
-#     - namespaceSelector:
-#         matchLabels:
-#           kubernetes.io/metadata.name: kube-system
-#   # Also
-#   - to:
-#     # allow to communicate to kube-api default service
-#     - namespaceSelector:
-#         matchLabels:
-#           kubernetes.io/metadata.name: default
-#     # # on specific ports for DNS
-#     # ports:
-#     # - protocol: UDP
-#     #   port: 53
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: operator-netpol
+spec:
+  podSelector:
+    matchLabels:
+      {{- range .Values.operator.labels }}
+      {{ .key }}: {{ .value }}
+      {{- end }}
+  policyTypes: []
+  # - Egress
+  # egress:
+  # - to:
+  #   # allow to go to WAN internet
+  #   - ipBlock:
+  #       cidr: 0.0.0.0/0
+  #       except:
+  #       - 10.0.0.0/8
+  #       - 192.168.0.0/16
+  #       - 172.16.0.0/20
+  #   # or allowed to go to local namespace
+  #   - namespaceSelector:
+  #       matchLabels:
+  #         kubernetes.io/metadata.name: {{ .Release.Namespace }}
+  # # Also
+  # - to:
+  #   # allow lookups to kube system
+  #   - namespaceSelector:
+  #       matchLabels:
+  #         kubernetes.io/metadata.name: kube-system
+  # # Also
+  # - to:
+  #   # allow to communicate to kube-api default service
+  #   - namespaceSelector:
+  #       matchLabels:
+  #         kubernetes.io/metadata.name: default
+  #   # # on specific ports for DNS
+  #   # ports:
+  #   # - protocol: UDP
+  #   #   port: 53
