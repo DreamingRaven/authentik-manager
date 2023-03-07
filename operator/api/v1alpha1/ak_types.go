@@ -19,21 +19,20 @@ import (
 
 // AkSpec defines the desired state of Ak
 type AkSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
 
 	// Values is the helm chart values map to override chart defaults. This is often further adapted by the controller
 	// to add additional resources like declarative blueprints into the deployments. Values is a loose, and unstructured
 	// datatype. It will not complain if the values do not override anything, or do anything at all.
 	Values unstructured.Unstructured `json:"values,omitempty"`
 	// Values map[string]interface{} `json:"values,omitempty"`
+	// Values runtime.RawExtension `json:"values,omitempty"`
+
+	// Blueprints is a field that specifies what blueprints should be loaded into the chart.
+	Blueprints []string `json:"blueprints,omitempty"`
 }
 
 // AkStatus defines the observed state of Ak
-type AkStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
-}
+type AkStatus struct{}
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
