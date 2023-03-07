@@ -17,7 +17,6 @@ limitations under the License.
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 
@@ -36,6 +35,7 @@ import (
 
 	akmv1alpha1 "gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1"
 	"gitlab.com/GeorgeRaven/authentik-manager/operator/controllers"
+	"gitlab.com/GeorgeRaven/authentik-manager/operator/utils"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -51,31 +51,14 @@ func init() {
 	//+kubebuilder:scaffold:scheme
 }
 
-// Opts options struct for the operator to autopopulate help templates, autogenerate options, and ensure consistency between env and cli.
-type Opts struct {
-	MetricsAddr          string `arg:"--metrics-bind-address" default:":8080" json:"metricsAddr,omitempty" help:"The address the metric endpoint binds to."`
-	LeaderElectionID     string `arg:"--leader-election-id" default:"d460f2c2.goauthentik.io" json:"leaderElectionID,omitempty" help:"Lease name to use for leader election."`
-	WatchesPath          string `arg:"--watches-file" default:"watches.yaml" json:"watchesPath,omitempty" help:"Path to watches file."`
-	ProbeAddr            string `arg:"--health-probe-bind-address" default:":8081" json:"probeAddr,omitempty" help:"The address the probe endpoint binds to."`
-	EnableLeaderElection bool   `arg:"--leader-elect" json:"enableLeaderElection,omitempty" help:"To elect a leader to be active else all active."`
-	OperatorNamespace    string `arg:"--operator-namespace" default:"auth" json:"operatorNamespace,omitempty" help:"The operators namespace for leader election."`
-	WatchedNamespace     string `arg:"--watched-namespace" default:"" json:"watchedNamespace,omitempty" help:"The operators watched namespace. Defaults to empty (which watches all)."`
-	Debug                bool   `arg:"-d,--debug" json:"debug,omitempty" help:"We should run in debug mode."`
-	Port                 int    `arg:"-p,--port" default:"9443" json:"port,omitempty" help:"What port should the controller bind to."`
-}
-
-func prettyPrint(i interface{}) string {
-	s, _ := json.MarshalIndent(i, "", "\t")
-	return string(s)
-}
-
 func main() {
-	o := Opts{}
+	o := utils.Opts{}
 	arg.MustParse(&o)
 
 	if o.Debug {
-		fmt.Println(prettyPrint(o))
+		fmt.Println(utils.PrettyPrint(o))
 	}
+	fmt.Println(fmt.Sprintf("Starting Authentik-Manager (%v) for Authentik (%v)", o.SrcVersion, o.AppVersion))
 
 	opts := zap.Options{
 		Development: o.Debug,

@@ -35,9 +35,19 @@ spec:
           spec:
             description: AkSpec defines the desired state of Ak
             properties:
+              blueprints:
+                description: Blueprints is a field that specifies what blueprints
+                  should be loaded into the chart.
+                items:
+                  type: string
+                type: array
               values:
-                description: Foo is an example field of Ak. Edit ak_types.go to remove/update
-                type: string
+                description: Values is the helm chart values map to override chart
+                  defaults. This is often further adapted by the controller to add
+                  additional resources like declarative blueprints into the deployments.
+                  Values is a loose, and unstructured datatype. It will not complain
+                  if the values do not override anything, or do anything at all.
+                type: object
             type: object
           status:
             description: AkStatus defines the observed state of Ak

@@ -10,6 +10,9 @@ REGISTRY_AUTH_FILE=${DOCKER_AUTH_FILE}
 # CONTAINER_TAG=registry.gitlab.com/georgeraven/authentik-manager:ldev
 LOCAL_TAG=localhost/controller:local
 
+SRC_VERSION=$(shell git describe --abbrev=0)
+APP_VERSION=$(shell cat charts/ak/values.yaml | grep -P -o '(?<=ghcr.io/goauthentik/server:).*(?=\")')
+
 # Docs arguments
 TAG=akm/docs
 CONTAINER_NAME=authentik-manager-docs
@@ -22,7 +25,7 @@ help: ## display this auto generated help message
 
 
 .PHONY: all
-all: lint minikube install-local ingress ## Create minikube cluster and apply operator to it
+all: lint minikube install ingress ## Create minikube cluster and apply operator to it
 
 .PHONY: lint
 lint: deps ## Lint the helm chart
@@ -82,7 +85,6 @@ akm-build: ## Build the operator dockerfile
 install-full: ## Install helm chart to default cluster with registry images
 	helm dependency build ${CHART_DIR_PATH}
 	helm upgrade --install --create-namespace --namespace ${CHART_NAMESPACE} ${CHART_NAME} ${CHART_DIR_PATH}/.
-
 .PHONY: upgrade-full
 upgrade-full: install-full ## Upgrade the operator helm chart using registry
 
@@ -90,12 +92,14 @@ upgrade-full: install-full ## Upgrade the operator helm chart using registry
 build: ## Build the container image
 	# https://stackoverflow.com/questions/42564058/how-to-use-local-docker-images-with-minikube
 	@cd operator && go mod tidy
-	@cd operator && podman build -t ${LOCAL_TAG} -f Dockerfile .
+	@make -C operator generate manifests
+	@echo "Packaging authentik ${APP_VERSION} in authentik-manager ${SRC_VERSION}"
+	@helm package --dependency-update --app-version ${APP_VERSION} --version ${SRC_VERSION} --destination operator/helm-charts/. charts/ak
+	@cd operator && podman build --build-arg AK_VERSION=${APP_VERSION} --build-arg AKM_VERSION=${SRC_VERSION} -t ${LOCAL_TAG} -f Dockerfile .
 	@rm -f controller.tar
 	@podman save ${LOCAL_TAG} -o controller.tar
 	@minikube image load controller.tar
 	@rm -f controller.tar
-
 
 .PHONY: install
 install: build ## Install helm chart to default cluster with local images
@@ -105,7 +109,6 @@ install: build ## Install helm chart to default cluster with local images
 .PHONY: upgrade
 upgrade: install
 	kubectl rollout restart -n auth deployment/authentik-manager
-
 
 .PHONY: forward
 forward: ## Forward authentik worker
@@ -131,7 +134,6 @@ proxy: ## Proxy ingress for local testing through ingress
 	kubectl wait --timeout=600s --for=condition=Available=True -n ${CHART_NAMESPACE} deployment authentik-server
 	minikube -n ingress-nginx service ingress-nginx-controller --url
 	#sudo socat TCP-LISTEN:443,fork TCP:192.168.49.2:30312
-
 
 .PHONY: users
 users: ## Defunkt
@@ -163,7 +165,6 @@ pla: ## Defunkt
 	@kubectl -n ${CHART_NAMESPACE} get secret auth -o jsonpath="{.data.pgAdminPassword}" | base64 -d && echo
 	@xdg-open "http://localhost:${FORWARD_PORT}" &
 	@kubectl port-forward svc/pla -n ${CHART_NAMESPACE} ${FORWARD_PORT}:http
-
 
 .PHONY: uninstall
 uninstall: ## uninstall the operator helm chart

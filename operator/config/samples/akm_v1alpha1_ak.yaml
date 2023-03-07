@@ -8,5 +8,8 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/created-by: operator
   name: ak-sample
+  namespace: auth
 spec:
+  # values:
+  #   nothing: nothing
   # TODO(user): Add fields here
