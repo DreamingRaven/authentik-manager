@@ -71,6 +71,7 @@ docker_build_branch:
       -t "$(echo ${CI_REGISTRY}/${CI_PROJECT_PATH}:${CI_COMMIT_BRANCH} | tr "[:upper:]" "[:lower:]")"
       --push
       -f Dockerfile.cross .
+    - docker pull "$(echo ${CI_REGISTRY}/${CI_PROJECT_PATH}:${CI_COMMIT_BRANCH} | tr "[:upper:]" "[:lower:]")"
     - docker inspect "$(echo ${CI_REGISTRY}/${CI_PROJECT_PATH}:${CI_COMMIT_BRANCH} | tr "[:upper:]" "[:lower:]")"
   after_script:
     - docker logout ${CI_REGISTRY}
@@ -122,7 +123,8 @@ docker_build_multi_arch_tag:
       -t "$(echo ${CI_REGISTRY}/${CI_PROJECT_PATH}:latest | tr "[:upper:]" "[:lower:]")"
       --push
       -f Dockerfile.cross .
-    - docker inspect "$(echo ${CI_REGISTRY}/${CI_PROJECT_PATH}:${CI_COMMIT_BRANCH} | tr "[:upper:]" "[:lower:]")"
+    - docker pull "$(echo ${CI_REGISTRY}/${CI_PROJECT_PATH}:${SRC_VER_SHORT} | tr "[:upper:]" "[:lower:]")"
+    - docker inspect "$(echo ${CI_REGISTRY}/${CI_PROJECT_PATH}:${SRC_VER_SHORT} | tr "[:upper:]" "[:lower:]")"
   after_script:
     - docker logout ${CI_REGISTRY}
   tags:
