@@ -97,6 +97,7 @@ build: ## Build the container image
 	@helm package --dependency-update --app-version ${APP_VERSION} --version ${SRC_VERSION} --destination operator/helm-charts/. charts/ak
 	@cd operator && podman build --build-arg AK_VERSION=${APP_VERSION} --build-arg AKM_VERSION=${SRC_VERSION} -t ${LOCAL_TAG} -f Dockerfile .
 	@rm -f controller.tar
+	@podman inspect ${LOCAL_TAG}
 	@podman save ${LOCAL_TAG} -o controller.tar
 	@minikube image load controller.tar
 	@rm -f controller.tar

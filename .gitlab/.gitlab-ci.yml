@@ -63,14 +63,15 @@ docker_build_branch:
       --use
     - docker-buildx build
       --platform "linux/amd64"
-      --build-arg "AK_VERSION=${APP_VERSION}"
-      --build-arg "AKM_VERSION=${SRC_VERSION_SHORT}"
+      --build-arg "AK_VERSION=${APP_VER}"
+      --build-arg "AKM_VERSION=${SRC_VER_SHORT}"
       --label "version=${SRC_VER_SHORT}"
       --label "commit=$(git rev-parse HEAD)"
       --build-arg GIN_MODE="release"
       -t "$(echo ${CI_REGISTRY}/${CI_PROJECT_PATH}:${CI_COMMIT_BRANCH} | tr "[:upper:]" "[:lower:]")"
       --push
       -f Dockerfile.cross .
+    - docker inspect "$(echo ${CI_REGISTRY}/${CI_PROJECT_PATH}:${CI_COMMIT_BRANCH} | tr "[:upper:]" "[:lower:]")"
   after_script:
     - docker logout ${CI_REGISTRY}
   tags:
@@ -112,8 +113,8 @@ docker_build_multi_arch_tag:
       --use
     - docker-buildx build
       --platform ${BUILDX_TARGET_ARCHES}
-      --build-arg "AK_VERSION=${APP_VERSION}"
-      --build-arg "AKM_VERSION=${SRC_VERSION_SHORT}"
+      --build-arg "AK_VERSION=${APP_VER}"
+      --build-arg "AKM_VERSION=${SRC_VER_SHORT}"
       --label "version=${SRC_VER_SHORT}"
       --label "commit=$(git rev-parse HEAD)"
       --build-arg GIN_MODE="release"
@@ -121,6 +122,7 @@ docker_build_multi_arch_tag:
       -t "$(echo ${CI_REGISTRY}/${CI_PROJECT_PATH}:latest | tr "[:upper:]" "[:lower:]")"
       --push
       -f Dockerfile.cross .
+    - docker inspect "$(echo ${CI_REGISTRY}/${CI_PROJECT_PATH}:${CI_COMMIT_BRANCH} | tr "[:upper:]" "[:lower:]")"
   after_script:
     - docker logout ${CI_REGISTRY}
   tags:
