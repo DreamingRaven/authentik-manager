@@ -47,7 +47,7 @@ spec:
                   additional resources like declarative blueprints into the deployments.
                   Values is a loose, and unstructured datatype. It will not complain
                   if the values do not override anything, or do anything at all.
-                type: object
+                x-kubernetes-preserve-unknown-fields: true
             type: object
           status:
             description: AkStatus defines the observed state of Ak
