@@ -11,8 +11,9 @@ You may obtain a copy of the License in the project root (LICENSE) or at
 package v1alpha1
 
 import (
+	"encoding/json"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
 //+kubebuilder:validation:Optional
@@ -20,10 +21,13 @@ import (
 // AkSpec defines the desired state of Ak
 type AkSpec struct {
 
+	// +kubebuilder:pruning:PreserveUnknownFields
+	// +kubebuilder:validation:Schemaless
+
 	// Values is the helm chart values map to override chart defaults. This is often further adapted by the controller
 	// to add additional resources like declarative blueprints into the deployments. Values is a loose, and unstructured
 	// datatype. It will not complain if the values do not override anything, or do anything at all.
-	Values unstructured.Unstructured `json:"values,omitempty"`
+	Values json.RawMessage `json:"values,omitempty"`
 	// Values map[string]interface{} `json:"values,omitempty"`
 	// Values runtime.RawExtension `json:"values,omitempty"`
 
