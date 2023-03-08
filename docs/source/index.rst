@@ -5,7 +5,7 @@ Introduction
 
 Authentik-Manager (AKM) is a custom |operator| to make |authentik| and its setup declarative, expressly for the objective of making it easier to |gitops| |authentik|.
 
-What this means as a user is that you only have to deploy the |operator| which is simple to do declaratively. The |operator| can then expose |crd|\ s to allow you to declare all your |authentik| configuration consistently. Our goal is to allow you to go as low level as individual blueprints or you can use our higher level |crd|\ s to automatically create and manage authentication proxies, forward auth, or authentication bearers. Please refer to `milestones <https://gitlab.com/GeorgeRaven/authentik-manager/-/milestones>`_ to see the current progress towards these goals and speculative timelines.
+What this means as a user is that you only have to deploy the |operator| which is simple to do declaratively. The |operator| can then expose |crd|\ s to allow you to declare all your |authentik| configuration consistently. Our goal is to allow you to go as low level as individual blueprints or you can use our higher level |crd|\ s to automatically create and manage authentication proxies, forward auth, or authentication bearers. Please refer to `milestones <https://gitlab.com/GeorgeRaven/authentik-manager/-/milestones?sort=due_date_desc&state=all>`_ to see the current progress towards these goals and speculative timelines.
 
 We use a hybrid |operator| with both Go and |helm| based controllers. This means it is as easy as using helm to configure and deploy the |authentik| specifics, but we have the low level control in Go to extend the level of automation of this |operator| beyond what |helm| could provide alone.
 
