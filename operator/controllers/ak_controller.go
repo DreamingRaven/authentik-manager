@@ -12,6 +12,7 @@ package controllers
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/url"
@@ -96,7 +97,12 @@ func (r *AkReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Re
 	}
 
 	// Helm Install or Upgrade Chart
-	_, err = r.UpgradeOrInstallChart(req.NamespacedName, u, actionConfig, crd.Spec.Values.UnstructuredContent())
+	var vals map[string]interface{}
+	err = json.Unmarshal(crd.Spec.Values, &vals)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+	_, err = r.UpgradeOrInstallChart(req.NamespacedName, u, actionConfig, vals)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
