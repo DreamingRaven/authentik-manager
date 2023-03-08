@@ -11,4 +11,25 @@ metadata:
   namespace: auth
 spec:
   values:
-    nothing: nothing
+    # Any child of values is taken to mean helm values for the underlying Ak helm chart
+    # You may override some or all of the fields.
+    # Please see chars/operator/ak/values.yaml for possible overrides
+    # https://gitlab.com/GeorgeRaven/authentik-manager/-/blob/master/charts/ak/values.yaml
+    # Following are some basic overrides that you should consider
+    global:
+      domain:
+        base: example.org
+        full: auth.example.org
+    smtp:
+      enabled: false
+      username: somebody@example.org
+      port: 587
+      host: smtp.gmail.com
+      from: noreply@example.org
+    secret:
+      # disabled here to allow you to load your own secret that you should definately have backed up
+      generate: false
+      randLength: 30
+      # you probably dont want to change this name as you will have to change
+      # it everywhere in subcharts
+      name: auth
