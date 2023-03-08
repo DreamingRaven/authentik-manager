@@ -73,17 +73,44 @@ Declare an Ak CRD
 Now that the secret exists we can tell AKM to create an |authentik| instance for us using the Ak CRD. Some examples of the Ak CRD can be found in ``operator/config/samples/*_ak.yaml``.
 
 .. code-block:: yaml
-   :caption: ak-sample.yaml | The most basic Ak CRD
+   :caption: ak-sample.yaml | A simple Ak CRD with some settings you should consider
 
    apiVersion: akm.goauthentik.io/v1alpha1
    kind: Ak
    metadata:
+     labels:
+       app.kubernetes.io/name: ak
+       app.kubernetes.io/instance: ak-sample
+       app.kubernetes.io/part-of: operator
+       app.kubernetes.io/managed-by: kustomize
+       app.kubernetes.io/created-by: operator
      name: ak-sample
-     # make sure this namespace matches where AKM is installed
-     namespace: default
+     namespace: auth
    spec:
-     secret:
-       generate: false
+     values:
+       # Any child of values is taken to mean helm values for the underlying Ak helm chart
+       # You may override some or all of the fields.
+       # Please see chars/operator/ak/values.yaml for possible overrides
+       # https://gitlab.com/GeorgeRaven/authentik-manager/-/blob/master/charts/ak/values.yaml
+       # Following are some basic overrides that you should consider
+       global:
+         domain:
+           base: example.org
+           full: auth.example.org
+       smtp:
+         enabled: false
+         username: somebody@example.org
+         port: 587
+         host: smtp.gmail.com
+         from: noreply@example.org
+       secret:
+         # disabled here to allow you to load your own secret that you should definately have backed up
+         generate: false
+         randLength: 30
+         # you probably dont want to change this name as you will have to change
+         # it everywhere in subcharts
+         name: auth
+
 
 Then apply it with:
 

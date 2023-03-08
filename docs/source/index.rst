@@ -5,11 +5,11 @@ Introduction
 
 Authentik-Manager (AKM) is a custom |operator| to make |authentik| and its setup declarative, expressly for the objective of making it easier to |gitops| |authentik|.
 
-What this means as a user is that you only have to deploy the |operator| which is simple to do declaratively. The |operator| can then expose |crd|\ s to allow you to declare all your |authentik| configuration consistently. You can go as low level as individual blueprints or you can use our higher level |crd|\ s to automatically create and manage authentication proxies, forward auth, or authentication bearers.
+What this means as a user is that you only have to deploy the |operator| which is simple to do declaratively. The |operator| can then expose |crd|\ s to allow you to declare all your |authentik| configuration consistently. Our goal is to allow you to go as low level as individual blueprints or you can use our higher level |crd|\ s to automatically create and manage authentication proxies, forward auth, or authentication bearers. Please refer to `milestones <https://gitlab.com/GeorgeRaven/authentik-manager/-/milestones>`_ to see the current progress towards these goals and speculative timelines.
 
 We use a hybrid |operator| with both Go and |helm| based controllers. This means it is as easy as using helm to configure and deploy the |authentik| specifics, but we have the low level control in Go to extend the level of automation of this |operator| beyond what |helm| could provide alone.
 
-Key (some planned) features of our work here:
+Key (planned) features of our work here but not exhaustive:
 
 - Support for secrets; Many |authentik| |helm| charts use plain-text values to pass sensitive data. We support automatic generation of secrets to make it as easy to get started as possible, and later even side-loading secrets with tools like Bitnami sealed-secrets.
 - Declarative configuration via blueprints; |authentik| by default does not come with a central configuration, instead you can use blueprints to add or remove functionality / behaviour. However this is quite difficult to do declaratively as usually some manual clicking is involved. We prefer it to be declarative as it is more consistent, more direct, and less error prone.
