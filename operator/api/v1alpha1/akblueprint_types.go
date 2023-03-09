@@ -18,8 +18,14 @@ import (
 
 // AkBlueprintSpec defines the desired state of AkBlueprint
 type AkBlueprintSpec struct {
-
+	// File is the location where the blueprint should be saved to in authentik-workers
+	// by default authentik looks in the /blueprints dir so any location in this will be picked up.
+	// The file will overwrite existing configurations underneath it so if it is called the same as
+	// an authentik in built blueprint you will instead use the new one
+	// e.g. /blueprints/default/10-flow-default-authentication-flow.yaml
+	File string `json:"file,omitempty"`
 	// Blueprint is a container for a complete single authentik blueprint yaml spec
+	// https://goauthentik.io/developer-docs/blueprints/v1/structure#structure
 	Blueprint BP `json:"blueprint,omitempty"`
 }
 
@@ -32,6 +38,9 @@ type BP struct {
 	// Metadata block specifying labels and names of the blueprint
 	Metadata BPMeta `json:"metadata"`
 
+	// +kubebuilder:pruning:PreserveUnknownFields
+	// +kubebuilder:validation:Schemaless
+
 	// Context (optional) authentik default context (whatever that means)
 	Context json.RawMessage `json:"context,omitempty"`
 
@@ -41,6 +50,9 @@ type BP struct {
 
 // BPMeta is the metadata of an authentik blueprint as authentik likes
 type BPMeta struct {
+
+	// +kubebuilder:pruning:PreserveUnknownFields
+	// +kubebuilder:validation:Schemaless
 
 	// Labels (optional) ke-value store for special labels
 	// https://goauthentik.io/developer-docs/blueprints/v1/structure#special-labels
@@ -58,6 +70,7 @@ type BPModel struct {
 
 	//+kubebuilder:validation:Enum="present";"create";"absent"
 	//+kubebuilder:default:=present
+
 	// State (optional) desired state of this model when loaded from "present", "create", "absent"
 	// present: (default) keeps the object in sync with its definition in this blueprint
 	// create: only creates the initial object with its values here
@@ -67,13 +80,19 @@ type BPModel struct {
 	// Conditions (optional) a list of conditions which if all match the model will be activated. If not the model will be inactive
 	Conditions []string `json:"conditions,omitempty"`
 
+	// +kubebuilder:pruning:PreserveUnknownFields
+	// +kubebuilder:validation:Schemaless
+
 	// Identifiers key-value identifiers to allow filtering of this stage, and identifying it
 	Identifiers json.RawMessage `json:"identifiers"`
 
 	// Id (optional) is similar to identifiers except is optional and is just an ID to reference this model using !KeyOf syntax in authentik
 	Id string `json:"id,omitempty"`
 
-	// Attrs is a list of settings / options / overrides of the defaults of this model
+	// +kubebuilder:pruning:PreserveUnknownFields
+	// +kubebuilder:validation:Schemaless
+
+	// Attrs is a map of settings / options / overrides of the defaults of this model
 	Attrs json.RawMessage `json:"attrs,omitempty"`
 }
 
