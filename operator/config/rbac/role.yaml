@@ -8,6 +8,32 @@ rules:
 - apiGroups:
   - akm.goauthentik.io
   resources:
+  - akblueprints
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - akm.goauthentik.io
+  resources:
+  - akblueprints/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - akm.goauthentik.io
+  resources:
+  - akblueprints/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - akm.goauthentik.io
+  resources:
   - aks
   verbs:
   - create
