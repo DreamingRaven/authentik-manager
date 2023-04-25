@@ -83,11 +83,12 @@ html_theme = "pydata_sphinx_theme"  # 'alabaster'
 # html_css_files = [
 #     "css/rtd_dark.css",
 # ]
-# html_logo = "fhez.svg"
+html_logo = "authentik-manager.png"
+html_favicon = "favicon.ico"
 
 html_theme_options = {
    "logo": {
-      "image_light": "img/akm-light.svg",
-      "image_dark": "img/akm-dark.svg",
+      "image_light": "authentik-manager.png",
+      "image_dark": "authentik-manager.png",
    }
 }
