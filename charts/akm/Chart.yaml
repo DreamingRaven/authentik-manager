@@ -1,6 +1,20 @@
 apiVersion: v2
 name: akm
-description: 
+description: Authentik-Manager packaged as a helm chart
+icon: https://georgeraven.gitlab.io/authentik-manager/_static/authentik-manager.png
+keywords:
+- authentik
+- authentication
+- single sign-on
+- automation
+- declarative
+home: https://georgeraven.gitlab.io/authentik-manager/
+sources:
+- https://gitlab.com/GeorgeRaven/authentik-manager
+- https://github.com/DreamingRaven/authentik-manager
+maintainers:
+- name: George Onoufriou
+  url: https://gitlab.com/GeorgeRaven
 
 # A chart can be either an 'application' or a 'library' chart.
 #

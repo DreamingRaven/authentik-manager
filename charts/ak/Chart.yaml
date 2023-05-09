@@ -1,6 +1,18 @@
 apiVersion: v2
 name: ak
 description: Unofficial Authentik single-sign-on chart
+icon: https://georgeraven.gitlab.io/authentik-manager/_static/authentik-manager.png
+keywords:
+- authentik
+- authentication
+- single sign-on
+home: https://georgeraven.gitlab.io/authentik-manager/
+sources:
+- https://gitlab.com/GeorgeRaven/authentik-manager
+- https://github.com/DreamingRaven/authentik-manager
+maintainers:
+- name: George Onoufriou
+  url: https://gitlab.com/GeorgeRaven
 
 # A chart can be either an 'application' or a 'library' chart.
 #
