@@ -199,7 +199,7 @@ To access pgadmin use the following commands while replacing CHART_NAMESPACE wit
 .. code-block:: bash
 
    # wait for the pgadmin deployment to come alive
-   kubectl wait --timeout=600s --for=condition=Available=True -n ${CHART_NAMESPACE} deployment pgadmin-deployment
+   kubectl wait --timeout=600s --for=condition=Available=True -n ${CHART_NAMESPACE} deployment pgadmin
    # get username / email to log in with
    kubectl -n ${CHART_NAMESPACE} get deployment pgadmin-deployment -o jsonpath="{.spec.template.spec.containers[0].env[0].value}"
    # get the user password
