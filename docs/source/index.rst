@@ -13,7 +13,7 @@ Key (planned) features of our work here but not exhaustive:
 
 - Support for secrets; Many |authentik| |helm| charts use plain-text values to pass sensitive data. We support automatic generation of secrets to make it as easy to get started as possible, and later even side-loading secrets with tools like Bitnami sealed-secrets.
 - Declarative configuration via blueprints; |authentik| by default does not come with a central configuration, instead you can use blueprints to add or remove functionality / behaviour. However this is quite difficult to do declaratively as usually some manual clicking is involved. We prefer it to be declarative as it is more consistent, more direct, and less error prone.
-- Management of the entire |authentik| life-cycle; We love |authentik|, we want the very best for and from it, but we don't want to have to laboriously worry about it. We want backups, updates, and (re-)configuration to just happen. We know how it is, it can be hard to keep track of all the versions of all out apps, |k8s| has many many apps to keep track of. With the |operator| we can keep everything up-to-date even the operator itself within limits.
+- Management of the entire |authentik| life-cycle; We love |authentik|, we want the very best for and from it, but we don't want to have to laboriously worry about it. We want backups, updates, and (re-)configuration to just happen. We know how it is, it can be hard to keep track of all the versions of all our apps, |k8s| has many many apps to keep track of. With our |operator| we aim to keep |authentik| and related resources up-to-date, eventually we want even the |operator| itself to (optionally) self-update within limits.
 
 .. warning::
 
