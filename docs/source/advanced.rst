@@ -8,6 +8,6 @@ Advanced
 .. toctree::
   :glob:
   :maxdepth: 3
-  :caption: Basic helm chart usage
+  :caption: Advanced / contributor topics
 
   /advanced/*
