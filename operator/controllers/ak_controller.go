@@ -18,6 +18,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/alexflint/go-arg"
 	"github.com/go-logr/logr"
@@ -104,7 +105,8 @@ func (r *AkReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Re
 	}
 	_, err = r.UpgradeOrInstallChart(req.NamespacedName, u, actionConfig, vals)
 	if err != nil {
-		return ctrl.Result{}, err
+		t, _ := time.ParseDuration("10s")
+		return ctrl.Result{Requeue: true, RequeueAfter: t}, err
 	}
 
 	return ctrl.Result{}, nil
@@ -133,7 +135,7 @@ func (r *AkReconciler) UpgradeOrInstallChart(nn types.NamespacedName, u *url.URL
 		return nil, err
 	}
 
-	fmt.Println(o)
+	// fmt.Println(o)
 
 	var rel *release.Release
 	if toUpgrade {

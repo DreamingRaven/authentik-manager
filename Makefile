@@ -2,6 +2,7 @@ CHART_DIR_PATH="charts/akm"
 CHART_NAME="akm"
 CHART_NAMESPACE="auth"
 FORWARD_PORT=8079
+MINIKUBE_KUBE_VERSION=1.27.1
 PRIVATE_REGISTRY="registry.gitlab.com"
 DOCKER_AUTH_FILE="${HOME}/.docker/config.json"
 # https://docs.podman.io/en/latest/markdown/podman-login.1.html#authfile-path
@@ -38,7 +39,7 @@ deps:	## Update all helm chart dependencies
 .PHONY: minikube
 minikube: ## Create a local minikube testing cluster
 	minikube delete
-	minikube start --driver=podman
+	minikube start --driver=podman --kubernetes-version=${MINIKUBE_KUBE_VERSION}
 	# minikube addons enable ingress
 
 .PHONY: ingress

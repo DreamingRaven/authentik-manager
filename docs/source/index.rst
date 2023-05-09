@@ -32,3 +32,10 @@ Contents
   advanced
   operator
   glossary
+
+Acknowledgments
+===============
+
+We would like to thank the authentik team for their amazing work, and for their tireless help!
+
+We would also like to thank Ashley McNamara, Mat Ryer for https://gopherize.me/ which we used to generate Godrik the gopher! We would also like to thank Renee French for the original go gopher!
