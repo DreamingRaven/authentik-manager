@@ -175,13 +175,16 @@ func (r *AkBlueprintReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 
 	// QUERY DB
 	tableName := "authentik_blueprints_blueprintinstance"
-	query := fmt.Sprintf("SELECT * FROM %s", tableName)
-	l.Info(fmt.Sprintf("Querying %v in %v for %v...", cfg.Host, crd.Namespace, query))
-	result, err := db.Query(query)
+	columnName := "path"
+	current, err := queryRowByColumnValue(db, tableName, columnName, crd.Spec.File)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
-	defer result.Close()
+	if current == nil {
+		l.Info(fmt.Sprintf("In postgresql at %v in %v found %v", cfg.Host, crd.Namespace, current))
+	} else {
+		l.Info(fmt.Sprintf("Adding blueprint to postgresql at %v in %v", cfg.Host, crd.Namespace))
+	}
 
 	// TRY AND FETCH BLUEPRINT FROM DATABASE
 	//var result AuthentikBlueprintInstance
@@ -219,7 +222,6 @@ func queryRowByColumnValue(db *sql.DB, tableName string, columnName string, colu
 	query := fmt.Sprintf("SELECT * FROM %s WHERE %s = $1", tableName, columnName)
 
 	row := db.QueryRow(query, columnValue)
-	defer row.Close()
 
 	// Create a new struct instance to hold the row data
 	var result AuthentikBlueprintInstance
