@@ -182,38 +182,11 @@ func (r *AkBlueprintReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	}
 	if current == nil {
 		l.Info(fmt.Sprintf("In postgresql at %v in %v found %v", cfg.Host, crd.Namespace, current))
+		// found so update
 	} else {
 		l.Info(fmt.Sprintf("Adding blueprint to postgresql at %v in %v", cfg.Host, crd.Namespace))
+		// missing so add
 	}
-
-	// TRY AND FETCH BLUEPRINT FROM DATABASE
-	//var result AuthentikBlueprintInstance
-	//statement = "SELECT created, last_updated, managed, instance_uuid, name, metadata, path, context, last_applied, last_applied_hash, status, enabled, managed_models, content FROM authentik_blueprint_instances WHERE column_name = $1"
-	//err = db.QueryRow(statement, crd.Spec.File).Scan(
-	//	&result.Created, &result.LastUpdated, &result.Managed, &result.InstanceUUID, &result.Name, &result.Metadata, &result.Path, &result.Context, &result.LastApplied, &result.LastAppliedHash, &result.Status, &result.Enabled, &result.ManagedModels, &result.Content,
-	//)
-	//l.Info(fmt.Sprinf("result: %v", result))
-
-	//columns, err := result.Columns()
-	//if err != nil {
-	//	return ctrl.Result{}, err
-	//}
-	//// instantiating values slice
-	//values := make([]interface{}, len(columns))
-	//for i := range columns {
-	//	values[i] = new(interface{})
-	//}
-	//l.Info(fmt.Sprintf("Found columns: %v", strings.Join(columns, "\t")))
-	//// iterating over result rows
-	//for result.Next() {
-	//	if err := result.Scan(values...); err != nil {
-	//		return ctrl.Result{}, err
-	//	}
-	//	// display each value
-	//	for _, value := range values {
-	//		l.Info(fmt.Sprintf("%v\t", *value.(*interface{})))
-	//	}
-	//}
 
 	return ctrl.Result{}, nil
 }
