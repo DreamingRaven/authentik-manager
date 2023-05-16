@@ -182,13 +182,29 @@ func (r *AkBlueprintReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	}
 	if current != nil {
 		l.Info(fmt.Sprintf("In postgresql at `%v` in ns `%v` found `%v`", cfg.Host, crd.Namespace, current))
-		// found so update
+		// found so update / check it is what we want
+		err = updateRowBySchema(db, nil)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
 	} else {
 		l.Info(fmt.Sprintf("Adding blueprint to postgresql at `%v` in ns `%v`", cfg.Host, crd.Namespace))
 		// missing so add
+		err = addRowBySchema(db, nil)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
 	}
 
 	return ctrl.Result{}, nil
+}
+
+func addRowBySchema(db *sql.DB, row *AuthentikBlueprintInstance) error {
+	return nil
+}
+
+func updateRowBySchema(db *sql.DB, row *AuthentikBlueprintInstance) error {
+	return nil
 }
 
 func queryRowByColumnValue(db *sql.DB, tableName string, columnName string, columnValue string) (*AuthentikBlueprintInstance, error) {
