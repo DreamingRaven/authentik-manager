@@ -180,11 +180,11 @@ func (r *AkBlueprintReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
-	if current == nil {
-		l.Info(fmt.Sprintf("In postgresql at %v in %v found %v", cfg.Host, crd.Namespace, current))
+	if current != nil {
+		l.Info(fmt.Sprintf("In postgresql at `%v` in ns `%v` found `%v`", cfg.Host, crd.Namespace, current))
 		// found so update
 	} else {
-		l.Info(fmt.Sprintf("Adding blueprint to postgresql at %v in %v", cfg.Host, crd.Namespace))
+		l.Info(fmt.Sprintf("Adding blueprint to postgresql at `%v` in ns `%v`", cfg.Host, crd.Namespace))
 		// missing so add
 	}
 
