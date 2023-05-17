@@ -12,7 +12,7 @@ metadata:
 spec:
   file: /blueprints/operator/blueprint-sample.yml
   blueprint:
-    version:
+    version: 1
     metadata:
       labels:
         source: akm

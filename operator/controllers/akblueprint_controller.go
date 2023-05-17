@@ -23,7 +23,7 @@ import (
 	"github.com/gofrs/uuid"
 
 	// driver package for postgresql just needs import
-	_ "github.com/lib/pq"
+	"github.com/lib/pq"
 
 	"github.com/alexflint/go-arg"
 	corev1 "k8s.io/api/core/v1"
@@ -34,6 +34,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	klog "sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/yaml"
 
 	akmv1a1 "gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1"
 	"gitlab.com/GeorgeRaven/authentik-manager/operator/utils"
@@ -50,20 +51,20 @@ type SQLConfig struct {
 }
 
 type AuthentikBlueprintInstance struct {
-	Created         time.Time       `json:"created"`
-	LastUpdated     time.Time       `json:"last_updated"`
-	Managed         string          `json:"managed"`
-	InstanceUUID    uuid.UUID       `json:"instance_uuid"`
-	Name            string          `json:"name"`
-	Metadata        json.RawMessage `json:"metadata"`
-	Path            string          `json:"path"`
-	Context         json.RawMessage `json:"context"`
-	LastApplied     time.Time       `json:"last_applied"`
-	LastAppliedHash string          `json:"last_applied_hash"`
-	Status          string          `json:"status"`
-	Enabled         bool            `json:"enabled"`
-	ManagedModels   []string        `json:"managed_models"`
-	Content         string          `json:"content"`
+	Created         time.Time       `json:"created" yaml:"created"`
+	LastUpdated     time.Time       `json:"last_updated" yaml:"last_updated"`
+	Managed         string          `json:"managed" yaml:"managed"`
+	InstanceUUID    uuid.UUID       `json:"instance_uuid" yaml:"instance_uuid"`
+	Name            string          `json:"name" yaml:"name"`
+	Metadata        json.RawMessage `json:"metadata" yaml:"metadata"`
+	Path            string          `json:"path" yaml:"path"`
+	Context         json.RawMessage `json:"context" yaml:"context"`
+	LastApplied     time.Time       `json:"last_applied" yaml:"last_applied"`
+	LastAppliedHash string          `json:"last_applied_hash" yaml:"last_applied_hash"`
+	Status          string          `json:"status" yaml:"status"`
+	Enabled         bool            `json:"enabled" yaml:"enabled"`
+	ManagedModels   []string        `json:"managed_models" yaml:"managed_models"`
+	Content         string          `json:"content" yaml:"content"`
 }
 
 // NewSQLConfig best effort to generate a connection config based on env variables and system
@@ -163,6 +164,37 @@ func (r *AkBlueprintReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return ctrl.Result{}, err
 	}
 
+	// POPULATE DATABASE ROW STRUCT
+	id, err := uuid.NewV7()
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+	crdyml, err := yaml.Marshal(crd.Spec.Blueprint)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+	metajson, err := json.Marshal(&crd.Spec.Blueprint.Metadata)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+	metamsg := json.RawMessage(metajson)
+	row := AuthentikBlueprintInstance{
+		Created:     time.Now(),
+		LastUpdated: time.Now(),
+		//Managed:      "",
+		InstanceUUID: id,
+		Name:         crd.Spec.Blueprint.Metadata.Name,
+		Metadata:     metamsg,
+		//Path:         "SomePath",
+		Context:     json.RawMessage(`{}`),
+		LastApplied: time.Now(),
+		//LastAppliedHash: "text",
+		Status:        "unknown",
+		Enabled:       true,
+		ManagedModels: []string{},
+		Content:       string(crdyml),
+	}
+
 	// SETUP DB CONNECTION
 	cfg := NewSQLConfig()
 	l.Info(fmt.Sprintf("Connecting to postgresql at %v in %v...", cfg.Host, crd.Namespace))
@@ -183,14 +215,14 @@ func (r *AkBlueprintReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	if current != nil {
 		l.Info(fmt.Sprintf("In postgresql at `%v` in ns `%v` found `%v`", cfg.Host, crd.Namespace, current))
 		// found so update / check it is what we want
-		err = updateRowBySchema(db, nil, tableName)
+		err = updateRowBySchema(db, &row, tableName)
 		if err != nil {
 			return ctrl.Result{}, err
 		}
 	} else {
 		l.Info(fmt.Sprintf("Adding blueprint to postgresql at `%v` in ns `%v`", cfg.Host, crd.Namespace))
 		// missing so add
-		err = addRowBySchema(db, nil, tableName)
+		err = addRowBySchema(db, &row, tableName)
 		if err != nil {
 			return ctrl.Result{}, err
 		}
@@ -200,24 +232,31 @@ func (r *AkBlueprintReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 }
 
 func addRowBySchema(db *sql.DB, row *AuthentikBlueprintInstance, tableName string) error {
-	//stmt := "INSERT INTO $1('created','last_updated','managed','instance_uuid','name','metadata','path','context','last_applied','last_applied_hash','status','enabled','managed_models','content') VALUES($2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)"
-	//_, err := db.Exec(stmt,
-	//	&row.Created,
-	//	&row.LastUpdated,
-	//	&row.Managed,
-	//	&row.InstanceUUID,
-	//	&row.Name,
-	//	&row.Metadata,
-	//	&row.Path,
-	//	&row.Context,
-	//	&row.LastApplied,
-	//	&row.LastAppliedHash,
-	//	&row.Status,
-	//	&row.Enabled,
-	//	&row.ManagedModels,
-	//	&row.Content)
-	//return err
-	return nil
+	stmt := fmt.Sprintf("INSERT INTO %v (created,last_updated,managed,instance_uuid,name,metadata,path,context,last_applied,last_applied_hash,status,enabled,managed_models,content) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)", tableName)
+
+	var managed interface{}
+	if row.Managed != "" {
+		managed = row.Managed
+	} else {
+		managed = nil // Insert NULL for the field
+	}
+
+	_, err := db.Exec(stmt,
+		&row.Created,
+		&row.LastUpdated,
+		managed,
+		&row.InstanceUUID,
+		&row.Name,
+		&row.Metadata,
+		&row.Path,
+		&row.Context,
+		&row.LastApplied,
+		&row.LastAppliedHash,
+		&row.Status,
+		&row.Enabled,
+		pq.Array(row.ManagedModels),
+		&row.Content)
+	return err
 }
 
 func updateRowBySchema(db *sql.DB, row *AuthentikBlueprintInstance, tableName string) error {
