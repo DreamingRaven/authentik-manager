@@ -1,6 +1,20 @@
 apiVersion: v2
 name: akm-crds
-description: A Helm chart for operator CRDs
+description: Authentik-Manager templated CRDs chart
+icon: https://georgeraven.gitlab.io/authentik-manager/_static/authentik-manager.png
+keywords:
+- authentik
+- authentication
+- single sign-on
+- declarative
+- custom resource definition
+home: https://georgeraven.gitlab.io/authentik-manager/
+sources:
+- https://gitlab.com/GeorgeRaven/authentik-manager
+- https://github.com/DreamingRaven/authentik-manager
+maintainers:
+- name: George Onoufriou
+  url: https://gitlab.com/GeorgeRaven
 
 # A chart can be either an 'application' or a 'library' chart.
 #

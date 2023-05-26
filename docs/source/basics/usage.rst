@@ -16,9 +16,9 @@ By default AKM does nothing. You will just see the default AKM pods, as they do 
 
 There are three things you will need to do.
 
-- Generate a secret that will be used by the |authentik| stack AKM will generate for you.
-- Tell AKM what sort of |authentik| instance you would like using the Ak CRD.
-- Tell AKM what you want to connect to |authentik| using higher level CRDs (WIP).
+- Generate a secret that will be used by the |authentik| stack. AKM will generate the stack for you but it cannot generate a default secret for you. Please make your own and keep it safe!
+- Tell AKM what sort of |authentik| stack you would like using the Ak CRD.
+- Tell AKM what you want to integrate into the |authentik| stack using higher level CRDs (WIP).
 
 Declare a Secret
 ++++++++++++++++
@@ -35,8 +35,8 @@ Authentik, redis, and postgres all use passwords between each other. We need to 
    apiVersion: v1
    kind: Secret
    metadata:
-     name: auth
-     namespace: default
+     name: auth # must be named auth for now
+     namespace: auth # ensure this matches akms namespace usually also auth
    type: Opaque
    data:
      authDuoApiKey: UUVXUWhUSTA2MXVaWWVLMlhCbEkzVE5IZDdzcWlC
@@ -66,6 +66,8 @@ Once you have auth.yaml from the above example and your own passwords you can in
    :caption: installing auth.yaml
 
    kubectl apply -f auth.yaml
+
+You can manage the secret manually but there are lots of tools already available to manage secrets for you. Consider using Bitnami sealed secrets which decrypts and side-loads secrets for you, and is also |gitops| compatible.
 
 Declare an Ak CRD
 +++++++++++++++++
@@ -197,7 +199,7 @@ To access pgadmin use the following commands while replacing CHART_NAMESPACE wit
 .. code-block:: bash
 
    # wait for the pgadmin deployment to come alive
-   kubectl wait --timeout=600s --for=condition=Available=True -n ${CHART_NAMESPACE} deployment pgadmin-deployment
+   kubectl wait --timeout=600s --for=condition=Available=True -n ${CHART_NAMESPACE} deployment pgadmin
    # get username / email to log in with
    kubectl -n ${CHART_NAMESPACE} get deployment pgadmin-deployment -o jsonpath="{.spec.template.spec.containers[0].env[0].value}"
    # get the user password

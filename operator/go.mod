@@ -5,6 +5,8 @@ go 1.20
 require (
 	github.com/alexflint/go-arg v1.4.3
 	github.com/go-logr/logr v1.2.4
+	github.com/gofrs/uuid v4.4.0+incompatible
+	github.com/lib/pq v1.10.7
 	github.com/onsi/ginkgo/v2 v2.9.4
 	github.com/onsi/gomega v1.27.6
 	helm.sh/helm/v3 v3.11.3
@@ -13,6 +15,7 @@ require (
 	k8s.io/cli-runtime v0.26.2
 	k8s.io/client-go v0.26.2
 	sigs.k8s.io/controller-runtime v0.14.4
+	sigs.k8s.io/yaml v1.3.0
 )
 
 require (
@@ -78,7 +81,6 @@ require (
 	github.com/klauspost/compress v1.16.0 // indirect
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0 // indirect
 	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
-	github.com/lib/pq v1.10.7 // indirect
 	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de // indirect
 	github.com/mailru/easyjson v0.7.6 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
@@ -150,5 +152,4 @@ require (
 	sigs.k8s.io/kustomize/api v0.12.1 // indirect
 	sigs.k8s.io/kustomize/kyaml v0.13.9 // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect
-	sigs.k8s.io/yaml v1.3.0 // indirect
 )

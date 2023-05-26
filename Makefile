@@ -149,11 +149,17 @@ users: ## Defunkt
 
 .PHONY: pgadmin
 pgadmin: ## Defunkt
-	@kubectl wait --timeout=600s --for=condition=Available=True -n ${CHART_NAMESPACE} deployment pgadmin-deployment
+	@kubectl wait --timeout=600s --for=condition=Available=True -n ${CHART_NAMESPACE} deployment pgadmin
+	@echo
 	@echo "admin username:"
-	@kubectl -n ${CHART_NAMESPACE} get deployment pgadmin -o jsonpath="{.spec.template.spec.containers[0].env[0].value}"
+	@kubectl -n ${CHART_NAMESPACE} get deployment pgadmin -o jsonpath="{.spec.template.spec.containers[0].env[0].value}" && echo
+	@echo
 	@echo "admin password:"
 	@kubectl -n ${CHART_NAMESPACE} get secret auth -o jsonpath="{.data.pgAdminPassword}" | base64 -d && echo
+	@echo
+	@echo "postgres password:"
+	@kubectl -n ${CHART_NAMESPACE} get secret auth -o jsonpath="{.data.postgresPassword}" | base64 -d && echo
+	@echo
 	@xdg-open "http://localhost:${FORWARD_PORT}" &
 	@kubectl port-forward svc/pgadmin -n ${CHART_NAMESPACE} ${FORWARD_PORT}:http-port
 
@@ -161,8 +167,7 @@ pgadmin: ## Defunkt
 pla: ## Defunkt
 	@kubectl wait --timeout=600s --for=condition=Available=True -n ${CHART_NAMESPACE} deployment pla-deployment
 	@echo "admin username:"
-	@kubectl -n ${CHART_NAMESPACE} get deployment pla-deployment -o jsonpath="{.spec.template.spec.containers[0].env[0].value}"
-	@echo ""
+	@echo $(kubectl -n ${CHART_NAMESPACE} get deployment pla-deployment -o jsonpath="{.spec.template.spec.containers[0].env[0].value}") && echo
 	@echo "admin password:"
 	@kubectl -n ${CHART_NAMESPACE} get secret auth -o jsonpath="{.data.pgAdminPassword}" | base64 -d && echo
 	@xdg-open "http://localhost:${FORWARD_PORT}" &
