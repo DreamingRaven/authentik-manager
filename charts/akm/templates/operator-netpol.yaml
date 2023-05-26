@@ -8,10 +8,24 @@ spec:
       {{- range .Values.operator.labels }}
       {{ .key }}: {{ .value }}
       {{- end }}
+  egress:
+  - {}
   policyTypes:
-  - Ingress
   - Egress
-  egress: {}
+#apiVersion: networking.k8s.io/v1
+#kind: NetworkPolicy
+#metadata:
+#  name: operator-netpol
+#spec:
+#  podSelector:
+#    matchLabels:
+#      {{- range .Values.operator.labels }}
+#      {{ .key }}: {{ .value }}
+#      {{- end }}
+#  policyTypes:
+#  - Ingress
+#  - Egress
+#  egress: {}
   #- to:
   #  # allowed to go to local namespace
   #  - namespaceSelector:
