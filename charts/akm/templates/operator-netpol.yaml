@@ -11,26 +11,25 @@ spec:
   policyTypes:
   - Ingress
   - Egress
-  ingress: []
-  egress:
-  - to:
-    # allowed to go to local namespace
-    - namespaceSelector:
-        matchLabels:
-          kubernetes.io/metadata.name: {{ .Release.Namespace }}
-  # Also
-  - to:
-    # allow lookups to kube system
-    - namespaceSelector:
-        matchLabels:
-          kubernetes.io/metadata.name: kube-system
-  # Also
-  - to:
-    # allow to communicate to kube-api default service
-    - namespaceSelector:
-        matchLabels:
-          kubernetes.io/metadata.name: default
-    # # on specific ports for DNS
-    # ports:
-    # - protocol: UDP
-    #   port: 53
+  egress: {}
+  #- to:
+  #  # allowed to go to local namespace
+  #  - namespaceSelector:
+  #      matchLabels:
+  #        kubernetes.io/metadata.name: {{ .Release.Namespace }}
+  ## Also
+  #- to:
+  #  # allow lookups to kube system
+  #  - namespaceSelector:
+  #      matchLabels:
+  #        kubernetes.io/metadata.name: kube-system
+  ## Also
+  #- to:
+  #  # allow to communicate to kube-api default service
+  #  - namespaceSelector:
+  #      matchLabels:
+  #        kubernetes.io/metadata.name: default
+  #  # # on specific ports for DNS
+  #  # ports:
+  #  # - protocol: UDP
+  #  #   port: 53
