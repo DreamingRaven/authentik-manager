@@ -2,6 +2,7 @@ CHART_DIR_PATH="charts/akm"
 CHART_NAME="akm"
 CHART_NAMESPACE="auth"
 FORWARD_PORT=8079
+DOCS_PORT=8078
 MINIKUBE_KUBE_VERSION=1.27.1
 PRIVATE_REGISTRY="registry.gitlab.com"
 DOCKER_AUTH_FILE="${HOME}/.docker/config.json"
@@ -209,8 +210,8 @@ doc-test: ## Test the docs
 
 .PHONY: doc-run
 doc-run: doc-build ## Run the docs in a container and open a connection to it
-	xdg-open "http://127.0.0.1:8080" &
-	sudo podman run -p 127.0.0.1:8080:8080 -it ${TAG}
+	xdg-open "http://127.0.0.1:${DOCS_PORT}" &
+	sudo podman run -p 127.0.0.1:${DOCS_PORT}:8080 -it ${TAG}
 
 .PHONY: dbg-sa
 dbg-sa: ## Debug the service account
