@@ -4,10 +4,13 @@ kind: Ingress
 metadata:
   annotations:
     cert-manager.io/cluster-issuer: {{ .Values.ingress.clusterIssuer }}
-    kubernetes.io/ingress.class: nginx
+    # kubernetes.io/ingress.class: nginx # deprecated for .spec.ingressClassName
     nginx.ingress.kubernetes.io/proxy-body-size: {{ .Values.ingress.maxBodySize }}
   name: {{ .Values.ingress.name }}
 spec:
+  {{- if .Values.ingress.class }}
+  ingressClassName: {{ .Values.ingress.class }}
+  {{- end }}
   rules:
   - host: {{ .Values.global.domain.full }}
     http:

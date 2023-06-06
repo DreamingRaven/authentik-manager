@@ -36,6 +36,7 @@ secret:
 
 ingress:
   name: auth
+  class: nginx
   enable: true
   clusterIssuer: letsencrypt-staging # must match cert-manager cluster issuer
   maxBodySize: 32M
