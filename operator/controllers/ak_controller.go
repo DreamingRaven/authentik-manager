@@ -23,7 +23,6 @@ import (
 	"github.com/alexflint/go-arg"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/validation/field"
@@ -31,7 +30,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	klog "sigs.k8s.io/controller-runtime/pkg/log"
 
 	"helm.sh/helm/v3/pkg/action"
@@ -45,8 +43,6 @@ import (
 
 // AkReconciler reconciles a Ak object
 type AkReconciler struct {
-	client.Client
-	Scheme *runtime.Scheme
 	utils.ControlBase
 }
 

@@ -30,11 +30,9 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	klog "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/yaml"
 
@@ -99,8 +97,6 @@ func SQLConnect(config *SQLConfig) (*sql.DB, error) {
 
 // AkBlueprintReconciler reconciles a AkBlueprint object
 type AkBlueprintReconciler struct {
-	client.Client
-	Scheme *runtime.Scheme
 	utils.ControlBase
 }
 

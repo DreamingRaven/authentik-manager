@@ -84,17 +84,17 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&controllers.AkReconciler{
+	if err = (&controllers.AkReconciler{utils.ControlBase{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
-	}).SetupWithManager(mgr); err != nil {
+	}}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Ak")
 		os.Exit(1)
 	}
-	if err = (&controllers.AkBlueprintReconciler{
+	if err = (&controllers.AkBlueprintReconciler{utils.ControlBase{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
-	}).SetupWithManager(mgr); err != nil {
+	}}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "AkBlueprint")
 		os.Exit(1)
 	}
