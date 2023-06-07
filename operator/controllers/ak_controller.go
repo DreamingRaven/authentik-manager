@@ -47,6 +47,7 @@ import (
 type AkReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
+	utils.ControlBase
 }
 
 //+kubebuilder:rbac:groups=akm.goauthentik.io,resources=aks,verbs=get;list;watch;create;update;patch;delete

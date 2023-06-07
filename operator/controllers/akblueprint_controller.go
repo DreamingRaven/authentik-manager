@@ -101,6 +101,7 @@ func SQLConnect(config *SQLConfig) (*sql.DB, error) {
 type AkBlueprintReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
+	utils.ControlBase
 }
 
 //+kubebuilder:rbac:groups=akm.goauthentik.io,resources=akblueprints,verbs=get;list;watch;create;update;patch;delete
