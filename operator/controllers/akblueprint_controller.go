@@ -25,6 +25,7 @@ import (
 	// driver package for postgresql just needs import
 	"github.com/lib/pq"
 
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"github.com/alexflint/go-arg"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -38,16 +39,6 @@ import (
 	akmv1a1 "gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1"
 	"gitlab.com/GeorgeRaven/authentik-manager/operator/utils"
 )
-
-// SQLConfig the sql connection args for our postgresql db connection
-type SQLConfig struct {
-	Host     string
-	Port     int
-	User     string
-	Password string
-	DBName   string
-	SSLMode  string
-}
 
 type AuthentikBlueprintInstance struct {
 	Created         time.Time       `json:"created"`
@@ -64,6 +55,25 @@ type AuthentikBlueprintInstance struct {
 	Enabled         bool            `json:"enabled"`
 	ManagedModels   []string        `json:"managed_models"`
 	Content         string          `json:"content"`
+}
+
+// ListAk returns a list of Ak resources in the given namespace
+func (r *AkBlueprintReconciler) ListAk(namespace string) ([]*akmv1a1.Ak, error) {
+  list := &akmv1a1.AkList{}
+  opts := &client.ListOptions{
+    Namespace: namespace,
+  }
+  err := r.List(context.TODO(), list, opts)
+  if err != nil {
+    return nil, err
+  }
+  // Unpack into an actual list
+  resources := make([]*akmv1a1.Ak, len(list.Items))
+	for i, item := range list.Items {
+		resources[i] = &item
+	}
+
+	return resources, nil
 }
 
 // AkBlueprintReconciler reconciles a AkBlueprint object
