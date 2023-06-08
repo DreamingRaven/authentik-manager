@@ -176,3 +176,16 @@ func (c *ControlBase) LoadHelmChart(u *url.URL) (*chart.Chart, error) {
 	}
 	return chartLoader.Load(path)
 }
+
+// NewSQLConfig best effort to generate a connection config based on env variables and system
+func (c *ControlBase) NewSQLConfig() *SQLConfig {
+	// TODO populate with real values from go-arg
+	return &SQLConfig{
+		Host:     "postgres",
+		Port:     5432,
+		User:     "postgres",
+		Password: "MIwHsckSqhCli0KCEmq5RZDld744vP", // this is the password from example secret in docs docs
+		DBName:   "authentik",
+		SSLMode:  "disable",
+	}
+}

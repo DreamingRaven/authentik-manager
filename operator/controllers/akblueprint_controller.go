@@ -15,7 +15,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"time"
 
@@ -67,34 +66,6 @@ type AuthentikBlueprintInstance struct {
 	Content         string          `json:"content"`
 }
 
-// NewSQLConfig best effort to generate a connection config based on env variables and system
-func NewSQLConfig() *SQLConfig {
-	// TODO populate with real values from go-arg
-	return &SQLConfig{
-		Host:     "postgres",
-		Port:     5432,
-		User:     "postgres",
-		Password: "MIwHsckSqhCli0KCEmq5RZDld744vP", // this is the password from example secret in docs docs
-		DBName:   "authentik",
-		SSLMode:  "disable",
-	}
-}
-
-// SQLConnect gets and test a basic SQL connection to our postgres database specifically
-func SQLConnect(config *SQLConfig) (*sql.DB, error) {
-	connectionString := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
-		config.Host, strconv.Itoa(config.Port), config.User, config.Password, config.DBName, config.SSLMode)
-	db, err := sql.Open("postgres", connectionString)
-	if err != nil {
-		return nil, err
-	}
-	err = db.Ping()
-	if err != nil {
-		return nil, err
-	}
-	return db, nil
-}
-
 // AkBlueprintReconciler reconciles a AkBlueprint object
 type AkBlueprintReconciler struct {
 	utils.ControlBase
@@ -140,9 +111,9 @@ func (r *AkBlueprintReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	}
 
 	// SETUP DB CONNECTION
-	cfg := NewSQLConfig()
+	cfg := r.NewSQLConfig()
 	l.Info(fmt.Sprintf("Connecting to postgresql at %v in %v...", cfg.Host, req.NamespacedName.Namespace))
-	db, err := SQLConnect(cfg)
+	db, err := utils.SQLConnect(cfg)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
