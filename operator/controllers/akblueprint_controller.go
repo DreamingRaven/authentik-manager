@@ -146,7 +146,7 @@ func (r *AkBlueprintReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		// TODO: Populate error
 		return ctrl.Result{}, err
 	}
-	l.Info(fmt.Sprintf("Found released secret name %v", secret))
+	l.Info(fmt.Sprintf("Found release secret name `%v`", secret))
 
 	// SETUP DB CONNECTION
 	cfg := r.NewSQLConfig()
