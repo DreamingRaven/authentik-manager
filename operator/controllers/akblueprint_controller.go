@@ -141,15 +141,31 @@ func (r *AkBlueprintReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		// TODO: Populate error
 		return ctrl.Result{}, err
 	}
-	secret, ok := section["name"].(string)
+	secretName, ok := section["name"].(string)
 	if !ok {
 		// TODO: Populate error
 		return ctrl.Result{}, err
 	}
-	l.Info(fmt.Sprintf("Found release secret name `%v`", secret))
+	l.Info(fmt.Sprintf("Found release secret name `%v`", secretName))
+
+	// SCRAPE AUTHENTIK RELEASED SECRET
+	secret := &corev1.Secret{}
+	err = r.Get(ctx, types.NamespacedName{Name: secretName, Namespace: req.NamespacedName.Namespace}, secret)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+	l.Info(fmt.Sprintf("Found release secret `%v`", secretName))
 
 	// SETUP DB CONNECTION
-	cfg := r.NewSQLConfig()
+	cfg := &utils.SQLConfig{
+		Host:     "postgres",
+		Port:     5432,
+		User:     "postgres",
+		Password: string(secret.Data["postgresPassword"][:]),
+		DBName:   "authentik",
+		SSLMode:  "disable",
+	}
+	//cfg := r.NewSQLConfig()
 	l.Info(fmt.Sprintf("Connecting to postgresql at %v in %v...", cfg.Host, req.NamespacedName.Namespace))
 	db, err := utils.SQLConnect(cfg)
 	if err != nil {
