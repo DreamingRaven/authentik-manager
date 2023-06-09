@@ -15,7 +15,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"time"
 
@@ -30,27 +29,15 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	klog "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/yaml"
 
 	akmv1a1 "gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1"
 	"gitlab.com/GeorgeRaven/authentik-manager/operator/utils"
 )
-
-// SQLConfig the sql connection args for our postgresql db connection
-type SQLConfig struct {
-	Host     string
-	Port     int
-	User     string
-	Password string
-	DBName   string
-	SSLMode  string
-}
 
 type AuthentikBlueprintInstance struct {
 	Created         time.Time       `json:"created"`
@@ -69,38 +56,9 @@ type AuthentikBlueprintInstance struct {
 	Content         string          `json:"content"`
 }
 
-// NewSQLConfig best effort to generate a connection config based on env variables and system
-func NewSQLConfig() *SQLConfig {
-	// TODO populate with real values from go-arg
-	return &SQLConfig{
-		Host:     "postgres",
-		Port:     5432,
-		User:     "postgres",
-		Password: "MIwHsckSqhCli0KCEmq5RZDld744vP", // this is the password from example secret in docs docs
-		DBName:   "authentik",
-		SSLMode:  "disable",
-	}
-}
-
-// SQLConnect gets and test a basic SQL connection to our postgres database specifically
-func SQLConnect(config *SQLConfig) (*sql.DB, error) {
-	connectionString := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
-		config.Host, strconv.Itoa(config.Port), config.User, config.Password, config.DBName, config.SSLMode)
-	db, err := sql.Open("postgres", connectionString)
-	if err != nil {
-		return nil, err
-	}
-	err = db.Ping()
-	if err != nil {
-		return nil, err
-	}
-	return db, nil
-}
-
 // AkBlueprintReconciler reconciles a AkBlueprint object
 type AkBlueprintReconciler struct {
-	client.Client
-	Scheme *runtime.Scheme
+	utils.ControlBase
 }
 
 //+kubebuilder:rbac:groups=akm.goauthentik.io,resources=akblueprints,verbs=get;list;watch;create;update;patch;delete
@@ -142,10 +100,74 @@ func (r *AkBlueprintReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		l.Info("AkBlueprint trigger.")
 	}
 
+	// FIND RELEVANT Ak resources
+	// we know only one Ak resource should be present
+	// so we can search for it in our namespace!
+	list, err := r.ListAk(o.WatchedNamespace)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+	if len(list) > 1 {
+		err = errors.NewConflict(
+			schema.GroupResource{
+				Group:    "akm.goauthentik.io",
+				Resource: crd.Name,
+			},
+			fmt.Sprintf("Too many Ak resources, cant decide between them `%v`.", list),
+			fmt.Errorf("Too many relevant Ak resources"))
+		return ctrl.Result{}, err
+	} else if len(list) == 0 {
+		err = errors.NewNotFound(
+			schema.GroupResource{
+				Group:    "akm.goauthentik.io",
+				Resource: crd.Name,
+			},
+			fmt.Sprintf("No relevant Ak resource found."))
+		return ctrl.Result{}, err
+	}
+	ak := list[0]
+	l.Info(fmt.Sprintf("Found relevant Ak resource."))
+
+	// FIND AK RESOURCES RELEASED VALUES
+	// We find the Ak resources values so we can ensure we are searching for the correct
+	// secret
+	values, err := r.GetReleasedValues(o.WatchedNamespace, ak.Name)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	section, ok := values["secret"].(map[string]interface{})
+	if !ok {
+		// TODO: Populate error
+		return ctrl.Result{}, err
+	}
+	secretName, ok := section["name"].(string)
+	if !ok {
+		// TODO: Populate error
+		return ctrl.Result{}, err
+	}
+	l.Info(fmt.Sprintf("Found release secret name `%v`", secretName))
+
+	// SCRAPE AUTHENTIK RELEASED SECRET
+	secret := &corev1.Secret{}
+	err = r.Get(ctx, types.NamespacedName{Name: secretName, Namespace: req.NamespacedName.Namespace}, secret)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+	l.Info(fmt.Sprintf("Found release secret `%v`", secretName))
+
 	// SETUP DB CONNECTION
-	cfg := NewSQLConfig()
+	cfg := &utils.SQLConfig{
+		Host:     "postgres",
+		Port:     5432,
+		User:     "postgres",
+		Password: string(secret.Data["postgresPassword"][:]),
+		DBName:   "authentik",
+		SSLMode:  "disable",
+	}
+	//cfg := r.NewSQLConfig()
 	l.Info(fmt.Sprintf("Connecting to postgresql at %v in %v...", cfg.Host, req.NamespacedName.Namespace))
-	db, err := SQLConnect(cfg)
+	db, err := utils.SQLConnect(cfg)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
