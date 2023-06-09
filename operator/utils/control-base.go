@@ -86,7 +86,7 @@ func (c *ControlBase) GetReleasedValues(namespace, name string) (map[string]inte
 	if err != nil {
 		return nil, err
 	}
-	return values, err
+	return values, nil
 }
 
 // UpgradeOrInstallChart upgrades a chart in cluster or installs it new if it does not already exist
