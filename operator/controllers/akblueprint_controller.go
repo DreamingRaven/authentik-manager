@@ -25,7 +25,6 @@ import (
 	// driver package for postgresql just needs import
 	"github.com/lib/pq"
 
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"github.com/alexflint/go-arg"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -33,6 +32,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	klog "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/yaml"
 
@@ -59,16 +59,16 @@ type AuthentikBlueprintInstance struct {
 
 // ListAk returns a list of Ak resources in the given namespace
 func (r *AkBlueprintReconciler) ListAk(namespace string) ([]*akmv1a1.Ak, error) {
-  list := &akmv1a1.AkList{}
-  opts := &client.ListOptions{
-    Namespace: namespace,
-  }
-  err := r.List(context.TODO(), list, opts)
-  if err != nil {
-    return nil, err
-  }
-  // Unpack into an actual list
-  resources := make([]*akmv1a1.Ak, len(list.Items))
+	list := &akmv1a1.AkList{}
+	opts := &client.ListOptions{
+		Namespace: namespace,
+	}
+	err := r.List(context.TODO(), list, opts)
+	if err != nil {
+		return nil, err
+	}
+	// Unpack into an actual list
+	resources := make([]*akmv1a1.Ak, len(list.Items))
 	for i, item := range list.Items {
 		resources[i] = &item
 	}
