@@ -32,7 +32,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	klog "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/yaml"
 
@@ -55,25 +54,6 @@ type AuthentikBlueprintInstance struct {
 	Enabled         bool            `json:"enabled"`
 	ManagedModels   []string        `json:"managed_models"`
 	Content         string          `json:"content"`
-}
-
-// ListAk returns a list of Ak resources in the given namespace
-func (r *AkBlueprintReconciler) ListAk(namespace string) ([]*akmv1a1.Ak, error) {
-	list := &akmv1a1.AkList{}
-	opts := &client.ListOptions{
-		Namespace: namespace,
-	}
-	err := r.List(context.TODO(), list, opts)
-	if err != nil {
-		return nil, err
-	}
-	// Unpack into an actual list
-	resources := make([]*akmv1a1.Ak, len(list.Items))
-	for i, item := range list.Items {
-		resources[i] = &item
-	}
-
-	return resources, nil
 }
 
 // AkBlueprintReconciler reconciles a AkBlueprint object
@@ -119,6 +99,37 @@ func (r *AkBlueprintReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 
 		l.Info("AkBlueprint trigger.")
 	}
+
+	// FIND RELEVANT Ak resources
+	// we know only one Ak resource should be present
+	// so we can search for it in our namespace!
+	list, err := r.ListAk(o.WatchedNamespace)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+	if len(list) > 1 {
+		err = errors.NewConflict(
+			schema.GroupResource{
+				Group:    "akm.goauthentik.io",
+				Resource: crd.Name,
+			},
+			fmt.Sprintf("Too many Ak resources, cant decide between them `%v`.", list),
+			fmt.Errorf("Too many relevant Ak resources"))
+		return ctrl.Result{}, err
+	} else if len(list) == 0 {
+		err = errors.NewNotFound(
+			schema.GroupResource{
+				Group:    "akm.goauthentik.io",
+				Resource: crd.Name,
+			},
+			fmt.Sprintf("No relevant Ak resource found."))
+		return ctrl.Result{}, err
+	}
+	ak := list[0]
+	l.Info(fmt.Sprintf("Found relevant helm release `%v`", ak))
+
+	// FIND DB CREDENTIALS LOCATION
+	//r.GetReleasedValues(o.WatchedNamespace)
 
 	// SETUP DB CONNECTION
 	cfg := r.NewSQLConfig()

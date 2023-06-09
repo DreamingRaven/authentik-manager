@@ -4,7 +4,6 @@ go 1.20
 
 require (
 	github.com/alexflint/go-arg v1.4.3
-	github.com/go-logr/logr v1.2.4
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/lib/pq v1.10.7
 	github.com/onsi/ginkgo/v2 v2.9.7
@@ -50,6 +49,7 @@ require (
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/go-errors/errors v1.4.2 // indirect
 	github.com/go-gorp/gorp/v3 v3.0.5 // indirect
+	github.com/go-logr/logr v1.2.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-logr/zapr v1.2.4 // indirect
 	github.com/go-openapi/jsonpointer v0.19.6 // indirect

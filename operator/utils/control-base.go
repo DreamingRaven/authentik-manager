@@ -2,15 +2,18 @@
 package utils
 
 import (
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	"k8s.io/apimachinery/pkg/runtime"
+	"context"
 	"fmt"
 	"log"
 	"net/url"
 	"os"
 	"path/filepath"
 
-	"github.com/go-logr/logr"
+	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/alexflint/go-arg"
+	akmv1a1 "gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
@@ -38,17 +41,53 @@ type ControlBase struct {
 // like searching namespaces for resources or lists, along with common transformations.
 // This does not include functions that do not require client or scheme context
 // since those are better as standalone implementations rather than bundled routines.
-type Control interface {}
+type Control interface{}
 
 // KUBERNETES routines
 
 // ListInNamespace lists resources of given group, version, kind in the given namespace.
 func (c *ControlBase) ListInNamespace() {}
 
+// ListAk returns a list of Ak resources in the given namespace
+func (c *ControlBase) ListAk(namespace string) ([]*akmv1a1.Ak, error) {
+	list := &akmv1a1.AkList{}
+	opts := &client.ListOptions{
+		Namespace: namespace,
+	}
+	err := c.List(context.TODO(), list, opts)
+	if err != nil {
+		return nil, err
+	}
+	// Unpack into an actual list
+	resources := make([]*akmv1a1.Ak, len(list.Items))
+	for i, item := range list.Items {
+		resources[i] = &item
+	}
+	return resources, nil
+}
+
 // HELM routines
 
-// GetReleaseValues gets the ACTUAL values used in a helm release by merging user values with manifests in the same way that we do when deploying the helm chart.
-func (c *ControlBase) GetReleaseValues() {}
+// GetReleasedValues finds the actual values used by helm to generate some manifests. This
+// fetches values from the cluster as opposed to generating them from overrides and manifests.
+func (c *ControlBase) GetReleasedValues(namespace, name string) (map[string]interface{}, error) {
+
+	// Parsing options to make them available TODO: pass them in rather than read continuously
+	o := Opts{}
+	arg.MustParse(&o)
+
+	actionConfig, err := c.GetActionConfig(namespace)
+	if err != nil {
+		return nil, err
+	}
+	valuesAction := action.NewGetValues(actionConfig)
+	valuesAction.AllValues = true
+	values, err := valuesAction.Run(name)
+	if err != nil {
+		return nil, err
+	}
+	return values, err
+}
 
 // UpgradeOrInstallChart upgrades a chart in cluster or installs it new if it does not already exist
 // ulr format is [scheme:][//[userinfo@]host][/]path[?query][#fragment] e.g file://workspace/helm-charts/ak-0.1.0.tgz"
@@ -107,7 +146,7 @@ func (c *ControlBase) UninstallChart(nn types.NamespacedName, a *action.Configur
 }
 
 // GetActionConfig Get the Helm action config from in cluster service account
-func (c *ControlBase) GetActionConfig(namespace string, l logr.Logger) (*action.Configuration, error) {
+func (c *ControlBase) GetActionConfig(namespace string) (*action.Configuration, error) {
 	actionConfig := new(action.Configuration)
 	var kubeConfig *genericclioptions.ConfigFlags
 	config, err := rest.InClusterConfig()

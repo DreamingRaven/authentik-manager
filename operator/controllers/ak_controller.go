@@ -47,7 +47,7 @@ func (r *AkReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Re
 	o := utils.Opts{}
 	arg.MustParse(&o)
 
-	actionConfig, err := r.GetActionConfig(req.NamespacedName.Namespace, l)
+	actionConfig, err := r.GetActionConfig(req.NamespacedName.Namespace)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
