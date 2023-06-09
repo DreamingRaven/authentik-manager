@@ -126,10 +126,27 @@ func (r *AkBlueprintReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return ctrl.Result{}, err
 	}
 	ak := list[0]
-	l.Info(fmt.Sprintf("Found relevant helm release `%v`", ak))
+	l.Info(fmt.Sprintf("Found relevant Ak resource."))
 
-	// FIND DB CREDENTIALS LOCATION
-	//r.GetReleasedValues(o.WatchedNamespace)
+	// FIND AK RESOURCES RELEASED VALUES
+	// We find the Ak resources values so we can ensure we are searching for the correct
+	// secret
+	values, err := r.GetReleasedValues(o.WatchedNamespace, ak.Name)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	section, ok := values["secret"].(map[string]interface{})
+	if !ok {
+		// TODO: Populate error
+		return ctrl.Result{}, err
+	}
+	secret, ok := section["name"].(string)
+	if !ok {
+		// TODO: Populate error
+		return ctrl.Result{}, err
+	}
+	l.Info(fmt.Sprintf("Found released secret name %v", secret))
 
 	// SETUP DB CONNECTION
 	cfg := r.NewSQLConfig()
