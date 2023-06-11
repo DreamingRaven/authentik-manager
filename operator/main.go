@@ -98,10 +98,10 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "AkBlueprint")
 		os.Exit(1)
 	}
-	if err = (&controllers.OIDCReconciler{
+	if err = (&controllers.OIDCReconciler{utils.ControlBase{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
-	}).SetupWithManager(mgr); err != nil {
+	}}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "OIDC")
 		os.Exit(1)
 	}

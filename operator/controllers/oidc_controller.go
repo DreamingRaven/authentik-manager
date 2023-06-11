@@ -13,18 +13,16 @@ package controllers
 import (
 	"context"
 
-	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	akmv1alpha1 "gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1"
+	"gitlab.com/GeorgeRaven/authentik-manager/operator/utils"
 )
 
 // OIDCReconciler reconciles a OIDC object
 type OIDCReconciler struct {
-	client.Client
-	Scheme *runtime.Scheme
+	utils.ControlBase
 }
 
 //+kubebuilder:rbac:groups=akm.goauthentik.io,resources=oidcs,verbs=get;list;watch;create;update;patch;delete
