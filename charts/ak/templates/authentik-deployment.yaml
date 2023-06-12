@@ -48,11 +48,11 @@ spec:
             - name: AUTHENTIK_POSTGRESQL__HOST
               value: {{ .Values.postgresql.fullnameOverride }}-hl
             - name: AUTHENTIK_POSTGRESQL__NAME
-              value: {{ .Values.postgresql.global.postgresql.auth.database }}
+              value: {{ .Values.postgresql.auth.database }}
             - name: AUTHENTIK_POSTGRESQL__USER
-              value: {{ .Values.postgresql.global.postgresql.auth.username }}
+              value: {{ .Values.postgresql.auth.username }}
             - name: AUTHENTIK_POSTGRESQL__PORT
-              value: {{ .Values.postgresql.global.postgresql.service.ports.postgresql | quote }}
+              value: {{ .Values.postgresql.postgresql.service.ports.postgresql | quote }}
             # REDIS AUTOGEN VARIABLES
             - name: AUTHENTIK_REDIS__HOST
               value: {{ .Values.redis.fullnameOverride }}-master

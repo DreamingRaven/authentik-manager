@@ -92,7 +92,7 @@ spec:
                       blueprint
                     properties:
                       labels:
-                        description: Labels (optional) ke-value store for special
+                        description: Labels (optional) key-value store for special
                           labels https://goauthentik.io/developer-docs/blueprints/v1/structure#special-labels
                         x-kubernetes-preserve-unknown-fields: true
                       name:

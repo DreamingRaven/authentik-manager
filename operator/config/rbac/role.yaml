@@ -57,3 +57,29 @@ rules:
   - get
   - patch
   - update
+- apiGroups:
+  - akm.goauthentik.io
+  resources:
+  - oidcs
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - akm.goauthentik.io
+  resources:
+  - oidcs/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - akm.goauthentik.io
+  resources:
+  - oidcs/status
+  verbs:
+  - get
+  - patch
+  - update

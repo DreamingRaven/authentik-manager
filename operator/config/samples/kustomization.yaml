@@ -2,4 +2,5 @@
 resources:
 - akm_v1alpha1_ak.yaml
 - akm_v1alpha1_akblueprint.yaml
+- akm_v1alpha1_oidc.yaml
 #+kubebuilder:scaffold:manifestskustomizesamples
