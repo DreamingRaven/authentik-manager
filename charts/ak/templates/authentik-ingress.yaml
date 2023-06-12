@@ -19,7 +19,7 @@ spec:
           pathType: Prefix
           backend:
             service:
-              name: {{ .Values.authentik.service.name | lower | quote }}
+              name: {{ .Values.authentik.service.name }}-server
               port:
                 name: {{ (first .Values.authentik.ports).name }}
   {{- if .Values.ingress.tls.enable }}
