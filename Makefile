@@ -27,7 +27,30 @@ help: ## display this auto generated help message
 
 
 .PHONY: all
-all: lint minikube install ingress ## Create minikube cluster and apply operator to it
+all: lint minikube install addons ## Create minikube cluster and apply operator to it
+
+.PHONY: demo
+demo: all ## (Re)Create minikube cluster and apply example CRDs to a fully working demo state
+	@kubectl apply -f operator/config/samples/akm_v1alpha1_secret.yaml
+	@kubectl apply -f operator/config/samples/akm_v1alpha1_ak.yaml
+	@minikube addons list
+	@echo THE IP OF YOUR MINIKUBE CLUSTER:
+	@minikube ip
+	@echo NOTE: the full domain is the .global.domain.full value in the auth chart that you probably set to something else, auth.example.org by default
+	@echo Please ensure you have added the above minikube ip AND your value for .global.domain.full as the following line in your /etc/hosts file replacing the following defaults if they are different:
+	@echo
+	@echo ...
+	@echo 192.168.49.2	auth.example.org
+	@echo ...
+	@echo
+	@echo Please run in a new terminal:
+	@echo
+	@echo xdg-open "https://auth.example.org/if/flow/initial-setup/"
+	@echo
+	@echo Lastly please note that it can take some time for authentik to become available, I will start a dashboard so you can monitor its progress and of associated resources. You may have to refresh multiple times over 10 minutes on slower hardware or minikube with fewer resources. Consider allocating more minikube resources if this is the case.
+	@echo e.g. minikube config set cpus 4 \&\& minikube config set memory 8192 then restart the demo
+	@echo
+	@minikube dashboard
 
 .PHONY: lint
 lint: deps ## Lint the helm chart
@@ -41,11 +64,11 @@ deps:	## Update all helm chart dependencies
 minikube: ## Create a local minikube testing cluster
 	minikube delete
 	minikube start --cni calico --driver=podman --kubernetes-version=${MINIKUBE_KUBE_VERSION}
-	# minikube addons enable ingress
 
-.PHONY: ingress
-ingress: ## Enable minikube ingress addon
+.PHONY: addons
+addons: ## Enable our minikube required addons
 	minikube addons enable ingress
+	minikube addons enable metrics-server
 
 # .PHONY: login
 # login: login.lock
