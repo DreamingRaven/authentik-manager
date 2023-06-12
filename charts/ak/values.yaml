@@ -63,19 +63,18 @@ postgresql:
   readReplicas:
     persistence:
       enabled: false
-  global:
-    postgresql:
-      service:
-        ports:
-          postgresql: 5432
-      auth:
-        existingSecret: auth
-        database: authentik
-        username: authentik
-        secretKeys:
-          adminPasswordKey: postgresPassword
-          userPasswordKey: postgresUserPassword
-          replicationPasswordKey: postgresReplicationPassword
+  postgresql:
+    service:
+      ports:
+        postgresql: 5432
+  auth:
+    existingSecret: auth
+    database: authentik
+    username: authentik
+    secretKeys:
+      adminPasswordKey: postgresPassword
+      userPasswordKey: postgresUserPassword
+      replicationPasswordKey: postgresReplicationPassword
   # diagnosticMode:
   #   enabled: true
   #   command: ["sleep"]
