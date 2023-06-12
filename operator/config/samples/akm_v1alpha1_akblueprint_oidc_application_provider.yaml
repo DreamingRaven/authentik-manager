@@ -1,0 +1,97 @@
+apiVersion: akm.goauthentik.io/v1alpha1
+kind: AkBlueprint
+metadata:
+  labels:
+    app.kubernetes.io/name: akblueprint
+    app.kubernetes.io/instance: akblueprint-sample
+    app.kubernetes.io/part-of: operator
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: operator
+  name: akblueprint-sample
+  namespace: auth
+spec:
+  file: /blueprints/operator/oidc-application-provider-sample.yml
+  blueprint:
+    version: 1
+    metadata:
+      labels:
+        source: akm
+      name: oidc-application-provider-sample
+    entries:
+    # Application
+    - model: authentik_core.application
+      state: present
+      conditions: []
+      id: oidc-sample-application
+      identifiers:
+        slug: oidcsa
+      attrs:
+        group: kubeflow
+        name: kubeflow
+        policy_engine_mode: any
+        provider: 1
+        slug: kubeflow
+    # Provider
+    - model: authentik_providers_oauth2.oauth2provider
+      state: present
+      conditions: []
+      id: null
+      identifiers:
+        slug: oidcp
+      attrs:
+        access_code_validity: minutes=1
+        access_token_validity: minutes=5
+        authentication_flow: 2553ba26-2001-4af7-9e25-310e5b93c99d
+        authorization_flow: dd128b40-22c2-43b7-a33a-b81c8672e4d8
+        client_id: 1iaY9mUMY1quFJ68Y7v8lEDDL4yFXBtunX8URhpa
+        client_secret: X5xIuT9r4h2DCFsF0WkyWAkBJRmWgHfBDfqC6gmXxFxfKlhO4vbI1TppTI2wyUNxUUIUIO2O35FIUMbfPTTeGlUJUElzCWwU3TyFk94PG2
+    ff5fOMkb6GJ5crJW4qWCId
+        client_type: confidential
+        include_claims_in_id_token: true
+        issuer_mode: per_provider
+        name: kubeflow
+        property_mappings:
+        - e85b38aa-a1b8-48cb-8d1c-7118adadc53a
+        - f6730a71-879a-4dbd-b4a0-3c1b245585b6
+        - 01f99f6b-09ec-45ea-a655-4a7011bb3ad2
+        refresh_token_validity: days=30
+        signing_key: 9d2bafba-90c2-44b9-a2aa-5c31490e13f9
+        sub_mode: hashed_user_id
+# ORIGINAL BLUEPRINTS FROM EXPORT CONFIGURED FOR ABOVE
+#- attrs:
+#    access_code_validity: minutes=1
+#    access_token_validity: minutes=5
+#    authentication_flow: 2553ba26-2001-4af7-9e25-310e5b93c99d
+#    authorization_flow: dd128b40-22c2-43b7-a33a-b81c8672e4d8
+#    client_id: 1iaY9mUMY1quFJ68Y7v8lEDDL4yFXBtunX8URhpa
+#    client_secret: X5xIuT9r4h2DCFsF0WkyWAkBJRmWgHfBDfqC6gmXxFxfKlhO4vbI1TppTI2wyUNxUUIUIO2O35FIUMbfPTTeGlUJUElzCWwU3TyFk94PG2
+#ff5fOMkb6GJ5crJW4qWCId
+#    client_type: confidential
+#    include_claims_in_id_token: true
+#    issuer_mode: per_provider
+#    name: kubeflow
+#    property_mappings:
+#    - e85b38aa-a1b8-48cb-8d1c-7118adadc53a
+#    - f6730a71-879a-4dbd-b4a0-3c1b245585b6
+#    - 01f99f6b-09ec-45ea-a655-4a7011bb3ad2
+#    refresh_token_validity: days=30
+#    signing_key: 9d2bafba-90c2-44b9-a2aa-5c31490e13f9
+#    sub_mode: hashed_user_id
+#  conditions: []
+#  id: null
+#  identifiers:
+#    pk: 1
+#  model: authentik_providers_oauth2.oauth2provider
+#  state: present
+#- attrs:
+#    group: kubeflow
+#    name: kubeflow
+#    policy_engine_mode: any
+#    provider: 1
+#    slug: kubeflow
+#  conditions: []
+#  id: null
+#  identifiers:
+#    pk: 96270c88-ea1f-4648-8718-de0b48f5d312
+#  model: authentik_core.application
+#  state: present
