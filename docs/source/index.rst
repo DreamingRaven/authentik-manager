@@ -33,6 +33,23 @@ Contents
   operator
   glossary
 
+Demo
+====
+
+If you want to quickly demo authentik-manager on your local desktop Linux system you will need:
+
+- minikube
+- kubectl
+- helm
+- make
+- git
+
+Then you can start the full cluster, AKM, and install example |crd|\ s. This will open your browser to the minikube |k8s| dashboard and provide final instructions as you go:
+
+.. code-block::
+
+   git clone https://gitlab.com/GeorgeRaven/authentik-manager && cd authentik-manager && make demo
+
 Acknowledgments
 ===============
 
