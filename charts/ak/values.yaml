@@ -192,7 +192,7 @@ authentik:
       env: AUTHENTIK_EMAIL__PASSWORD
   deployment:
     imagePullPolicy: Always
-    image: "ghcr.io/goauthentik/server:2023.5.0"
+    image: "ghcr.io/goauthentik/server:2023.5.3"
     name: authentik
     replicas: 3
     env: # statically defined environment variables can be as many as desired

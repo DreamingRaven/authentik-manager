@@ -54,7 +54,7 @@ type BPMeta struct {
 	// +kubebuilder:pruning:PreserveUnknownFields
 	// +kubebuilder:validation:Schemaless
 
-	// Labels (optional) ke-value store for special labels
+	// Labels (optional) key-value store for special labels
 	// https://goauthentik.io/developer-docs/blueprints/v1/structure#special-labels
 	Labels json.RawMessage `json:"labels,omitempty"`
 
