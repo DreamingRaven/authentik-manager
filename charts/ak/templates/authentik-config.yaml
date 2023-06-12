@@ -119,10 +119,10 @@ data:
     #   # encryption_key: <set via secret>
     #   postgres:
     #     host: {{ .Values.postgresql.fullnameOverride }}-hl
-    #     port: {{ .Values.postgresql.global.postgresql.service.ports.postgresql }}
-    #     database: {{ .Values.postgresql.global.postgresql.auth.database }}
+    #     port: {{ .Values.postgresql.postgresql.service.ports.postgresql }}
+    #     database: {{ .Values.postgresql.auth.database }}
     #     schema: public
-    #     username: {{ .Values.postgresql.global.postgresql.auth.username }}
+    #     username: {{ .Values.postgresql.auth.username }}
     #     # password: <set via secret>
     #     timeout: 5s
     #
