@@ -1,4 +1,5 @@
 {{- if .Values.ingress.enable }}
+{{- if .Values.ldap.enabled }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -35,4 +36,5 @@ spec:
     - {{ .Values.global.domain.ldap }}
     secretName: {{ .Values.ingress.ldapCertSecret }} # < cert-manager will store the created certificate in this secret.
   {{- end }}
+{{- end }}
 {{- end }}
