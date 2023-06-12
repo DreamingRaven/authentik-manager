@@ -21,19 +21,20 @@ spec:
   - Ingress
   {{- if eq $aktype "server"}}
   ingress:
-  - from:
-    # allow ingress from other pods in this namespace
-    - namespaceSelector:
-        matchLabels:
-          kubernetes.io/metadata.name: {{ .Release.Namespace }}
-    # to specific ports by name
-    ports:
-    - protocol: TCP
-      port: http
-    - protocol: TCP
-      port: https
-    - protocol: TCP
-      port: metrics
+  - {}
+  #- from:
+  #  # allow ingress from other pods in this namespace
+  #  - namespaceSelector:
+  #      matchLabels:
+  #        kubernetes.io/metadata.name: {{ .Release.Namespace }}
+  #  # to specific ports by name
+  #  ports:
+  #  - protocol: TCP
+  #    port: http
+  #  - protocol: TCP
+  #    port: https
+  #  - protocol: TCP
+  #    port: metrics
   {{- end }}
   egress:
   - to:
