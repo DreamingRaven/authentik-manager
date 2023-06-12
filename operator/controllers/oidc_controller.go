@@ -8,14 +8,101 @@ You may obtain a copy of the License in the project root (LICENSE) or at
     https://opensource.org/license/osl-3-0-php/
 */
 
+/*
+
+OpenID Connect (OIDC) is an authentication protocol built on top of the OAuth 2.0 framework. It provides a standardized way for users to authenticate and obtain identity information from an identity provider (IdP). Here's a simplified overview of how OIDC works:
+
+1. *Client Registration*: The client application (relying party) registers itself with the OIDC provider (authorization server). During registration, the client obtains a client ID and client secret, which are used to identify and authenticate the client.
+
+2. *Authentication Request*: When a user wants to authenticate with the client application, they are redirected to the OIDC provider's authentication endpoint. The client initiates the authentication request by sending the user to this endpoint, along with the client ID, requested scopes, and a redirect URL.
+
+3. *User Authentication*: The user is presented with a login page provided by the OIDC provider. The authentication process can involve various mechanisms such as username/password, multifactor authentication, or social logins. The user submits their credentials to the OIDC provider for verification.
+
+4. *Authorization Grant*: After successful authentication, the OIDC provider asks the user to authorize the client application to access their protected resources. This step ensures that the user explicitly grants consent to the client.
+
+5. *Issuance of Authorization Code*: If the user grants authorization, the OIDC provider issues an authorization code and redirects the user back to the client application's redirect URL. The authorization code serves as a temporary, one-time-use credential.
+
+6. *Token Request*: The client application receives the authorization code and sends a token request to the OIDC provider's token endpoint. Along with the code, the client also provides its client ID and client secret. This request is typically made using the OAuth 2.0 "authorization code" grant type.
+
+7. *Token Response*: The OIDC provider verifies the client credentials and the authorization code. If valid, the provider responds with an access token, an ID token, and optionally a refresh token. The access token is used to authenticate subsequent API requests, while the ID token contains identity information about the authenticated user.
+
+8. *User Information*: If needed, the client application can use the access token to request additional user information from the OIDC provider's user info endpoint. This endpoint provides user attributes, such as name, email, or profile picture.
+
+9. *Token Validation*: The client application validates the received tokens' integrity, authenticity, and expiration time using cryptographic measures. It verifies the digital signature of the tokens using the OIDC provider's public key.
+
+            +------------------+
+            |    Client App    |
+            +--------+---------+
+                     |
+            1. Initiate Authentication
+                     |
+            +--------v---------+
+            | OIDC Provider    |
+            | (Authorization   |
+            |    Server)       |
+            +--------+---------+
+                     |
+            2. Redirect User to
+               Authentication Endpoint
+                     |
+            +--------v---------+
+            | User's Web Browser|
+            +--------+---------+
+                     |
+            3. User Authenticates
+                     |
+            +--------v---------+
+            | OIDC Provider    |
+            | (Authorization   |
+            |    Server)       |
+            +--------+---------+
+                     |
+            4. Authorization Request
+                     |
+            +--------v---------+
+            | User's Web Browser|
+            +--------+---------+
+                     |
+            5. Grant Authorization
+                     |
+            +--------v---------+
+            | OIDC Provider    |
+            | (Authorization   |
+            |    Server)       |
+            +--------+---------+
+                     |
+            6. Issue Authorization Code
+                     |
+            +--------v---------+
+            |    Client App    |
+            +--------+---------+
+                     |
+            7. Token Request
+                     |
+            +--------v---------+
+            | OIDC Provider    |
+            | (Token Endpoint) |
+            +--------+---------+
+                     |
+            8. Token Response
+                     |
+            +--------v---------+
+            |    Client App    |
+            +--------+---------+
+                     |
+            9. Access Resources
+*/
+
 package controllers
 
 import (
 	"context"
 
+	"golang.org/x/oauth2"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
+	"github.com/coreos/go-oidc/v3/oidc"
 	akmv1alpha1 "gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1"
 	"gitlab.com/GeorgeRaven/authentik-manager/operator/utils"
 )
@@ -44,6 +131,24 @@ func (r *OIDCReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	// TODO(user): your logic here
 
 	return ctrl.Result{}, nil
+}
+
+// TestOIDCLiveness checks OIDC is working and is producing expected results based on the following procedure:
+func (r *OIDCReconciler) TestOIDCLiveness(ctx context.Context, url, id, secret, redirect string) error {
+
+	provider, err := oidc.NewProvider(ctx, url)
+	if err != nil {
+		return err
+	}
+	_ = oauth2.Config{
+		ClientID:     id,
+		ClientSecret: secret,
+		Endpoint:     provider.Endpoint(),
+		RedirectURL:  "http://127.0.0.1:5556/auth/google/callback",
+		Scopes:       []string{oidc.ScopeOpenID, "profile", "email"},
+	}
+	return nil
+
 }
 
 // SetupWithManager sets up the controller with the Manager.

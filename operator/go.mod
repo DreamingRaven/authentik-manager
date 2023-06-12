@@ -4,10 +4,12 @@ go 1.20
 
 require (
 	github.com/alexflint/go-arg v1.4.3
+	github.com/coreos/go-oidc/v3 v3.6.0
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/lib/pq v1.10.7
 	github.com/onsi/ginkgo/v2 v2.9.7
 	github.com/onsi/gomega v1.27.7
+	golang.org/x/oauth2 v0.6.0
 	helm.sh/helm/v3 v3.12.0
 	k8s.io/api v0.27.2
 	k8s.io/apimachinery v0.27.2
@@ -49,6 +51,7 @@ require (
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/go-errors/errors v1.4.2 // indirect
 	github.com/go-gorp/gorp/v3 v3.0.5 // indirect
+	github.com/go-jose/go-jose/v3 v3.0.0 // indirect
 	github.com/go-logr/logr v1.2.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-logr/zapr v1.2.4 // indirect
@@ -125,7 +128,6 @@ require (
 	go.uber.org/zap v1.24.0 // indirect
 	golang.org/x/crypto v0.5.0 // indirect
 	golang.org/x/net v0.10.0 // indirect
-	golang.org/x/oauth2 v0.5.0 // indirect
 	golang.org/x/sync v0.2.0 // indirect
 	golang.org/x/sys v0.8.0 // indirect
 	golang.org/x/term v0.8.0 // indirect
