@@ -96,14 +96,18 @@ OpenID Connect (OIDC) is an authentication protocol built on top of the OAuth 2.
 package controllers
 
 import (
-	"context"
+  "fmt"
+  "context"
 
+  "github.com/alexflint/go-arg"
 	"golang.org/x/oauth2"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/log"
+	klog "sigs.k8s.io/controller-runtime/pkg/log"
+	"k8s.io/apimachinery/pkg/api/errors"
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	akmv1alpha1 "gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1"
+	akmv1a1 "gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1"
 	"gitlab.com/GeorgeRaven/authentik-manager/operator/utils"
 )
 
@@ -126,9 +130,37 @@ type OIDCReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.14.1/pkg/reconcile
 func (r *OIDCReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
+	l := klog.FromContext(ctx)
 
-	// TODO(user): your logic here
+	// Parsing options to make them available TODO: pass them in rather than read continuously
+	o := utils.Opts{}
+	arg.MustParse(&o)
+
+	actionConfig, err := r.GetActionConfig(req.NamespacedName.Namespace)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	// GET CRD
+	crd := &akmv1a1.OIDC{}
+	err = r.Get(ctx, req.NamespacedName, crd)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			// Request object not found, could have been deleted after reconcile request.
+			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
+			// Return and don't requeue
+			l.Info("OIDC resource reconciliation triggered but disappeared. Uninstalling OIDC integration.")
+			_, err := r.UninstallChart(req.NamespacedName, actionConfig)
+			if err != nil {
+				return ctrl.Result{}, err
+			}
+			return ctrl.Result{}, nil
+		}
+		// Error reading the object - requeue the request.
+		l.Error(err, "Failed to get OIDC resource. Likely fetch error. Retrying.")
+		return ctrl.Result{}, err
+	}
+	l.Info(fmt.Sprintf("Found OIDC resource `%v` in `%v`.", crd.Name, crd.Namespace))
 
 	return ctrl.Result{}, nil
 }

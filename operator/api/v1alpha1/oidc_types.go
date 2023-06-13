@@ -22,8 +22,9 @@ type OIDCSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of OIDC. Edit oidc_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	// Domains is a list of domain names the OIDC controller should capture the /well-known paths from.
+  // Each domain will be enforced to be unique between all namespaces.
+	Domains []string `json:"domains,omitempty"`
 }
 
 // OIDCStatus defines the observed state of OIDC

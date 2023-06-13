@@ -35,10 +35,13 @@ spec:
           spec:
             description: OIDCSpec defines the desired state of OIDC
             properties:
-              foo:
-                description: Foo is an example field of OIDC. Edit oidc_types.go to
-                  remove/update
-                type: string
+              domains:
+                description: Domains is a list of domain names the OIDC controller
+                  should capture the /well-known paths from. Each domain will be enforced
+                  to be unique between all namespaces.
+                items:
+                  type: string
+                type: array
             type: object
           status:
             description: OIDCStatus defines the observed state of OIDC
