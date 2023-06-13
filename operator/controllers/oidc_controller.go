@@ -165,6 +165,14 @@ func (r *OIDCReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	return ctrl.Result{}, nil
 }
 
+func BlueprintFromOIDC(crd *akmv1a1.OIDC) *akmv1a1.AkBlueprint {
+  //name := stripspecial(crd.Namespace-crd.Kind-crd.Name)
+  bp := &akmv1a1.AkBlueprint{
+    Spec: akmv1a1.AkBlueprintSpec{},
+  }
+  return bp
+}
+
 // TestOIDCLiveness checks OIDC is working and is producing expected results based on the following procedure:
 func (r *OIDCReconciler) TestOIDCLiveness(ctx context.Context, url, id, secret, redirect string) error {
 
