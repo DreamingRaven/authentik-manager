@@ -21,8 +21,9 @@ rules:
   - configmaps
   - secrets
   verbs:
-  - list
-  - watch
+  - "*"
+  #- list
+  #- watch
 
 # - apiGroups:
 #   - "apps"

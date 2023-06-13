@@ -25,7 +25,7 @@ rules:
   verbs:
   - "*"
 
-# The bitnami helm charts create service accounts in this namespacd
+# The bitnami helm charts create service accounts in this namespace
 - apiGroups:
   - ""
   resources:
