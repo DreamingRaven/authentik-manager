@@ -167,31 +167,38 @@ func (r *OIDCReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	}
 	l.Info(fmt.Sprintf("Found OIDC resource `%v` in `%v` for domains %v.", crd.Name, crd.Namespace, crd.Spec.Domains))
 
-	// GENERATE SECRET
-	// check if secrets set
-	// TODO: create some mechanism to safely roll secrets without causing client apps to lose their current access
-	// check secret exists (only affects auto generation if it does do not roll)
-	charset := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-	if crd.Spec.ClientID == "" {
-		crd.Spec.ClientID = utils.GenerateRandomString(40, charset)
-	}
-	if crd.Spec.ClientSecret == "" {
-		crd.Spec.ClientSecret = utils.GenerateRandomString(128, charset)
-	}
-	oidcDesiredSecret := r.SecretFromOIDC(crd)
+	// FETCH SECRET OR CREATE BUT NOT UPDATE
 	oidcSecret := &corev1.Secret{}
 	err = r.Get(ctx, types.NamespacedName{
-		Name:      oidcDesiredSecret.Name,
-		Namespace: oidcDesiredSecret.Namespace,
+		Name:      crd.Name,
+		Namespace: crd.Namespace,
 	}, oidcSecret)
 	if err != nil {
 		if errors.IsNotFound(err) {
-
-			l.Info(fmt.Sprintf("Secret not found generating `%v` in `%v`.", oidcSecret.Name, oidcSecret.Namespace))
+      // Create secret as not found
+			l.Info(fmt.Sprintf("Secret not found generating `%v` in `%v`.", crd.Name, crd.Namespace))
+	    charset := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	    if crd.Spec.ClientID == "" {
+        crd.Spec.ClientID = utils.GenerateRandomString(40, charset)
+	    }
+	    if crd.Spec.ClientSecret == "" {
+        crd.Spec.ClientSecret = utils.GenerateRandomString(128, charset)
+	    }
+	    oidcDesiredSecret := r.SecretFromOIDC(crd)
+      err = r.Create(ctx, oidcDesiredSecret)
+      if err != nil {
+			  return ctrl.Result{}, err
+      }
+      oidcSecret = oidcDesiredSecret
 		} else {
+      // Some error other than "not found" when trying to fetch secret
 			return ctrl.Result{}, err
 		}
-	}
+	} else {
+			l.Info(fmt.Sprintf("Secret update ignored to prevent downtime for `%v` in `%v`.", oidcSecret.Name, oidcSecret.Namespace))
+      crd.Spec.ClientID = string(oidcSecret.Data["clientID"])
+      crd.Spec.ClientSecret = string(oidcSecret.Data["clientSecret"])
+  }
 
 	// GENERATE BLUEPRINT
 	bp := r.BlueprintFromOIDC(crd)
@@ -203,14 +210,18 @@ func (r *OIDCReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	return ctrl.Result{}, nil
 }
 
+// SecretFromOIDC
 func (r *OIDCReconciler) SecretFromOIDC(crd *akmv1a1.OIDC) *corev1.Secret {
+	var dataMap = make(map[string][]byte)
+  dataMap["clientSecret"] = []byte(crd.Spec.ClientSecret)
+  dataMap["clientID"] = []byte(crd.Spec.ClientID)
 	oidcSecret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        crd.Name,
 			Namespace:   crd.Namespace,
 			Annotations: crd.Annotations,
 		},
-		//TODO data populate
+    Data: dataMap,
 	}
 	ctrl.SetControllerReference(crd, oidcSecret, r.Scheme)
 	return oidcSecret
