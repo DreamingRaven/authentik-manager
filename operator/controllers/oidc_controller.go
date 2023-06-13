@@ -203,7 +203,7 @@ func (r *OIDCReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	// GENERATE BLUEPRINT
 	bp := r.BlueprintFromOIDC(crd)
 	bp.Namespace = o.WatchedNamespace
-	fmt.Printf("blueprint %v", utils.PrettyPrint(bp))
+	//fmt.Printf("blueprint %v", utils.PrettyPrint(bp))
 
 	// GENERATE INGRESS WELL-KNOWN
 
