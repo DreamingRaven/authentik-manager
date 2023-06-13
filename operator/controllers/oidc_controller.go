@@ -96,18 +96,19 @@ OpenID Connect (OIDC) is an authentication protocol built on top of the OAuth 2.
 package controllers
 
 import (
-  "fmt"
-  "context"
+	"context"
+	"fmt"
 
-  "github.com/alexflint/go-arg"
+	"github.com/alexflint/go-arg"
 	"golang.org/x/oauth2"
+	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	klog "sigs.k8s.io/controller-runtime/pkg/log"
-	"k8s.io/apimachinery/pkg/api/errors"
 
 	"github.com/coreos/go-oidc/v3/oidc"
-	akmv1alpha1 "gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1"
 	akmv1a1 "gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1"
+	akmv1alpha1 "gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1"
 	"gitlab.com/GeorgeRaven/authentik-manager/operator/utils"
 )
 
@@ -160,17 +161,44 @@ func (r *OIDCReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		l.Error(err, "Failed to get OIDC resource. Likely fetch error. Retrying.")
 		return ctrl.Result{}, err
 	}
-	l.Info(fmt.Sprintf("Found OIDC resource `%v` in `%v`.", crd.Name, crd.Namespace))
+	l.Info(fmt.Sprintf("Found OIDC resource `%v` in `%v` for domains %v.", crd.Name, crd.Namespace, crd.Spec.Domains))
+
+	// GENERATE BLUEPRINT
+	bp := r.BlueprintFromOIDC(crd)
+	fmt.Printf("blueprint %v", utils.PrettyPrint(bp))
+
+	// GENERATE SECRET
+
+	// GENERATE INGRESS WELL-KNOWN
 
 	return ctrl.Result{}, nil
 }
 
-func BlueprintFromOIDC(crd *akmv1a1.OIDC) *akmv1a1.AkBlueprint {
-  //name := stripspecial(crd.Namespace-crd.Kind-crd.Name)
-  bp := &akmv1a1.AkBlueprint{
-    Spec: akmv1a1.AkBlueprintSpec{},
-  }
-  return bp
+func (r *OIDCReconciler) BlueprintFromOIDC(crd *akmv1a1.OIDC) *akmv1a1.AkBlueprint {
+	// TODO: strip special characters from names to sanitise and prevent path traversal
+	name := fmt.Sprintf("%v-%v-%v", crd.Namespace, crd.Kind, crd.Name)
+	bp := &akmv1a1.AkBlueprint{
+		// Metadata
+		ObjectMeta: metav1.ObjectMeta{
+			Name:        name,
+			Namespace:   "default",
+			Annotations: crd.Annotations,
+		},
+		// Specification
+		Spec: akmv1a1.AkBlueprintSpec{
+			// Setting to near-arbitrary but unique path assuming name is properly sanitised
+			File: fmt.Sprintf("/blueprints/operator/%v", name),
+			Blueprint: akmv1a1.BP{
+				Version: 1,
+				Metadata: akmv1a1.BPMeta{
+					Name: name,
+				},
+			},
+		},
+	}
+	// set that we are controlling this resource
+	ctrl.SetControllerReference(crd, bp, r.Scheme)
+	return bp
 }
 
 // TestOIDCLiveness checks OIDC is working and is producing expected results based on the following procedure:
