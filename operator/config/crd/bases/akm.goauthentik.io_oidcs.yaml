@@ -35,6 +35,21 @@ spec:
           spec:
             description: OIDCSpec defines the desired state of OIDC
             properties:
+              clientIDs:
+                description: ClientID (optional) identifies the application to the
+                  OIDC server If this is empty we will automatically generate and
+                  roll this key for you.
+                maxLength: 255
+                minLength: 40
+                type: string
+              clientSecret:
+                description: ClientSecret (optional) defines the secret used by the
+                  application to authenticate to OIDC as a valid intermediary. If
+                  this is empty we will automatically generate and roll this key for
+                  you.
+                maxLength: 255
+                minLength: 128
+                type: string
               domains:
                 description: Domains is a list of domain names the OIDC controller
                   should capture the /well-known paths from. Each domain will be enforced

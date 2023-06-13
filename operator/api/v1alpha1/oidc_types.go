@@ -23,8 +23,24 @@ type OIDCSpec struct {
 	// Important: Run "make" to regenerate code after modifying this file
 
 	// Domains is a list of domain names the OIDC controller should capture the /well-known paths from.
-  // Each domain will be enforced to be unique between all namespaces.
+	// Each domain will be enforced to be unique between all namespaces.
 	Domains []string `json:"domains,omitempty"`
+
+	//+kubebuilder:validation:Optional
+	//+kubebuilder:validation:MinLength=40
+	//+kubebuilder:validation:MaxLength=255
+
+	// ClientID (optional) identifies the application to the OIDC server
+	// If this is empty we will automatically generate and roll this key for you.
+	ClientID string `json:"clientIDs,omitempty"`
+
+	//+kubebuilder:validation:Optional
+	//+kubebuilder:validation:MinLength=128
+	//+kubebuilder:validation:MaxLength=255
+
+	// ClientSecret (optional) defines the secret used by the application to authenticate to OIDC as a valid intermediary.
+	// If this is empty we will automatically generate and roll this key for you.
+	ClientSecret string `json:"clientSecret,omitempty"`
 }
 
 // OIDCStatus defines the observed state of OIDC

@@ -103,8 +103,10 @@ import (
 
 	"github.com/alexflint/go-arg"
 	"golang.org/x/oauth2"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	klog "sigs.k8s.io/controller-runtime/pkg/log"
 
@@ -165,15 +167,53 @@ func (r *OIDCReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	}
 	l.Info(fmt.Sprintf("Found OIDC resource `%v` in `%v` for domains %v.", crd.Name, crd.Namespace, crd.Spec.Domains))
 
+	// GENERATE SECRET
+	// check if secrets set
+	// TODO: create some mechanism to safely roll secrets without causing client apps to lose their current access
+	// check secret exists (only affects auto generation if it does do not roll)
+	charset := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	if crd.Spec.ClientID == "" {
+		crd.Spec.ClientID = utils.GenerateRandomString(40, charset)
+	}
+	if crd.Spec.ClientSecret == "" {
+		crd.Spec.ClientSecret = utils.GenerateRandomString(128, charset)
+	}
+	oidcDesiredSecret := r.SecretFromOIDC(crd)
+	oidcSecret := &corev1.Secret{}
+	err = r.Get(ctx, types.NamespacedName{
+		Name:      oidcDesiredSecret.Name,
+		Namespace: oidcDesiredSecret.Namespace,
+	}, oidcSecret)
+	if err != nil {
+		if errors.IsNotFound(err) {
+
+			l.Info(fmt.Sprintf("Secret not found generating `%v` in `%v`.", oidcSecret.Name, oidcSecret.Namespace))
+		} else {
+			return ctrl.Result{}, err
+		}
+	}
+
 	// GENERATE BLUEPRINT
 	bp := r.BlueprintFromOIDC(crd)
+	bp.Namespace = o.WatchedNamespace
 	fmt.Printf("blueprint %v", utils.PrettyPrint(bp))
-
-	// GENERATE SECRET
 
 	// GENERATE INGRESS WELL-KNOWN
 
 	return ctrl.Result{}, nil
+}
+
+func (r *OIDCReconciler) SecretFromOIDC(crd *akmv1a1.OIDC) *corev1.Secret {
+	oidcSecret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:        crd.Name,
+			Namespace:   crd.Namespace,
+			Annotations: crd.Annotations,
+		},
+		//TODO data populate
+	}
+	ctrl.SetControllerReference(crd, oidcSecret, r.Scheme)
+	return oidcSecret
 }
 
 func (r *OIDCReconciler) BlueprintFromOIDC(crd *akmv1a1.OIDC) *akmv1a1.AkBlueprint {
