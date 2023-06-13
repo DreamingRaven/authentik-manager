@@ -98,6 +98,8 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"regexp"
+	"strings"
 
 	"github.com/alexflint/go-arg"
 	"golang.org/x/oauth2"
@@ -175,8 +177,8 @@ func (r *OIDCReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 }
 
 func (r *OIDCReconciler) BlueprintFromOIDC(crd *akmv1a1.OIDC) *akmv1a1.AkBlueprint {
-	// TODO: strip special characters from names to sanitise and prevent path traversal
-	name := fmt.Sprintf("%v-%v-%v", crd.Namespace, crd.Kind, crd.Name)
+	name := strings.ToLower(fmt.Sprintf("%v-%v-%v", crd.Namespace, crd.Kind, crd.Name))
+	name = regexp.MustCompile(`[^a-zA-Z0-9\-\_]+`).ReplaceAllString(name, "")
 	bp := &akmv1a1.AkBlueprint{
 		// Metadata
 		ObjectMeta: metav1.ObjectMeta{
