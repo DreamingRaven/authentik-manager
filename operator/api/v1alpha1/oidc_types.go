@@ -14,9 +14,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
-
 // OIDCSpec defines the desired state of OIDC
 type OIDCSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
@@ -41,6 +38,61 @@ type OIDCSpec struct {
 	// ClientSecret (optional) defines the secret used by the application to authenticate to OIDC as a valid intermediary.
 	// If this is empty we will automatically generate and roll this key for you.
 	ClientSecret string `json:"clientSecret,omitempty"`
+
+	//+kubebuilder:validation:Enum="confidential";"public"
+	//+kubebuilder:validation:Optional
+	//+kubebuilder:default="confidential"
+
+  //ClientType
+  ClientType string `json:"clientType,omitempty"`
+
+	//+kubebuilder:validation:Optional
+	//+kubebuilder:default="minutes=1"
+
+  //AccessCodeValidity
+  AccessCodeValidity string `json:"accessCodeValidity,omitempty"`
+
+	//+kubebuilder:validation:Optional
+	//+kubebuilder:default="minutes=5"
+
+  //AccessTokenValidity
+  AccessTokenValidity string `json:"accessTokenValidity,omitempty"`
+
+	//+kubebuilder:validation:Optional
+	//+kubebuilder:default="default-authentication-flow"
+
+  //AuthenticationFlow
+  AuthenticationFlow string `json:"authenticationFlow,omitempty"`
+
+	//+kubebuilder:validation:Optional
+	//+kubebuilder:default="default-provider-authorization-explicit-consent"
+
+  //AuthorizationFlow
+  AuthorizationFlow string `json:"authorizationFlow,omitempty"`
+
+	//+kubebuilder:validation:Optional
+	//+kubebuilder:default="per_provider"
+
+  //IssuerMode
+  IssuerMode string `json:"issuerMode,omitempty"`
+
+	//+kubebuilder:validation:Optional
+	//+kubebuilder:default="days=30"
+
+  //RefreshTokenValidity
+  RefreshTokenValidity string `json:"refreshTokenValidity,omitempty"`
+
+	//+kubebuilder:validation:Optional
+	//+kubebuilder:default="authentik Self-signed Certificate"
+
+  //SigningKey
+  SigningKey string `json:"signingKey,omitempty"`
+
+	//+kubebuilder:validation:Optional
+	//+kubebuilder:default="hashed_user_id"
+
+  //SubMode
+  SubMode string `json:"subMode,omitempty"`
 }
 
 // OIDCStatus defines the observed state of OIDC

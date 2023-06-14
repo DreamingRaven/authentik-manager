@@ -273,6 +273,10 @@ func (r *OIDCReconciler) BlueprintFromOIDC(crd *akmv1a1.OIDC) (*akmv1a1.AkBluepr
 	appAttrs := make(map[string]interface{})
 	appAttrs["name"] = crd.Namespace
 	appAttrs["group"] = crd.Namespace
+	appAttrs["policy_engine_mode"] = "any"
+	// provider must point to the pk of the provider model
+	appAttrs["provider"] = fmt.Sprintf("!KeyOf %v", provName)
+	appAttrs["slug"] = crd.Namespace
 	appAttrsBytes, err := json.Marshal(appAttrs)
 
 	// authentik "application" model
@@ -284,6 +288,7 @@ func (r *OIDCReconciler) BlueprintFromOIDC(crd *akmv1a1.OIDC) (*akmv1a1.AkBluepr
 		Attrs:       json.RawMessage(appAttrsBytes),
 	}
 
+  // provider meta
 	provIdentifier := make(map[string]interface{})
 	provIdentifier["slug"] = provName
 	provIdentifierBytes, err := json.Marshal(provIdentifier)
@@ -291,13 +296,21 @@ func (r *OIDCReconciler) BlueprintFromOIDC(crd *akmv1a1.OIDC) (*akmv1a1.AkBluepr
 		return nil, err
 	}
 
+  // provider attribs
 	provAttrs := make(map[string]interface{})
-	provAttrs["group"] = crd.Namespace
+	provAttrs["access_code_validity"] = crd.Spec.AccessCodeValidity
+	provAttrs["access_token_validity"] = crd.Spec.AccessTokenValidity
+	provAttrs["authentication_flow"] = fmt.Sprintf("!KeyOf %v", crd.Spec.AuthenticationFlow)
+	provAttrs["authorization_flow"] = fmt.Sprintf("!KeyOf %v", crd.Spec.AuthorizationFlow)
+	provAttrs["client_id"] = crd.Spec.ClientID
+	provAttrs["client_secret"] = crd.Spec.ClientSecret
+	provAttrs["client_type"] = crd.Spec.ClientType
+	provAttrs["include_claims_in_id_token"] = true
+	provAttrs["issuer_mode"] = crd.Spec.IssuerMode
 	provAttrs["name"] = crd.Namespace
-	provAttrs["policy_engine_mode"] = "any"
-	// provider must point to the pk of the provider model
-	provAttrs["provider"] = fmt.Sprintf("!KeyOf %v", provName)
-	provAttrs["slug"] = crd.Namespace
+	provAttrs["refresh_token_validity"] = crd.Spec.RefreshTokenValidity
+	provAttrs["signing_key"] = crd.Spec.SigningKey
+	provAttrs["sub_mode"] = crd.Spec.SubMode
 	provAttrsBytes, err := json.Marshal(provAttrs)
 
 	// authentik "provider" model

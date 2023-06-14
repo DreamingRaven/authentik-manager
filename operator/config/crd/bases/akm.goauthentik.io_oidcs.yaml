@@ -35,6 +35,22 @@ spec:
           spec:
             description: OIDCSpec defines the desired state of OIDC
             properties:
+              accessCodeValidity:
+                default: minutes=1
+                description: AccessCodeValidity
+                type: string
+              accessTokenValidity:
+                default: minutes=5
+                description: AccessTokenValidity
+                type: string
+              authenticationFlow:
+                default: default-authentication-flow
+                description: AuthenticationFlow
+                type: string
+              authorizationFlow:
+                default: default-provider-authorization-explicit-consent
+                description: AuthorizationFlow
+                type: string
               clientIDs:
                 description: ClientID (optional) identifies the application to the
                   OIDC server If this is empty we will automatically generate and
@@ -50,6 +66,13 @@ spec:
                 maxLength: 255
                 minLength: 128
                 type: string
+              clientType:
+                default: confidential
+                description: ClientType
+                enum:
+                - confidential
+                - public
+                type: string
               domains:
                 description: Domains is a list of domain names the OIDC controller
                   should capture the /well-known paths from. Each domain will be enforced
@@ -57,6 +80,22 @@ spec:
                 items:
                   type: string
                 type: array
+              issuerMode:
+                default: per_provider
+                description: IssuerMode
+                type: string
+              refreshTokenValidity:
+                default: days=30
+                description: RefreshTokenValidity
+                type: string
+              signingKey:
+                default: authentik Self-signed Certificate
+                description: SigningKey
+                type: string
+              subMode:
+                default: hashed_user_id
+                description: SubMode
+                type: string
             type: object
           status:
             description: OIDCStatus defines the observed state of OIDC
