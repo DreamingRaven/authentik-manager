@@ -97,6 +97,7 @@ package controllers
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"regexp"
 	"strings"
@@ -134,26 +135,16 @@ func (r *OIDCReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	// Parsing options to make them available TODO: pass them in rather than read continuously
 	o := utils.Opts{}
 	arg.MustParse(&o)
-	l.Info(utils.PrettyPrint(o))
-
-	actionConfig, err := r.GetActionConfig(req.NamespacedName.Namespace)
-	if err != nil {
-		return ctrl.Result{}, err
-	}
 
 	// GET CRD
 	crd := &akmv1a1.OIDC{}
-	err = r.Get(ctx, req.NamespacedName, crd)
+	err := r.Get(ctx, req.NamespacedName, crd)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Request object not found, could have been deleted after reconcile request.
 			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
 			// Return and don't requeue
 			l.Info("OIDC resource reconciliation triggered but disappeared. Uninstalling OIDC integration.")
-			_, err := r.UninstallChart(req.NamespacedName, actionConfig)
-			if err != nil {
-				return ctrl.Result{}, err
-			}
 			return ctrl.Result{}, nil
 		}
 		// Error reading the object - requeue the request.
@@ -195,18 +186,25 @@ func (r *OIDCReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		crd.Spec.ClientSecret = string(oidcSecret.Data["clientSecret"])
 	}
 
-	// GENERATE BLUEPRINT
-	bp := r.BlueprintFromOIDC(crd)
+	// GENERATE OR UPDATE BLUEPRINT
+	bp, err := r.BlueprintFromOIDC(crd)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
 	bp.Namespace = o.OperatorNamespace
 	l.Info(fmt.Sprintf("Updating blueprint `%v` in `%v`", bp.Name, bp.Namespace))
 	err = r.Update(ctx, bp)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			l.Info(fmt.Sprintf("Blueprint not found creating `%v` in `%v`", bp.Name, bp.Namespace))
-			fmt.Printf("bp: %v", utils.PrettyPrint(bp))
-			errc := r.Create(ctx, bp)
-			if errc != nil {
-				return ctrl.Result{}, errc
+			m, err := utils.ManifestString(bp)
+			if err != nil {
+				return ctrl.Result{}, err
+			}
+			fmt.Printf("bp: %v", m)
+			err = r.Create(ctx, bp)
+			if err != nil {
+				return ctrl.Result{}, err
 			}
 		} else {
 			l.Error(err, "Failed to update blueprint. Retrying.")
@@ -214,7 +212,7 @@ func (r *OIDCReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		}
 	}
 
-	// GENERATE INGRESS WELL-KNOWN
+	// GENERATE OR UPDATE INGRESS WELL-KNOWN
 	//in := r.IngressFromOIDC(crd)
 	//in.Namespace = o.OperatorNamespace
 	//l.Info(fmt.Sprintf("Updating ingress `%v` in `%v`", in.Name, in.Namespace))
@@ -255,19 +253,38 @@ func (r *OIDCReconciler) SecretFromOIDC(crd *akmv1a1.OIDC) *corev1.Secret {
 }
 
 // BlueprintFromOIDC creates the necessary blueprint to enable OIDC for an application.
-func (r *OIDCReconciler) BlueprintFromOIDC(crd *akmv1a1.OIDC) *akmv1a1.AkBlueprint {
+func (r *OIDCReconciler) BlueprintFromOIDC(crd *akmv1a1.OIDC) (*akmv1a1.AkBlueprint, error) {
 	name := strings.ToLower(fmt.Sprintf("%v-%v-%v", crd.Namespace, crd.Kind, crd.Name))
 	name = regexp.MustCompile(`[^a-zA-Z0-9\-\_]+`).ReplaceAllString(name, "")
 
-	var entries = make([]akmv1a1.BPModel, 2)
+	type slug struct {
+		Slug string `json:"state,omitempty"`
+	}
+	appSlug := slug{
+		Slug: fmt.Sprintf("%v-application", name),
+	}
+	//provSlug := slug{
+	//	Slug: fmt.Sprintf("%v-provider", name),
+	//}
+	appMar, err := json.Marshal(appSlug)
+	if err != nil {
+		return nil, err
+	}
+	//provMar, err := json.Marshal(provSlug)
+	//if err != nil {
+	//	return nil, err
+	//}
+
+	var entries = make([]akmv1a1.BPModel, 1)
 	// authentik "application" model
 	entries[0] = akmv1a1.BPModel{
-		Model: "authentik_core.application",
-		State: "present",
-		Id:    name,
+		Model:       "authentik_core.application",
+		State:       "present",
+		Id:          name,
+		Identifiers: json.RawMessage(appMar),
 	}
 	// authentik "provider" model
-	entries[1] = akmv1a1.BPModel{}
+	//entries[1] = akmv1a1.BPModel{}
 
 	bp := &akmv1a1.AkBlueprint{
 		// Metadata
@@ -291,7 +308,7 @@ func (r *OIDCReconciler) BlueprintFromOIDC(crd *akmv1a1.OIDC) *akmv1a1.AkBluepri
 	}
 	// set that we are controlling this resource
 	ctrl.SetControllerReference(crd, bp, r.Scheme)
-	return bp
+	return bp, nil
 }
 
 // IngressFromOIDC creates the necessary well-known configuration for a set of domains
