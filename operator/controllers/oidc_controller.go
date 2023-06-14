@@ -197,7 +197,7 @@ func (r *OIDCReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	if err != nil {
 		if errors.IsNotFound(err) {
 			l.Info(fmt.Sprintf("Blueprint not found creating `%v` in `%v`", bp.Name, bp.Namespace))
-			m, err := utils.ManifestString(bp)
+			m, err := utils.PrettyPrint(bp)
 			if err != nil {
 				return ctrl.Result{}, err
 			}
@@ -257,31 +257,19 @@ func (r *OIDCReconciler) BlueprintFromOIDC(crd *akmv1a1.OIDC) (*akmv1a1.AkBluepr
 	name := strings.ToLower(fmt.Sprintf("%v-%v-%v", crd.Namespace, crd.Kind, crd.Name))
 	name = regexp.MustCompile(`[^a-zA-Z0-9\-\_]+`).ReplaceAllString(name, "")
 
-	type slug struct {
-		Slug string `json:"state,omitempty"`
-	}
-	appSlug := slug{
-		Slug: fmt.Sprintf("%v-application", name),
-	}
-	//provSlug := slug{
-	//	Slug: fmt.Sprintf("%v-provider", name),
-	//}
-	appMar, err := json.Marshal(appSlug)
+	var entries = make([]akmv1a1.BPModel, 1)
+	appIdentifier := make(map[string]interface{})
+	appIdentifier["slug"] = fmt.Sprintf("%v-application", name)
+	appIdentifierBytes, err := json.Marshal(appIdentifier)
 	if err != nil {
 		return nil, err
 	}
-	//provMar, err := json.Marshal(provSlug)
-	//if err != nil {
-	//	return nil, err
-	//}
-
-	var entries = make([]akmv1a1.BPModel, 1)
 	// authentik "application" model
 	entries[0] = akmv1a1.BPModel{
 		Model:       "authentik_core.application",
 		State:       "present",
 		Id:          name,
-		Identifiers: json.RawMessage(appMar),
+		Identifiers: json.RawMessage(appIdentifierBytes),
 	}
 	// authentik "provider" model
 	//entries[1] = akmv1a1.BPModel{}

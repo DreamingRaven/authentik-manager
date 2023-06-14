@@ -2,10 +2,7 @@ package utils
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
-
-	"gopkg.in/yaml.v2"
 )
 
 // Opts options struct for the operator to autopopulate help templates, autogenerate options, and ensure consistency between env and cli.
@@ -23,17 +20,12 @@ type Opts struct {
 	SrcVersion           string `arg:"--source-version,required,env:SRC_VERSION" json:"srcVersion,omitempty" help:"version of the operator."`
 }
 
-func PrettyPrint(i interface{}) string {
-	s, _ := json.MarshalIndent(i, "", "\t")
-	return string(s)
-}
-
-func ManifestString(manifest interface{}) (string, error) {
-	yamlData, err := yaml.Marshal(manifest)
+func PrettyPrint(i interface{}) (string, error) {
+	s, err := json.MarshalIndent(i, "", "\t")
 	if err != nil {
-		return "", fmt.Errorf("failed to marshal manifest to YAML: %v", err)
+		return "", err
 	}
-	return string(yamlData), nil
+	return string(s), nil
 }
 
 // exists returns whether the given file or directory exists

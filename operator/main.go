@@ -56,7 +56,12 @@ func main() {
 	arg.MustParse(&o)
 
 	if o.Debug {
-		fmt.Println(utils.PrettyPrint(o))
+		p, err := utils.PrettyPrint(o)
+		if err != nil {
+			setupLog.Error(err, "Unable to print options")
+			os.Exit(1)
+		}
+		fmt.Println(p)
 	}
 	fmt.Println(fmt.Sprintf("Starting Authentik-Manager (%v) for Authentik (%v)", o.SrcVersion, o.AppVersion))
 
