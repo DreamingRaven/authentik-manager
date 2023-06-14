@@ -256,11 +256,13 @@ func (r *OIDCReconciler) SecretFromOIDC(crd *akmv1a1.OIDC) *corev1.Secret {
 func (r *OIDCReconciler) BlueprintFromOIDC(crd *akmv1a1.OIDC) (*akmv1a1.AkBlueprint, error) {
 	name := strings.ToLower(fmt.Sprintf("%v-%v-%v", crd.Namespace, crd.Kind, crd.Name))
 	name = regexp.MustCompile(`[^a-zA-Z0-9\-\_]+`).ReplaceAllString(name, "")
+	appName := fmt.Sprintf("%v-application", name)
+	provName := fmt.Sprintf("%v-provider", name)
 
-	var entries = make([]akmv1a1.BPModel, 1)
+	var entries = make([]akmv1a1.BPModel, 2)
 
 	appIdentifier := make(map[string]interface{})
-	appIdentifier["slug"] = fmt.Sprintf("%v-application", name)
+	appIdentifier["slug"] = appName
 	appIdentifierBytes, err := json.Marshal(appIdentifier)
 	if err != nil {
 		return nil, err
@@ -269,24 +271,43 @@ func (r *OIDCReconciler) BlueprintFromOIDC(crd *akmv1a1.OIDC) (*akmv1a1.AkBluepr
 	// to allow for consistency and re-use, especially when any changes are necessary
 	// it will notify us of where we need to change in code references a lot sooner.
 	appAttrs := make(map[string]interface{})
-	appAttrs["group"] = crd.Namespace
 	appAttrs["name"] = crd.Namespace
-	appAttrs["policy_engine_mode"] = "any"
-	// provider must point to the provider pk that follows
-	//appAttrs["provider"] = 1
-	appAttrs["slug"] = crd.Namespace
+	appAttrs["group"] = crd.Namespace
 	appAttrsBytes, err := json.Marshal(appAttrs)
 
 	// authentik "application" model
 	entries[0] = akmv1a1.BPModel{
 		Model:       "authentik_core.application",
 		State:       "present",
-		Id:          name,
+		Id:          appName,
 		Identifiers: json.RawMessage(appIdentifierBytes),
 		Attrs:       json.RawMessage(appAttrsBytes),
 	}
+
+	provIdentifier := make(map[string]interface{})
+	provIdentifier["slug"] = provName
+	provIdentifierBytes, err := json.Marshal(provIdentifier)
+	if err != nil {
+		return nil, err
+	}
+
+	provAttrs := make(map[string]interface{})
+	provAttrs["group"] = crd.Namespace
+	provAttrs["name"] = crd.Namespace
+	provAttrs["policy_engine_mode"] = "any"
+	// provider must point to the pk of the provider model
+	provAttrs["provider"] = fmt.Sprintf("!KeyOf %v", provName)
+	provAttrs["slug"] = crd.Namespace
+	provAttrsBytes, err := json.Marshal(provAttrs)
+
 	// authentik "provider" model
-	//entries[1] = akmv1a1.BPModel{}
+	entries[1] = akmv1a1.BPModel{
+		Model:       "authentik_providers_oauth2.oauth2provider",
+		State:       "present",
+		Id:          provName,
+		Identifiers: json.RawMessage(provIdentifierBytes),
+		Attrs:       json.RawMessage(provAttrsBytes),
+	}
 
 	bp := &akmv1a1.AkBlueprint{
 		// Metadata
