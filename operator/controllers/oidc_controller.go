@@ -258,18 +258,32 @@ func (r *OIDCReconciler) BlueprintFromOIDC(crd *akmv1a1.OIDC) (*akmv1a1.AkBluepr
 	name = regexp.MustCompile(`[^a-zA-Z0-9\-\_]+`).ReplaceAllString(name, "")
 
 	var entries = make([]akmv1a1.BPModel, 1)
+
 	appIdentifier := make(map[string]interface{})
 	appIdentifier["slug"] = fmt.Sprintf("%v-application", name)
 	appIdentifierBytes, err := json.Marshal(appIdentifier)
 	if err != nil {
 		return nil, err
 	}
+	//TODO: instead of instantiating like so lets turn this into a propper struct
+	// to allow for consistency and re-use, especially when any changes are necessary
+	// it will notify us of where we need to change in code references a lot sooner.
+	appAttrs := make(map[string]interface{})
+	appAttrs["group"] = crd.Namespace
+	appAttrs["name"] = crd.Namespace
+	appAttrs["policy_engine_mode"] = "any"
+	// provider must point to the provider pk that follows
+	//appAttrs["provider"] = 1
+	appAttrs["slug"] = crd.Namespace
+	appAttrsBytes, err := json.Marshal(appAttrs)
+
 	// authentik "application" model
 	entries[0] = akmv1a1.BPModel{
 		Model:       "authentik_core.application",
 		State:       "present",
 		Id:          name,
 		Identifiers: json.RawMessage(appIdentifierBytes),
+		Attrs:       json.RawMessage(appAttrsBytes),
 	}
 	// authentik "provider" model
 	//entries[1] = akmv1a1.BPModel{}
@@ -277,9 +291,11 @@ func (r *OIDCReconciler) BlueprintFromOIDC(crd *akmv1a1.OIDC) (*akmv1a1.AkBluepr
 	bp := &akmv1a1.AkBlueprint{
 		// Metadata
 		ObjectMeta: metav1.ObjectMeta{
-			Name:        name,
-			Namespace:   "default",
-			Annotations: crd.Annotations,
+			Name:      name,
+			Namespace: "default",
+			// TODO copy some annotations as if we copy last-applied-configuration we get:
+			// https://github.com/argoproj/argo-cd/issues/3657
+			//Annotations: crd.Annotations,
 		},
 		// Specification
 		Spec: akmv1a1.AkBlueprintSpec{
