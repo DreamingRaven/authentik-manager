@@ -103,7 +103,8 @@ func (r *AkBlueprintReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	// FIND RELEVANT Ak resources
 	// we know only one Ak resource should be present
 	// so we can search for it in our namespace!
-	list, err := r.ListAk(o.WatchedNamespace)
+	// TODO: convert to watched namespace when full pipeline is ready
+	list, err := r.ListAk(o.OperatorNamespace)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
