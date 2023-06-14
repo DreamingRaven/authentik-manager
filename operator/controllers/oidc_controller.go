@@ -295,7 +295,12 @@ func (r *OIDCReconciler) BlueprintFromOIDC(crd *akmv1a1.OIDC) (*akmv1a1.AkBluepr
 		},
 	}
 	// set that we are controlling this resource
-	ctrl.SetControllerReference(crd, bp, r.Scheme)
+	// Annoyingly setting this causes the other reconciler to take it over
+	// when this is taken over it then gets deleted almost instantly so its kind of
+	// a nuisance. I need to either find a good way to prevent its sudden deletion or
+	// clean it up manually when the inital CRD is removed or changed to not need it
+	// any more.
+	//ctrl.SetControllerReference(crd, bp, r.Scheme)
 	return bp, nil
 }
 
