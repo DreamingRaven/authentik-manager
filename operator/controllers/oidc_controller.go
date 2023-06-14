@@ -104,6 +104,7 @@ import (
 	"github.com/alexflint/go-arg"
 	"golang.org/x/oauth2"
 	corev1 "k8s.io/api/core/v1"
+	netv1 "k8s.io/api/networking/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -127,19 +128,13 @@ type OIDCReconciler struct {
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
-// TODO(user): Modify the Reconcile function to compare the state specified by
-// the OIDC object against the actual cluster state, and then
-// perform operations to make the cluster state reflect the state specified by
-// the user.
-//
-// For more details, check Reconcile and its Result here:
-// - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.14.1/pkg/reconcile
 func (r *OIDCReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	l := klog.FromContext(ctx)
 
 	// Parsing options to make them available TODO: pass them in rather than read continuously
 	o := utils.Opts{}
 	arg.MustParse(&o)
+	l.Info(utils.PrettyPrint(o))
 
 	actionConfig, err := r.GetActionConfig(req.NamespacedName.Namespace)
 	if err != nil {
@@ -175,61 +170,105 @@ func (r *OIDCReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	}, oidcSecret)
 	if err != nil {
 		if errors.IsNotFound(err) {
-      // Create secret as not found
+			// Create secret as not found
 			l.Info(fmt.Sprintf("Secret not found generating `%v` in `%v`.", crd.Name, crd.Namespace))
-	    charset := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-	    if crd.Spec.ClientID == "" {
-        crd.Spec.ClientID = utils.GenerateRandomString(40, charset)
-	    }
-	    if crd.Spec.ClientSecret == "" {
-        crd.Spec.ClientSecret = utils.GenerateRandomString(128, charset)
-	    }
-	    oidcDesiredSecret := r.SecretFromOIDC(crd)
-      err = r.Create(ctx, oidcDesiredSecret)
-      if err != nil {
-			  return ctrl.Result{}, err
-      }
-      oidcSecret = oidcDesiredSecret
+			charset := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+			if crd.Spec.ClientID == "" {
+				crd.Spec.ClientID = utils.GenerateRandomString(40, charset)
+			}
+			if crd.Spec.ClientSecret == "" {
+				crd.Spec.ClientSecret = utils.GenerateRandomString(128, charset)
+			}
+			oidcDesiredSecret := r.SecretFromOIDC(crd)
+			err = r.Create(ctx, oidcDesiredSecret)
+			if err != nil {
+				return ctrl.Result{}, err
+			}
+			oidcSecret = oidcDesiredSecret
 		} else {
-      // Some error other than "not found" when trying to fetch secret
+			// Some error other than "not found" when trying to fetch secret
 			return ctrl.Result{}, err
 		}
 	} else {
-			l.Info(fmt.Sprintf("Secret update ignored to prevent downtime for `%v` in `%v`.", oidcSecret.Name, oidcSecret.Namespace))
-      crd.Spec.ClientID = string(oidcSecret.Data["clientID"])
-      crd.Spec.ClientSecret = string(oidcSecret.Data["clientSecret"])
-  }
+		l.Info(fmt.Sprintf("Secret update ignored to prevent downtime for `%v` in `%v`.", oidcSecret.Name, oidcSecret.Namespace))
+		crd.Spec.ClientID = string(oidcSecret.Data["clientID"])
+		crd.Spec.ClientSecret = string(oidcSecret.Data["clientSecret"])
+	}
 
 	// GENERATE BLUEPRINT
 	bp := r.BlueprintFromOIDC(crd)
-	bp.Namespace = o.WatchedNamespace
-	//fmt.Printf("blueprint %v", utils.PrettyPrint(bp))
+	bp.Namespace = o.OperatorNamespace
+	l.Info(fmt.Sprintf("Updating blueprint `%v` in `%v`", bp.Name, bp.Namespace))
+	err = r.Update(ctx, bp)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			l.Info(fmt.Sprintf("Blueprint not found creating `%v` in `%v`", bp.Name, bp.Namespace))
+			fmt.Printf("bp: %v", utils.PrettyPrint(bp))
+			errc := r.Create(ctx, bp)
+			if errc != nil {
+				return ctrl.Result{}, errc
+			}
+		} else {
+			l.Error(err, "Failed to update blueprint. Retrying.")
+			return ctrl.Result{}, err
+		}
+	}
 
 	// GENERATE INGRESS WELL-KNOWN
+	//in := r.IngressFromOIDC(crd)
+	//in.Namespace = o.OperatorNamespace
+	//l.Info(fmt.Sprintf("Updating ingress `%v` in `%v`", in.Name, in.Namespace))
+	//err = r.Update(ctx, in)
+	//if err != nil {
+	//	if errors.IsNotFound(err) {
+	//		l.Info(fmt.Sprintf("Ingress not found creating `%v` in `%v`", bp.Name, bp.Namespace))
+	//		errc := r.Create(ctx, in)
+	//		if errc != nil {
+	//			return ctrl.Result{}, errc
+	//		}
+	//	} else {
+	//		l.Error(err, "Failed to update ingress. Retrying.")
+	//		return ctrl.Result{}, err
+	//	}
+	//}
+
+	//TODO: add live testing of OIDC by operator and locking system to prevent binding to non-functioning OIDC
 
 	return ctrl.Result{}, nil
 }
 
-// SecretFromOIDC
+// SecretFromOIDC creates a secret for a client application to use to register and identify itself.
 func (r *OIDCReconciler) SecretFromOIDC(crd *akmv1a1.OIDC) *corev1.Secret {
 	var dataMap = make(map[string][]byte)
-  dataMap["clientSecret"] = []byte(crd.Spec.ClientSecret)
-  dataMap["clientID"] = []byte(crd.Spec.ClientID)
+	dataMap["clientSecret"] = []byte(crd.Spec.ClientSecret)
+	dataMap["clientID"] = []byte(crd.Spec.ClientID)
 	oidcSecret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        crd.Name,
 			Namespace:   crd.Namespace,
 			Annotations: crd.Annotations,
 		},
-    Data: dataMap,
+		Data: dataMap,
 	}
 	ctrl.SetControllerReference(crd, oidcSecret, r.Scheme)
 	return oidcSecret
 }
 
+// BlueprintFromOIDC creates the necessary blueprint to enable OIDC for an application.
 func (r *OIDCReconciler) BlueprintFromOIDC(crd *akmv1a1.OIDC) *akmv1a1.AkBlueprint {
 	name := strings.ToLower(fmt.Sprintf("%v-%v-%v", crd.Namespace, crd.Kind, crd.Name))
 	name = regexp.MustCompile(`[^a-zA-Z0-9\-\_]+`).ReplaceAllString(name, "")
+
+	var entries = make([]akmv1a1.BPModel, 2)
+	// authentik "application" model
+	entries[0] = akmv1a1.BPModel{
+		Model: "authentik_core.application",
+		State: "present",
+		Id:    name,
+	}
+	// authentik "provider" model
+	entries[1] = akmv1a1.BPModel{}
+
 	bp := &akmv1a1.AkBlueprint{
 		// Metadata
 		ObjectMeta: metav1.ObjectMeta{
@@ -246,12 +285,27 @@ func (r *OIDCReconciler) BlueprintFromOIDC(crd *akmv1a1.OIDC) *akmv1a1.AkBluepri
 				Metadata: akmv1a1.BPMeta{
 					Name: name,
 				},
+				Entries: entries,
 			},
 		},
 	}
 	// set that we are controlling this resource
 	ctrl.SetControllerReference(crd, bp, r.Scheme)
 	return bp
+}
+
+// IngressFromOIDC creates the necessary well-known configuration for a set of domains
+// to a given authentik server.
+func (r *OIDCReconciler) IngressFromOIDC(crd *akmv1a1.OIDC) *netv1.Ingress {
+	oidcIngress := &netv1.Ingress{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:        crd.Name,
+			Namespace:   crd.Namespace,
+			Annotations: crd.Annotations,
+		},
+	}
+	ctrl.SetControllerReference(crd, oidcIngress, r.Scheme)
+	return oidcIngress
 }
 
 // TestOIDCLiveness checks OIDC is working and is producing expected results based on the following procedure:

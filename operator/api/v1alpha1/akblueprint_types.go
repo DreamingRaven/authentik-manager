@@ -32,6 +32,8 @@ type AkBlueprintSpec struct {
 // BP is a whole blueprint struct containing the full structure of an authentik blueprint
 // https://goauthentik.io/developer-docs/blueprints/v1/structure#structure
 type BP struct {
+	//+kubebuilder:default=1
+
 	// Version is the version of this blueprint
 	Version int `json:"version"`
 

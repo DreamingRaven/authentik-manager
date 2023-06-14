@@ -101,6 +101,7 @@ spec:
                         type: string
                     type: object
                   version:
+                    default: 1
                     description: Version is the version of this blueprint
                     type: integer
                 type: object
