@@ -23,3 +23,8 @@ spec:
     ports:
     - protocol: UDP
       port: 53
+  - to:
+    # allow egress to other pods in this namespace
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: {{ .Release.Namespace }}
