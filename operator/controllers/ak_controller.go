@@ -99,4 +99,10 @@ func (r *AkReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&akmv1a1.Ak{}).
 		Complete(r)
+    //Watches(source.Source, handler.EventHandler, ...)
+    //Watches(source.Kind{Type: &corev1.ConfigMap{}}, &handler.EnqueuRequestForObject{}).
+    //https://yash-kukreja-98.medium.com/develop-on-kubernetes-series-demystifying-the-for-vs-owns-vs-watches-controller-builders-in-c11ab32a046e
+    //https://nakamasato.medium.com/kubernetes-operator-series-4-controller-runtime-component-builder-c649c0ad2dc0
+    // For(&corev1alpha1.MyCustomResource{}) == Watches(&source.Kind{Type: &corev1alpha1.MyCustomResource{}}, &handler.EnqueueRequestForObject{})
+    // Owns(&corev1.Pod{}) == Watches(&source.Kind{Type: &corev1.Pod{}}, &handler.EnqueueRequestForOwner{IsController: true, OwnerType: &corev1alpha1.MyCustomResource{}})
 }

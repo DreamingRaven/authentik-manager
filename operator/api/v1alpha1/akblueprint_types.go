@@ -24,9 +24,19 @@ type AkBlueprintSpec struct {
 	// an authentik in built blueprint you will instead use the new one
 	// e.g. /blueprints/default/10-flow-default-authentication-flow.yaml
 	File string `json:"file,omitempty"`
+
 	// Blueprint is a container for a complete single authentik blueprint yaml spec
 	// https://goauthentik.io/developer-docs/blueprints/v1/structure#structure
 	Blueprint BP `json:"blueprint,omitempty"`
+
+	//+kubebuilder:validation:Enum="file";"internal"
+	//+kubebuilder:validation:Optional
+	//+kubebuilder:default="file"
+
+  // StorageType (optional) dictates the type of storage to use when submitting the blueprint to authentik.
+  // Due to the nature of OCI storage that is not currently supported but may be in the future.
+  // https://goauthentik.io/developer-docs/blueprints/
+  StorageType string `json:"blueprint,omitempty"`
 }
 
 // BP is a whole blueprint struct containing the full structure of an authentik blueprint
