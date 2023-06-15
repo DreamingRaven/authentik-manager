@@ -1,4 +1,4 @@
-{{- if .Values.pgadmin.persistence.enable }}
+{{- if .Values.pgadmin.persistence.enabled }}
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:

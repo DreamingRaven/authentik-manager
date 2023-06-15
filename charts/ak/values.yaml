@@ -284,7 +284,7 @@ akm:
 
 # postgres admin dashboard
 pgadmin:
-  enable: false
+  enabled: false
   persistence:
     enable: false
     name: pgadmin-pvc
