@@ -209,8 +209,9 @@ To access pgadmin use the following commands while replacing CHART_NAMESPACE wit
 
 Once logged in you can add the postgres service running in the cluster:
 
-- host: ``${CHART_NAMESPACE}-pgsql-hl``
+- host: postgres
 - port: 5432
+- db: postgres
 - username: postgres
 - password: ``$(kubectl -n ${CHART_NAMESPACE} get secret auth -o jsonpath="{.data.postgresPassword}" | base64 -d)``
 
