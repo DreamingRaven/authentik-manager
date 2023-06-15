@@ -32,7 +32,7 @@ all: lint minikube install addons ## Create minikube cluster and apply operator 
 .PHONY: demo
 demo: all ## (Re)Create minikube cluster and apply example CRDs to a fully working demo state
 	@kubectl apply -f operator/config/samples/akm_v1alpha1_secret.yaml
-	@kubectl apply -f operator/config/samples/akm_v1alpha1_ak.yaml
+	@kubectl apply -f operator/config/samples/akm_v1alpha1_ak_pgadmin.yaml
 	@minikube addons list
 	@echo THE IP OF YOUR MINIKUBE CLUSTER:
 	@minikube ip
