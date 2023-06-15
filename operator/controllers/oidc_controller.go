@@ -91,6 +91,8 @@ OpenID Connect (OIDC) is an authentication protocol built on top of the OAuth 2.
             +--------+---------+
                      |
             9. Access Resources
+
+	https://openid.net/specs/openid-connect-basic-1_0.html#CodeFlow
 */
 
 package controllers
@@ -288,7 +290,7 @@ func (r *OIDCReconciler) BlueprintFromOIDC(crd *akmv1a1.OIDC) (*akmv1a1.AkBluepr
 		Attrs:       json.RawMessage(appAttrsBytes),
 	}
 
-  // provider meta
+	// provider meta
 	provIdentifier := make(map[string]interface{})
 	provIdentifier["slug"] = provName
 	provIdentifierBytes, err := json.Marshal(provIdentifier)
@@ -296,7 +298,7 @@ func (r *OIDCReconciler) BlueprintFromOIDC(crd *akmv1a1.OIDC) (*akmv1a1.AkBluepr
 		return nil, err
 	}
 
-  // provider attribs
+	// provider attribs
 	provAttrs := make(map[string]interface{})
 	provAttrs["access_code_validity"] = crd.Spec.AccessCodeValidity
 	provAttrs["access_token_validity"] = crd.Spec.AccessTokenValidity
