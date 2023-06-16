@@ -86,6 +86,17 @@ func (r *AkReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Re
 		return ctrl.Result{}, err
 	}
 
+	// GET FILE-BASED BLUEPRINTS
+	// we can install blueprints to the pods directly if we find all the relevant blueprint configmaps by label in this namespace
+	// blueprints should be listed under .Values.authentik.blueprints
+	// they must be presented like:
+	//
+	// - name: some-default-blueprint
+	//   configMap:
+	//     name: example-custom-blueprint-configmap
+	//     key: my-default-blueprint
+	//   dest: /blueprints/default/some-default-blueprint.yaml
+
 	// Helm Install or Upgrade Chart
 	var vals map[string]interface{}
 	err = json.Unmarshal(crd.Spec.Values, &vals)

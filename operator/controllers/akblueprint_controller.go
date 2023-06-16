@@ -199,34 +199,36 @@ func (r *AkBlueprintReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	}
 
 	// CREATE CONFIGMAP
-	name := fmt.Sprintf("bp-%v-%v", crd.Namespace, crd.Name)
-	cmWant, err := r.configForBlueprint(crd, name, crd.Namespace)
-	if err != nil {
-		return ctrl.Result{}, err
-	}
-	cm := &corev1.ConfigMap{}
-	err = r.Get(ctx, types.NamespacedName{Name: name, Namespace: crd.Namespace}, cm)
-	if err != nil && errors.IsNotFound(err) {
-		// configmap was not found rety and notify the user
-		l.Info(fmt.Sprintf("Not found. Creating configmap `%v` in `%v`", name, crd.Namespace))
-		err = r.Create(ctx, cmWant)
+	if crd.Spec.StorageType == "file" {
+		name := fmt.Sprintf("bp-%v-%v", crd.Namespace, crd.Name)
+		cmWant, err := r.configForBlueprint(crd, name, crd.Namespace)
 		if err != nil {
-			l.Error(err, fmt.Sprintf("Failed to create configmap `%v` in `%v`", name, crd.Namespace))
 			return ctrl.Result{}, err
 		}
-		return ctrl.Result{Requeue: true}, nil
-	} else if err != nil {
-		// something went wrong with fetching the config map could be fatal
-		l.Error(err, fmt.Sprintf("Failed to get configmap `%v` in `%v`", name, crd.Namespace))
-		return ctrl.Result{}, err
-	}
-	l.Info(fmt.Sprintf("Found configmap %v in %v", name, crd.Namespace))
-	//check configmap matches what we want it to be by updating it
-	r.Update(ctx, cmWant)
-	if err != nil {
-		// something went wrong with updating the deployment
-		l.Error(err, fmt.Sprintf("Failed to update configmap %v in %v", name, crd.Namespace))
-		return ctrl.Result{}, err
+		cm := &corev1.ConfigMap{}
+		err = r.Get(ctx, types.NamespacedName{Name: name, Namespace: crd.Namespace}, cm)
+		if err != nil && errors.IsNotFound(err) {
+			// configmap was not found rety and notify the user
+			l.Info(fmt.Sprintf("Not found. Creating configmap `%v` in `%v`", name, crd.Namespace))
+			err = r.Create(ctx, cmWant)
+			if err != nil {
+				l.Error(err, fmt.Sprintf("Failed to create configmap `%v` in `%v`", name, crd.Namespace))
+				return ctrl.Result{}, err
+			}
+			return ctrl.Result{Requeue: true}, nil
+		} else if err != nil {
+			// something went wrong with fetching the config map could be fatal
+			l.Error(err, fmt.Sprintf("Failed to get configmap `%v` in `%v`", name, crd.Namespace))
+			return ctrl.Result{}, err
+		}
+		l.Info(fmt.Sprintf("Found configmap %v in %v", name, crd.Namespace))
+		//check configmap matches what we want it to be by updating it
+		r.Update(ctx, cmWant)
+		if err != nil {
+			// something went wrong with updating the deployment
+			l.Error(err, fmt.Sprintf("Failed to update configmap %v in %v", name, crd.Namespace))
+			return ctrl.Result{}, err
+		}
 	}
 
 	// POPULATE DATABASE ROW STRUCT
@@ -260,54 +262,56 @@ func (r *AkBlueprintReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		Content:       string(crdyml),
 	}
 
-	// QUERY DB
-	searchColumnValues := map[string]interface{}{
-		// the purpose of searching with paths is to deal with default blueprint overrides
-		// we need some way to enable people to overwrite by path as well as by name
-		// since this is what would happen when we overwrite files the name can change
-		// if we end up getting more than 1 then we throw an error
-		// blueprints added internally are not stored with paths so it should have no effect
-		// after the merge
-		"path": crd.Spec.File,
-		"name": crd.Name,
-	}
-	rows, err := searchRowsByColumnValues(db, tableName, searchColumnValues)
-	if err != nil {
-		return ctrl.Result{}, err
-	}
-	if len(rows) == 0 {
-		// IF NOT FOUND CREATE
-		l.Info(fmt.Sprintf("No db blueprint found creating `%v`", crd.Name))
-		err = addRowBySchema(db, &rowDesire, tableName)
+	if crd.Spec.StorageType == "internal" {
+		// QUERY DB
+		searchColumnValues := map[string]interface{}{
+			// the purpose of searching with paths is to deal with default blueprint overrides
+			// we need some way to enable people to overwrite by path as well as by name
+			// since this is what would happen when we overwrite files the name can change
+			// if we end up getting more than 1 then we throw an error
+			// blueprints added internally are not stored with paths so it should have no effect
+			// after the merge
+			"path": crd.Spec.File,
+			"name": crd.Name,
+		}
+		rows, err := searchRowsByColumnValues(db, tableName, searchColumnValues)
 		if err != nil {
 			return ctrl.Result{}, err
 		}
-	} else if len(rows) == 1 {
-		// IF 1 FOUND RECONCILE IT
-		l.Info(fmt.Sprintf("Db blueprint found reconciling `%v`", rows[0].Name))
-		result, err := updateRowByColumns(db, tableName, searchColumnValues, rowDesire)
-		if err != nil {
-			return ctrl.Result{}, err
-		}
-		count, err := (*result).RowsAffected()
-		if count == 0 {
-			l.Info("Nothing modified")
-		} else if count == 1 {
-			l.Info("Modified")
+		if len(rows) == 0 {
+			// IF NOT FOUND CREATE
+			l.Info(fmt.Sprintf("No db blueprint found creating `%v`", crd.Name))
+			err = addRowBySchema(db, &rowDesire, tableName)
+			if err != nil {
+				return ctrl.Result{}, err
+			}
+		} else if len(rows) == 1 {
+			// IF 1 FOUND RECONCILE IT
+			l.Info(fmt.Sprintf("Db blueprint found reconciling `%v`", rows[0].Name))
+			result, err := updateRowByColumns(db, tableName, searchColumnValues, rowDesire)
+			if err != nil {
+				return ctrl.Result{}, err
+			}
+			count, err := (*result).RowsAffected()
+			if count == 0 {
+				l.Info("Nothing modified")
+			} else if count == 1 {
+				l.Info("Modified")
+			} else {
+				l.Info("Multiple modified")
+			}
 		} else {
-			l.Info("Multiple modified")
+			// IF MULTIPLE FOUND THROW
+			err = errors.NewConflict(
+				schema.GroupResource{
+					Group:    "akm.goauthentik.io",
+					Resource: "AkBlueprint",
+				},
+				fmt.Sprintf("Too many (%v) db blueprints found cannot reconcile `%v`", len(rows), rows),
+				nil,
+			)
+			return ctrl.Result{}, err
 		}
-	} else {
-		// IF MULTIPLE FOUND THROW
-		err = errors.NewConflict(
-			schema.GroupResource{
-				Group:    "akm.goauthentik.io",
-				Resource: "AkBlueprint",
-			},
-			fmt.Sprintf("Too many (%v) db blueprints found cannot reconcile `%v`", len(rows), rows),
-			nil,
-		)
-		return ctrl.Result{}, err
 	}
 	return ctrl.Result{}, nil
 }
@@ -519,16 +523,17 @@ func (r *AkBlueprintReconciler) configForBlueprint(crd *akmv1a1.AkBlueprint, nam
 	}
 	dataMap[filepath.Base(cleanFP)] = string(b)
 
-	// create annotation for destination path
-	var annMap = make(map[string]string)
-	annMap["akm.goauthentik/v1alpha1"] = filepath.Dir(cleanFP)
+	// create label to specifically identify blueprint related configmaps
+	var labelMap = make(map[string]string)
+	labelMap["akm.goauthentik.io/v1alpha1/blueprint"] = crd.Name
+	labelMap["akm.goauthentik.io/v1alpha1/path"] = filepath.Dir(cleanFP)
 
 	cm := corev1.ConfigMap{
 		// Metadata
 		ObjectMeta: metav1.ObjectMeta{
-			Name:        name,
-			Namespace:   namespace,
-			Annotations: annMap,
+			Name:      name,
+			Namespace: namespace,
+			Labels:    labelMap,
 		},
 		Data: dataMap,
 	}
