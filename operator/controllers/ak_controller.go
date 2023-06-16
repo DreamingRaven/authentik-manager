@@ -24,9 +24,8 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder" // Required for watching
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/handler" // Required for watching
-	klog "sigs.k8s.io/controller-runtime/pkg/log"
-	"sigs.k8s.io/controller-runtime/pkg/predicate" // Required for watching
+	"sigs.k8s.io/controller-runtime/pkg/handler"   // Required for watching
+	klog "sigs.k8s.io/controller-runtime/pkg/log"  // Required for watching
 	"sigs.k8s.io/controller-runtime/pkg/reconcile" // Required for watching
 
 	// Required for watching
@@ -131,8 +130,15 @@ func (r *AkReconciler) findAkForConfigMap(ctx context.Context, configMap client.
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *AkReconciler) SetupWithManager(mgr ctrl.Manager) error {
+
+	// PARSE OPTIONS
+	// TODO: pass them in rather than read continuously
+	o := utils.Opts{}
+	arg.MustParse(&o)
+
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&akmv1a1.Ak{}).
+		// dont let the docs lie to you about what Watches supports
 		//WatchesRawSource(
 		Watches(
 			// watch for configmaps
@@ -140,8 +146,14 @@ func (r *AkReconciler) SetupWithManager(mgr ctrl.Manager) error {
 			&corev1.ConfigMap{},
 			// set request to be the relevant Ak resource for that configmap
 			handler.EnqueueRequestsFromMapFunc(r.findAkForConfigMap),
-			// when the resource version of the config map is changed
-			builder.WithPredicates(predicate.ResourceVersionChangedPredicate{}),
+			// when the resource has passes these predicates:
+			// - resource version has changed
+			// - resource is in the namespace of the operator
+			// - resource has the correct label to mark it as blueprint config
+			builder.WithPredicates(
+				//predicate.ResourceVersionChangedPredicate{},
+				utils.NamespacePredicate{Namespace: o.OperatorNamespace},
+			),
 		).
 		Complete(r)
 }
