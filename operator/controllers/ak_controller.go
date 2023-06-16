@@ -18,10 +18,18 @@ import (
 	"time"
 
 	"github.com/alexflint/go-arg"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/builder" // Required for watching
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/handler" // Required for watching
 	klog "sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/predicate" // Required for watching
+	"sigs.k8s.io/controller-runtime/pkg/reconcile" // Required for watching
 
+	// Required for watching
 	akmv1a1 "gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1"
 	"gitlab.com/GeorgeRaven/authentik-manager/operator/utils"
 )
@@ -94,15 +102,53 @@ func (r *AkReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Re
 	return ctrl.Result{}, nil
 }
 
+// findAkForConfigMap finds the specific Ak resource context that needs to be passed to the reconciler
+// when the reconciliation is triggered by a configmap change rather than Ak resource directly.
+func (r *AkReconciler) findAkForConfigMap(ctx context.Context, configMap client.Object) []reconcile.Request {
+	// Parsing options to make them available TODO: pass them in rather than read continuously
+	o := utils.Opts{}
+	arg.MustParse(&o)
+
+	aks := &akmv1a1.AkList{}
+	opts := &client.ListOptions{
+		Namespace: o.OperatorNamespace,
+	}
+	err := r.List(ctx, aks, opts)
+	if err != nil {
+		return []reconcile.Request{}
+	}
+	requests := make([]reconcile.Request, len(aks.Items))
+	for i, item := range aks.Items {
+		requests[i] = reconcile.Request{
+			NamespacedName: types.NamespacedName{
+				Name:      item.GetName(),
+				Namespace: item.GetNamespace(),
+			},
+		}
+	}
+	return requests
+}
+
 // SetupWithManager sets up the controller with the Manager.
 func (r *AkReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&akmv1a1.Ak{}).
+		//WatchesRawSource(
+		Watches(
+			// watch for configmaps
+			//source.Kind(mgr.GetCache(), &corev1.ConfigMap{}),
+			&corev1.ConfigMap{},
+			// set request to be the relevant Ak resource for that configmap
+			handler.EnqueueRequestsFromMapFunc(r.findAkForConfigMap),
+			// when the resource version of the config map is changed
+			builder.WithPredicates(predicate.ResourceVersionChangedPredicate{}),
+		).
 		Complete(r)
-    //Watches(source.Source, handler.EventHandler, ...)
-    //Watches(source.Kind{Type: &corev1.ConfigMap{}}, &handler.EnqueuRequestForObject{}).
-    //https://yash-kukreja-98.medium.com/develop-on-kubernetes-series-demystifying-the-for-vs-owns-vs-watches-controller-builders-in-c11ab32a046e
-    //https://nakamasato.medium.com/kubernetes-operator-series-4-controller-runtime-component-builder-c649c0ad2dc0
-    // For(&corev1alpha1.MyCustomResource{}) == Watches(&source.Kind{Type: &corev1alpha1.MyCustomResource{}}, &handler.EnqueueRequestForObject{})
-    // Owns(&corev1.Pod{}) == Watches(&source.Kind{Type: &corev1.Pod{}}, &handler.EnqueueRequestForOwner{IsController: true, OwnerType: &corev1alpha1.MyCustomResource{}})
 }
+
+//Watches(source.Source, handler.EventHandler, ...)
+//Watches(source.Kind{Type: &corev1.ConfigMap{}}, &handler.EnqueuRequestForObject{}).
+//https://yash-kukreja-98.medium.com/develop-on-kubernetes-series-demystifying-the-for-vs-owns-vs-watches-controller-builders-in-c11ab32a046e
+//https://nakamasato.medium.com/kubernetes-operator-series-4-controller-runtime-component-builder-c649c0ad2dc0
+// For(&corev1alpha1.MyCustomResource{}) == Watches(&source.Kind{Type: &corev1alpha1.MyCustomResource{}}, &handler.EnqueueRequestForObject{})
+// Owns(&corev1.Pod{}) == Watches(&source.Kind{Type: &corev1.Pod{}}, &handler.EnqueueRequestForOwner{IsController: true, OwnerType: &corev1alpha1.MyCustomResource{}})
