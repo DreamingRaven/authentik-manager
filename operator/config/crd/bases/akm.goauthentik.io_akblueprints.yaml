@@ -114,6 +114,16 @@ spec:
                   as an authentik in built blueprint you will instead use the new
                   one e.g. /blueprints/default/10-flow-default-authentication-flow.yaml
                 type: string
+              storageType:
+                default: file
+                description: StorageType (optional) dictates the type of storage to
+                  use when submitting the blueprint to authentik. Due to the nature
+                  of OCI storage that is not currently supported but may be in the
+                  future. https://goauthentik.io/developer-docs/blueprints/
+                enum:
+                - file
+                - internal
+                type: string
             type: object
           status:
             description: AkBlueprintStatus defines the observed state of AkBlueprint
