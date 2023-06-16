@@ -20,12 +20,14 @@ import (
 	"github.com/alexflint/go-arg"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/builder" // Required for watching
-	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/builder"   // Required for watching
+	"sigs.k8s.io/controller-runtime/pkg/client"    // Required for watching
 	"sigs.k8s.io/controller-runtime/pkg/handler"   // Required for watching
 	klog "sigs.k8s.io/controller-runtime/pkg/log"  // Required for watching
+	"sigs.k8s.io/controller-runtime/pkg/predicate" // Required for watching
 	"sigs.k8s.io/controller-runtime/pkg/reconcile" // Required for watching
 
 	// Required for watching
@@ -146,6 +148,14 @@ func (r *AkReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	// TODO: pass them in rather than read continuously
 	o := utils.Opts{}
 	arg.MustParse(&o)
+	labelPredicate, err := predicate.LabelSelectorPredicate(
+		*metav1.AddLabelToSelector(
+			&metav1.LabelSelector{}, "akm.goauthentik.io/type", "blueprint",
+		),
+	)
+	if err != nil {
+		return err
+	}
 
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&akmv1a1.Ak{}).
@@ -158,12 +168,13 @@ func (r *AkReconciler) SetupWithManager(mgr ctrl.Manager) error {
 			// set request to be the relevant Ak resource for that configmap
 			handler.EnqueueRequestsFromMapFunc(r.findAkForConfigMap),
 			// when the resource has passes these predicates:
-			// - resource version has changed
-			// - resource is in the namespace of the operator
-			// - resource has the correct label to mark it as blueprint config
 			builder.WithPredicates(
+				// - resource version has changed
 				//predicate.ResourceVersionChangedPredicate{},
+				// - resource is in the namespace of the operator
 				utils.NamespacePredicate{Namespace: o.OperatorNamespace},
+				// - resource has the correct label to mark it as blueprint config
+				labelPredicate,
 			),
 		).
 		Complete(r)
