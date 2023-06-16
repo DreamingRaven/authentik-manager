@@ -25,7 +25,7 @@ type AkBlueprintSpec struct {
 	// StorageType (optional) dictates the type of storage to use when submitting the blueprint to authentik.
 	// Due to the nature of OCI storage that is not currently supported but may be in the future.
 	// https://goauthentik.io/developer-docs/blueprints/
-	StorageType string `json:"blueprint,omitempty"`
+	StorageType string `json:"storageType,omitempty"`
 
 	// File is the location where the blueprint should be saved to in authentik-workers
 	// by default authentik looks in the /blueprints dir so any location in this will be picked up.
