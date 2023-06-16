@@ -18,6 +18,15 @@ import (
 
 // AkBlueprintSpec defines the desired state of AkBlueprint
 type AkBlueprintSpec struct {
+
+	//+kubebuilder:validation:Enum="file";"internal"
+	//+kubebuilder:validation:Optional
+	//+kubebuilder:default="file"
+	// StorageType (optional) dictates the type of storage to use when submitting the blueprint to authentik.
+	// Due to the nature of OCI storage that is not currently supported but may be in the future.
+	// https://goauthentik.io/developer-docs/blueprints/
+	StorageType string `json:"blueprint,omitempty"`
+
 	// File is the location where the blueprint should be saved to in authentik-workers
 	// by default authentik looks in the /blueprints dir so any location in this will be picked up.
 	// The file will overwrite existing configurations underneath it so if it is called the same as
@@ -28,15 +37,6 @@ type AkBlueprintSpec struct {
 	// Blueprint is a container for a complete single authentik blueprint yaml spec
 	// https://goauthentik.io/developer-docs/blueprints/v1/structure#structure
 	Blueprint BP `json:"blueprint,omitempty"`
-
-	//+kubebuilder:validation:Enum="file";"internal"
-	//+kubebuilder:validation:Optional
-	//+kubebuilder:default="file"
-
-  // StorageType (optional) dictates the type of storage to use when submitting the blueprint to authentik.
-  // Due to the nature of OCI storage that is not currently supported but may be in the future.
-  // https://goauthentik.io/developer-docs/blueprints/
-  StorageType string `json:"blueprint,omitempty"`
 }
 
 // BP is a whole blueprint struct containing the full structure of an authentik blueprint
@@ -55,6 +55,8 @@ type BP struct {
 
 	// Context (optional) authentik default context (whatever that means)
 	Context json.RawMessage `json:"context,omitempty"`
+
+	// +kubebuilder:validation:MinItems=1
 
 	// Entries lists models we want to use via this blueprint
 	Entries []BPModel `json:"entries"`
