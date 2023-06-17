@@ -523,18 +523,21 @@ func (r *AkBlueprintReconciler) configForBlueprint(crd *akmv1a1.AkBlueprint, nam
 	}
 	dataMap[filepath.Base(cleanFP)] = string(b)
 
+	var annMap = make(map[string]string)
+	annMap["akm.goauthentik.io/path"] = filepath.Dir(cleanFP)
+
 	// create label to specifically identify blueprint related configmaps
 	var labelMap = make(map[string]string)
 	labelMap["akm.goauthentik.io/type"] = "blueprint"
 	labelMap["akm.goauthentik.io/blueprint"] = crd.Name
-	labelMap["akm.goauthentik.io/path"] = filepath.Dir(cleanFP)
 
 	cm := corev1.ConfigMap{
 		// Metadata
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: namespace,
-			Labels:    labelMap,
+			Name:        name,
+			Namespace:   namespace,
+			Labels:      labelMap,
+			Annotations: annMap,
 		},
 		Data: dataMap,
 	}
