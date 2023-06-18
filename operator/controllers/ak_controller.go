@@ -88,23 +88,36 @@ func (r *AkReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Re
 		return ctrl.Result{}, err
 	}
 
-	// GET FILE-BASED BLUEPRINTS
-	// we can install blueprints to the pods directly if we find all the relevant blueprint configmaps by label in this namespace
-	// blueprints should be listed under .Values.authentik.blueprints
-	// they must be presented like:
-	//
-	// - name: some-default-blueprint
-	//   configMap:
-	//     name: example-custom-blueprint-configmap
-	//     key: my-default-blueprint
-	//   dest: /blueprints/default/some-default-blueprint.yaml
+	// GET FILE-BASED BLUEPRINTS LIST
+	l.Info(fmt.Sprintf("Searching for blueprint configs in `%v`.", o.OperatorNamespace))
+	configs := &corev1.ConfigMapList{}
+	err = r.List(ctx, configs,
+		client.InNamespace(o.OperatorNamespace),
+		client.MatchingLabels{"akm.goauthentik.io/type": "blueprint"})
+	if err != nil {
+		return ctrl.Result{}, err
+	}
 
-	// Helm Install or Upgrade Chart
+	// HELM OVERRIDES LOAD
 	var vals map[string]interface{}
 	err = json.Unmarshal(crd.Spec.Values, &vals)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
+
+	// OVERRIDE FILE-BASED BLUEPRINTS TO HELM
+	for i, config := range configs.Items {
+		for j, data := range config.Data {
+			bp := &akmv1a1.BP{}
+			err = json.Unmarshal([]byte(data), bp)
+			if err != nil {
+				return ctrl.Result{}, err
+			}
+			l.Info(fmt.Sprintf("Capturing bpConfig: `%v`(%v), `%v` at `%v`)", config.Name, i, bp.Metadata.Name, j))
+		}
+	}
+
+	// HELM INSTALL OR UPGRADE
 	_, err = r.UpgradeOrInstallChart(req.NamespacedName, u, actionConfig, vals)
 	if err != nil {
 		t, _ := time.ParseDuration("10s")
