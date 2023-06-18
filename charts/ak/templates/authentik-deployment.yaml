@@ -88,6 +88,15 @@ spec:
           - mountPath: {{ .Values.authentik.secrets.basePath | quote }}
             name: secrets
             readOnly: true
+          {{- if eq $aktype "worker"}}
+          {{- range .Values.authentik.blueprints }}
+          # single key mount as single file for file-based blueprint
+          # https://stackoverflow.com/a/49155527
+          - mountPath: {{ .dest }}
+            name: {{ .name }}
+            subPath: {{ .configMap.key }}
+          {{- end }}
+          {{- end }}
       volumes:
       - name: config
         configMap:

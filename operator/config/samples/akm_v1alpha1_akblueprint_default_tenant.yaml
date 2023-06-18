@@ -8,6 +8,7 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/created-by: operator
   name: akblueprint-sample
+  namespace: auth
 spec:
   file: /blueprints/default/90-default-tenant.yaml
   blueprint:

@@ -114,6 +114,7 @@ func (r *AkReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Re
 	//     key: my-default-blueprint
 	var configBps []map[string]interface{}
 	for i, config := range configs.Items {
+		count := 0
 		for j, data := range config.Data {
 			bp := &akmv1a1.BP{}
 			err = json.Unmarshal([]byte(data), bp)
@@ -123,13 +124,14 @@ func (r *AkReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Re
 			l.Info(fmt.Sprintf("Capturing bpConfig: `%v`(%v), `%v` at `%v`)", config.Name, i, bp.Metadata.Name, j))
 			// TODO: add checks to ensure things like annotation path actually exists
 			configBps = append(configBps, map[string]interface{}{
-				"name": bp.Metadata.Name,
+				"name": fmt.Sprintf("%v-%v", config.Name, count), // I would have liked to use `j` instead of `count` but there is a char limit,
 				"dest": fmt.Sprintf("%v/%v", config.Annotations["akm.goauthentik.io/path"], j),
 				"configMap": map[string]interface{}{
 					"name": config.Name,
 					"key":  j,
 				},
 			})
+			count = count + 1
 		}
 	}
 	configBpsAsValues := map[string]interface{}{
