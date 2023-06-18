@@ -205,6 +205,7 @@ func (r *AkBlueprintReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		if err != nil {
 			return ctrl.Result{}, err
 		}
+		l.Info(fmt.Sprintf("Searching for configmap `%v` in `%v`...", name, crd.Namespace))
 		cm := &corev1.ConfigMap{}
 		err = r.Get(ctx, types.NamespacedName{Name: name, Namespace: crd.Namespace}, cm)
 		if err != nil && errors.IsNotFound(err) {
@@ -517,7 +518,7 @@ func (r *AkBlueprintReconciler) configForBlueprint(crd *akmv1a1.AkBlueprint, nam
 	var dataMap = make(map[string]string)
 	// set the key to be the filename and extension from path
 	// set data to be the blueprint string
-	b, err := json.Marshal(crd.Spec.Blueprint)
+	b, err := yaml.Marshal(crd.Spec.Blueprint)
 	if err != nil {
 		return nil, err
 	}

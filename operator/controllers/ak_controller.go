@@ -12,7 +12,6 @@ package controllers
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/url"
 	"time"
@@ -29,6 +28,7 @@ import (
 	klog "sigs.k8s.io/controller-runtime/pkg/log"  // Required for watching
 	"sigs.k8s.io/controller-runtime/pkg/predicate" // Required for watching
 	"sigs.k8s.io/controller-runtime/pkg/reconcile" // Required for watching
+	"sigs.k8s.io/yaml"
 
 	// Required for watching
 	akmv1a1 "gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1"
@@ -100,7 +100,7 @@ func (r *AkReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Re
 
 	// HELM OVERRIDES LOAD
 	var vals map[string]interface{}
-	err = json.Unmarshal(crd.Spec.Values, &vals)
+	err = yaml.Unmarshal(crd.Spec.Values, &vals)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
@@ -117,7 +117,7 @@ func (r *AkReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Re
 		count := 0
 		for j, data := range config.Data {
 			bp := &akmv1a1.BP{}
-			err = json.Unmarshal([]byte(data), bp)
+			err = yaml.Unmarshal([]byte(data), bp)
 			if err != nil {
 				return ctrl.Result{}, err
 			}
