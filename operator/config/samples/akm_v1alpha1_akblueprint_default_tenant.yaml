@@ -7,14 +7,14 @@ metadata:
     app.kubernetes.io/part-of: operator
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/created-by: operator
-  name: akblueprint-sample
+  name: tenant
   namespace: auth
 spec:
   file: /blueprints/default/default-tenant.yaml
   blueprint:
-    version: 1
     metadata:
       name: Default - Tenant
+    version: 1
     entries:
     - model: authentik_blueprints.metaapplyblueprint
       attrs:
@@ -31,8 +31,7 @@ spec:
         identifiers:
           name: Default - User settings flow
         required: false
-    - model: authentik_tenants.tenant
-      attrs:
+    - attrs:
         flow_authentication: !Find [authentik_flows.flow, [slug, default-authentication-flow]]
         flow_invalidation: !Find [authentik_flows.flow, [slug, default-invalidation-flow]]
         flow_user_settings: !Find [authentik_flows.flow, [slug, default-user-settings-flow]]
@@ -40,7 +39,9 @@ spec:
         # branding_favicon: https://URL_TO_YOUR_FAVICON.ico
         # branding_logo: https://URL_TO_YOUR_LOGO.png
         # branding_title: Your Organisation Name
-        branding_title: AwesomeCast
+        branding_title: YourBranding
       identifiers:
         domain: authentik-default
         default: True
+      state: created
+      model: authentik_tenants.tenant

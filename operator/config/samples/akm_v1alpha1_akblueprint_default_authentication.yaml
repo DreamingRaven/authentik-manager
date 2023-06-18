@@ -7,7 +7,7 @@ metadata:
     app.kubernetes.io/part-of: operator
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/created-by: operator
-  name: akblueprint-sample
+  name: auth-flow
   namespace: auth
 spec:
   file: /blueprints/default/flow-default-authentication-flow.yaml
@@ -22,11 +22,11 @@ spec:
           name: Default - Password change flow
         required: false
     - attrs:
-        designation: authentication
         # TODO: (USER) adjust the name, title to match your branding
-        name: login
-        title: Welcome to akm!
-        authentication: require_unauthenticated
+        designation: authentication
+        name: Welcome to managed authentik!
+        title: Welcome to managed authentik!
+        authentication: none
       identifiers:
         slug: default-authentication-flow
       model: authentik_flows.flow
