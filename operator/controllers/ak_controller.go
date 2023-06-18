@@ -106,6 +106,13 @@ func (r *AkReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Re
 	}
 
 	// OVERRIDE FILE-BASED BLUEPRINTS TO HELM
+	// blueprints in the helm chart should be a list under .Values.authentik.blueprints
+	// - name: some-default-blueprint
+	//   dest: /blueprints/default/some-default-blueprint.yaml
+	//   configMap:
+	//     name: example-custom-blueprint-configmap
+	//     key: my-default-blueprint
+	var configBps []map[string]interface{}
 	for i, config := range configs.Items {
 		for j, data := range config.Data {
 			bp := &akmv1a1.BP{}
@@ -114,8 +121,24 @@ func (r *AkReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Re
 				return ctrl.Result{}, err
 			}
 			l.Info(fmt.Sprintf("Capturing bpConfig: `%v`(%v), `%v` at `%v`)", config.Name, i, bp.Metadata.Name, j))
+			// TODO: add checks to ensure things like annotation path actually exists
+			configBps = append(configBps, map[string]interface{}{
+				"name": bp.Metadata.Name,
+				"dest": fmt.Sprintf("%v/%v", config.Annotations["akm.goauthentik.io/path"], j),
+				"configMap": map[string]interface{}{
+					"name": config.Name,
+					"key":  j,
+				},
+			})
 		}
 	}
+	configBpsAsValues := map[string]interface{}{
+		"authentik": map[string]interface{}{
+			"blueprints": configBps,
+		},
+	}
+	vals = utils.MergeDicts(vals, configBpsAsValues)
+	fmt.Println(utils.PrettyPrint(vals))
 
 	// HELM INSTALL OR UPGRADE
 	_, err = r.UpgradeOrInstallChart(req.NamespacedName, u, actionConfig, vals)

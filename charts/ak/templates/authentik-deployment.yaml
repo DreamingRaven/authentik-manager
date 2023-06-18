@@ -103,12 +103,14 @@ spec:
           {{- end }}
       {{- if eq $aktype "worker"}}
       {{- range .Values.authentik.blueprints }}
+      # single key mount as single file for file-based blueprint
+      # https://stackoverflow.com/a/49155527
       - name: {{ .name }}
         configMap:
           name: {{ .configMap.name }}
           items:
           - key: {{ .configMap.key }}
-            # path: {{ .dest }}
+            path: {{ .configMap.key }}
       {{- end }}
       {{- end }}
 {{- end }}
