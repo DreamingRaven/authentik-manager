@@ -10,7 +10,7 @@ metadata:
   name: akblueprint-sample
   namespace: auth
 spec:
-  file: /blueprints/default/90-default-tenant.yaml
+  file: /blueprints/default/default-tenant.yaml
   blueprint:
     version: 1
     metadata:

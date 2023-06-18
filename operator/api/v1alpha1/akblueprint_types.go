@@ -24,6 +24,7 @@ type AkBlueprintSpec struct {
 	//+kubebuilder:default="file"
 	// StorageType (optional) dictates the type of storage to use when submitting the blueprint to authentik.
 	// Due to the nature of OCI storage that is not currently supported but may be in the future.
+	// Note that internal storage does not resolve YAML tags like !KeyOf since it is direct to db.
 	// https://goauthentik.io/developer-docs/blueprints/
 	StorageType string `json:"storageType,omitempty"`
 
