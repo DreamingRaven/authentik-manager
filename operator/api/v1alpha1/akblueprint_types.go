@@ -83,8 +83,8 @@ type BPModel struct {
 	// Model "app.model" notation of which model from authentik to call
 	Model string `json:"model"`
 
+	//+kubebuilder:validation:Optional
 	//+kubebuilder:validation:Enum="present";"create";"absent"
-	//+kubebuilder:default:=present
 
 	// State (optional) desired state of this model when loaded from "present", "create", "absent"
 	// present: (default) keeps the object in sync with its definition in this blueprint
@@ -95,17 +95,18 @@ type BPModel struct {
 	// Conditions (optional) a list of conditions which if all match the model will be activated. If not the model will be inactive
 	Conditions []string `json:"conditions,omitempty"`
 
-	// +kubebuilder:pruning:PreserveUnknownFields
-	// +kubebuilder:validation:Schemaless
+	//+kubebuilder:validation:Optional
+	//+kubebuilder:pruning:PreserveUnknownFields
+	//+kubebuilder:validation:Schemaless
 
-	// Identifiers key-value identifiers to allow filtering of this stage, and identifying it
-	Identifiers json.RawMessage `json:"identifiers"`
+	// Identifiers (optional) key-value identifiers to allow filtering of this stage, and identifying it
+	Identifiers json.RawMessage `json:"identifiers,omitempty"`
 
 	// Id (optional) is similar to identifiers except is optional and is just an ID to reference this model using !KeyOf syntax in authentik
 	Id string `json:"id,omitempty"`
 
-	// +kubebuilder:pruning:PreserveUnknownFields
-	// +kubebuilder:validation:Schemaless
+	//+kubebuilder:pruning:PreserveUnknownFields
+	//+kubebuilder:validation:Schemaless
 
 	// Attrs is a map of settings / options / overrides of the defaults of this model
 	Attrs json.RawMessage `json:"attrs,omitempty"`

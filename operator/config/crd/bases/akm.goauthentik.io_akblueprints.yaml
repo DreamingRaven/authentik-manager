@@ -74,7 +74,6 @@ spec:
                             authentik to call
                           type: string
                         state:
-                          default: present
                           description: 'State (optional) desired state of this model
                             when loaded from "present", "create", "absent" present:
                             (default) keeps the object in sync with its definition
