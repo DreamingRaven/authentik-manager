@@ -66,8 +66,8 @@ spec:
                             using !KeyOf syntax in authentik
                           type: string
                         identifiers:
-                          description: Identifiers key-value identifiers to allow
-                            filtering of this stage, and identifying it
+                          description: Identifiers (optional) key-value identifiers
+                            to allow filtering of this stage, and identifying it
                           x-kubernetes-preserve-unknown-fields: true
                         model:
                           description: Model "app.model" notation of which model from
