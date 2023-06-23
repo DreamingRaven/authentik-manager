@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	akmv1a1 "gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1"
-	"gopkg.in/yaml.v2"
+	"sigs.k8s.io/yaml"
 )
 
 func TestTaggable(t *testing.T) {
@@ -17,7 +17,10 @@ func TestTaggable(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to marshal YAML: %v", err)
 	}
+
 	if string(yamlData) != string(yamlDataNew) {
+		t.Logf("old: %v", string(yamlData))
+		t.Logf("new: %v", string(yamlDataNew))
 		t.Fatalf("Original and new YAML does not match")
 	}
 
@@ -29,20 +32,6 @@ version: 1
 metadata:
   name: Default - Authentication flow
 entries:
-- model: authentik_blueprints.metaapplyblueprint
-  attrs:
-    identifiers:
-      name: Default - Password change flow
-    required: false
-- attrs:
-    designation: authentication
-    name: Welcome to managed authentik!
-    title: Welcome to managed authentik!
-    authentication: none
-  identifiers:
-    slug: default-authentication-flow
-  model: authentik_flows.flow
-  id: flow
 - attrs:
     backends:
     - authentik.core.auth.InbuiltBackend
@@ -53,10 +42,6 @@ entries:
     name: default-authentication-password
   id: default-authentication-password
   model: authentik_stages_password.passwordstage
-- identifiers:
-    name: default-authentication-mfa-validation
-  id: default-authentication-mfa-validation
-  model: authentik_stages_authenticator_validate.authenticatorvalidatestage
 - attrs:
     user_fields:
     - email
@@ -72,21 +57,6 @@ entries:
 - identifiers:
     order: 10
     stage: !KeyOf default-authentication-identification
-    target: !KeyOf flow
-  model: authentik_flows.flowstagebinding
-- identifiers:
-    order: 20
-    stage: !KeyOf default-authentication-password
-    target: !KeyOf flow
-  model: authentik_flows.flowstagebinding
-- identifiers:
-    order: 30
-    stage: !KeyOf default-authentication-mfa-validation
-    target: !KeyOf flow
-  model: authentik_flows.flowstagebinding
-- identifiers:
-    order: 100
-    stage: !KeyOf default-authentication-login
     target: !KeyOf flow
   model: authentik_flows.flowstagebinding
 `
