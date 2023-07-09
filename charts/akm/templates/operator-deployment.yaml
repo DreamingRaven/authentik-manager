@@ -4,6 +4,7 @@ kind: Deployment
 metadata:
   name: {{ .Values.operator.deployment.name }}
   labels:
+    {{- include "akm.labels" . | nindent 4 }}
     {{- range .Values.operator.labels }}
     {{ .key }}: {{ .value }}
     {{- end }}
@@ -17,6 +18,7 @@ spec:
   template:
     metadata:
       labels:
+        {{- include "akm.labels" . | nindent 8 }}
         {{- range .Values.operator.labels }}
         {{ .key }}: {{ .value }}
         {{- end }}

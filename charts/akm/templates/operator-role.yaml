@@ -3,6 +3,8 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: {{ .Values.operator.role.name }}
+  labels:
+    {{- include "akm.labels" . | nindent 4 }}
 rules:
 # do anything with namespaced resources in our own namespace
 # excludes the ability to modify roles, service accounts, and bindings for obvious reasons
