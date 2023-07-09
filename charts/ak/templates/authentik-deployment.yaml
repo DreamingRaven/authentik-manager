@@ -10,7 +10,9 @@ kind: Deployment
 metadata:
   name: authentik-{{ $aktype }}
   labels:
-    mode: {{ $aktype }}
+    {{- include "ak.labels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ $aktype }}
+    app.kubernetes.io/part-of: authentik
     {{- range .Values.authentik.labels }}
     {{ .key }}: {{ .value }}
     {{- end }}
@@ -25,7 +27,10 @@ spec:
   template:
     metadata:
       labels:
+        {{- include "ak.labels" . | nindent 8 }}
         mode: {{ $aktype }}
+        app.kubernetes.io/component: {{ $aktype }}
+        app.kubernetes.io/part-of: authentik
         {{- range .Values.authentik.labels }}
         {{ .key }}: {{ .value }}
         {{- end }}

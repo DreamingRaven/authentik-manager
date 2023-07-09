@@ -3,6 +3,8 @@ kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
   name: {{ .Values.ldap.persistence.name | lower | quote }}
+  labels:
+    {{- include "ak.labels" . | nindent 4 }}
 spec:
   accessModes:
     - {{ .Values.ldap.persistence.accessMode | quote }}

@@ -8,6 +8,7 @@ kind: Deployment
 metadata:
   name: {{ .Values.ldap.deployment.name }}
   labels:
+    {{- include "ak.labels" . | nindent 4 }}
     {{- range .Values.ldap.labels }}
     {{ .key }}: {{ .value }}
     {{- end }}

@@ -18,6 +18,8 @@ metadata:
     # nginx.ingress.kubernetes.io/auth-snippet: proxy_set_header X-Forwarded-Method $request_method;
     nginx.ingress.kubernetes.io/auth-snippet: proxy_set_header X-Forwarded-Host $http_host;
   name: {{ .Values.ingress.name }}-ldap
+  labels:
+    {{- include "ak.labels" . | nindent 4 }}
 spec:
   rules:
   - host: {{ .Values.global.domain.ldap }}

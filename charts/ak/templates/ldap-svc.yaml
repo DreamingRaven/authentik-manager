@@ -4,6 +4,7 @@ kind: Service
 metadata:
   name: {{ .Values.ldap.service.name | lower | quote }}
   labels:
+    {{- include "ak.labels" . | nindent 4 }}
     {{- range .Values.ldap.labels }}
     {{ .key }}: {{ .value }}
     {{- end }}

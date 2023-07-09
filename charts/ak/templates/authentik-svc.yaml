@@ -11,6 +11,7 @@ kind: Service
 metadata:
   name: {{ .Values.authentik.service.name }}-{{ $aktype }}
   labels:
+    {{- include "ak.labels" . | nindent 4 }}
     mode: {{ $aktype }}
     {{- range .Values.authentik.labels }}
     {{ .key }}: {{ .value }}

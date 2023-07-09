@@ -4,6 +4,7 @@ kind: Service
 metadata:
   name: {{ .Values.pgadmin.service.name | lower | quote }}
   labels:
+    {{- include "ak.labels" . | nindent 4 }}
     {{- range .Values.pgadmin.labels }}
     {{ .key }}: {{ .value }}
     {{- end }}
