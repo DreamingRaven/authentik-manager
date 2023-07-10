@@ -140,6 +140,9 @@ func (r *AkReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Re
 		},
 	}
 	vals = utils.MergeDicts(vals, configBpsAsValues)
+	// Final Adjustments and Overrides
+	//TODO inherit value from operator not deployed CRD
+	vals["instanceOverride"] = crd.Labels["app.kubernetes.io/instance"]
 	fmt.Println(utils.PrettyPrint(vals))
 
 	// HELM INSTALL OR UPGRADE

@@ -47,7 +47,7 @@ Selector labels
 */}}
 {{- define "ak.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "ak.name" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/instance: {{ default .Release.Name .Values.instanceOverride | trunc 63 }}
 {{- end }}
 
 {{/*

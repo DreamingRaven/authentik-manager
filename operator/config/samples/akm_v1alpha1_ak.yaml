@@ -3,7 +3,7 @@ kind: Ak
 metadata:
   labels:
     app.kubernetes.io/name: ak
-    app.kubernetes.io/instance: ak-sample
+    app.kubernetes.io/instance: auth
     app.kubernetes.io/part-of: operator
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/created-by: operator
