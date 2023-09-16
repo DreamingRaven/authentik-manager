@@ -96,7 +96,8 @@ login.lock:
 	touch login.lock
 
 .PHONY: test
-test: lint minikube install ## Test application (current does not)
+test: ## Run go tests
+	go test -v ./operator/...
 
 .PHONY: template
 template: templates.yaml ## Generate a concrete template for inspection

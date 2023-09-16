@@ -43,56 +43,56 @@ type OIDCSpec struct {
 	//+kubebuilder:validation:Optional
 	//+kubebuilder:default="confidential"
 
-  //ClientType
-  ClientType string `json:"clientType,omitempty"`
+	//ClientType
+	ClientType string `json:"clientType,omitempty"`
 
 	//+kubebuilder:validation:Optional
 	//+kubebuilder:default="minutes=1"
 
-  //AccessCodeValidity
-  AccessCodeValidity string `json:"accessCodeValidity,omitempty"`
+	//AccessCodeValidity
+	AccessCodeValidity string `json:"accessCodeValidity,omitempty"`
 
 	//+kubebuilder:validation:Optional
 	//+kubebuilder:default="minutes=5"
 
-  //AccessTokenValidity
-  AccessTokenValidity string `json:"accessTokenValidity,omitempty"`
+	//AccessTokenValidity
+	AccessTokenValidity string `json:"accessTokenValidity,omitempty"`
 
 	//+kubebuilder:validation:Optional
 	//+kubebuilder:default="default-authentication-flow"
 
-  //AuthenticationFlow
-  AuthenticationFlow string `json:"authenticationFlow,omitempty"`
+	//AuthenticationFlow
+	AuthenticationFlow string `json:"authenticationFlow,omitempty"`
 
 	//+kubebuilder:validation:Optional
 	//+kubebuilder:default="default-provider-authorization-explicit-consent"
 
-  //AuthorizationFlow
-  AuthorizationFlow string `json:"authorizationFlow,omitempty"`
+	//AuthorizationFlow
+	AuthorizationFlow string `json:"authorizationFlow,omitempty"`
 
 	//+kubebuilder:validation:Optional
 	//+kubebuilder:default="per_provider"
 
-  //IssuerMode
-  IssuerMode string `json:"issuerMode,omitempty"`
+	//IssuerMode
+	IssuerMode string `json:"issuerMode,omitempty"`
 
 	//+kubebuilder:validation:Optional
 	//+kubebuilder:default="days=30"
 
-  //RefreshTokenValidity
-  RefreshTokenValidity string `json:"refreshTokenValidity,omitempty"`
+	//RefreshTokenValidity
+	RefreshTokenValidity string `json:"refreshTokenValidity,omitempty"`
 
 	//+kubebuilder:validation:Optional
 	//+kubebuilder:default="authentik Self-signed Certificate"
 
-  //SigningKey
-  SigningKey string `json:"signingKey,omitempty"`
+	//SigningKey
+	SigningKey string `json:"signingKey,omitempty"`
 
 	//+kubebuilder:validation:Optional
 	//+kubebuilder:default="hashed_user_id"
 
-  //SubMode
-  SubMode string `json:"subMode,omitempty"`
+	//SubMode
+	SubMode string `json:"subMode,omitempty"`
 }
 
 // OIDCStatus defines the observed state of OIDC
