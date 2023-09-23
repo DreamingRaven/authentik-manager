@@ -88,7 +88,7 @@ redis:
   image:
     registry: docker.io
     repository: bitnami/redis
-    tag: "7.0"
+    tag: "7.2"
   architecture: replication
   auth:
     enabled: true
