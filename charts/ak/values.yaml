@@ -88,7 +88,7 @@ redis:
   image:
     registry: docker.io
     repository: bitnami/redis
-    tag: "7.0"
+    tag: "7.2"
   architecture: replication
   auth:
     enabled: true
@@ -119,7 +119,7 @@ ldap:
     # mountPath: /bitnami/openldap
   deployment:
     imagePullPolicy: Always
-    image: "docker.io/nitnelave/lldap:v0.4.1-alpine"
+    image: "docker.io/nitnelave/lldap:v0.5.0-alpine"
     name: ldap
     replicas: 1
     env: # statically defined environment variables can be as many as desired
