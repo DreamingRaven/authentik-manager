@@ -40,7 +40,7 @@ dependencies:
   version: "17.11.3"
   repository: "https://charts.bitnami.com/bitnami"
 - name: postgresql
-  version: "12.5.6"
+  version: "12.12.5"
   repository: "https://charts.bitnami.com/bitnami"
 # - name: akm
 #   condition: akm.operator.enabled
