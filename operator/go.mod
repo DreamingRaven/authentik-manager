@@ -14,7 +14,7 @@ require (
 	helm.sh/helm/v3 v3.12.3
 	k8s.io/api v0.28.2
 	k8s.io/apimachinery v0.28.2
-	k8s.io/cli-runtime v0.27.3
+	k8s.io/cli-runtime v0.28.2
 	k8s.io/client-go v0.28.2
 	sigs.k8s.io/controller-runtime v0.15.0
 	sigs.k8s.io/yaml v1.3.0
@@ -79,7 +79,7 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/huandu/xstrings v1.4.0 // indirect
 	github.com/imdario/mergo v0.3.13 // indirect
-	github.com/inconshreveable/mousetrap v1.0.1 // indirect
+	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jmoiron/sqlx v1.3.5 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
@@ -116,15 +116,15 @@ require (
 	github.com/shopspring/decimal v1.3.1 // indirect
 	github.com/sirupsen/logrus v1.9.0 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
-	github.com/spf13/cobra v1.6.1 // indirect
+	github.com/spf13/cobra v1.7.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
-	github.com/xlab/treeprint v1.1.0 // indirect
+	github.com/xlab/treeprint v1.2.0 // indirect
 	go.opentelemetry.io/otel v1.14.0 // indirect
 	go.opentelemetry.io/otel/trace v1.14.0 // indirect
-	go.starlark.net v0.0.0-20200306205701-8dd3e2ee1dd5 // indirect
+	go.starlark.net v0.0.0-20230525235612-a134d8f9ddca // indirect
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.24.0 // indirect
@@ -152,7 +152,7 @@ require (
 	k8s.io/utils v0.0.0-20230406110748-d93618cff8a2 // indirect
 	oras.land/oras-go v1.2.3 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
-	sigs.k8s.io/kustomize/api v0.13.2 // indirect
-	sigs.k8s.io/kustomize/kyaml v0.14.1 // indirect
+	sigs.k8s.io/kustomize/api v0.13.5-0.20230601165947-6ce0bf390ce3 // indirect
+	sigs.k8s.io/kustomize/kyaml v0.14.3-0.20230601165947-6ce0bf390ce3 // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect
 )
