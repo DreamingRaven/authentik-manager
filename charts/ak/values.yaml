@@ -57,7 +57,7 @@ postgresql:
   image:
     registry: docker.io
     repository: bitnami/postgresql
-    tag: 15
+    tag: 16
   # nameOverride: pgsql
   fullnameOverride: postgres
   primary:
