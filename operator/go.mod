@@ -8,7 +8,7 @@ require (
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/lib/pq v1.10.9
 	github.com/onsi/ginkgo/v2 v2.12.1
-	github.com/onsi/gomega v1.27.10
+	github.com/onsi/gomega v1.28.0
 	golang.org/x/oauth2 v0.12.0
 	gopkg.in/yaml.v2 v2.4.0
 	helm.sh/helm/v3 v3.12.3
