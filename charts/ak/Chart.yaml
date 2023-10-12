@@ -37,7 +37,7 @@ appVersion: "2022.11.3"
 
 dependencies:
 - name: redis
-  version: "18.1.4"
+  version: "18.1.5"
   repository: "https://charts.bitnami.com/bitnami"
 - name: postgresql
   version: "13.1.4"
