@@ -7,7 +7,7 @@ require (
 	github.com/coreos/go-oidc/v3 v3.7.0
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/lib/pq v1.10.9
-	github.com/onsi/ginkgo/v2 v2.12.1
+	github.com/onsi/ginkgo/v2 v2.13.0
 	github.com/onsi/gomega v1.28.0
 	golang.org/x/oauth2 v0.13.0
 	gopkg.in/yaml.v2 v2.4.0
