@@ -1,19 +1,3 @@
-/*
-Copyright 2023.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
-
 package main
 
 import (
@@ -30,8 +14,11 @@ import (
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
+	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
 	akmv1alpha1 "gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1"
 	"gitlab.com/GeorgeRaven/authentik-manager/operator/controllers"
@@ -71,10 +58,13 @@ func main() {
 
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 
-	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
-		Scheme:                 scheme,
-		MetricsBindAddress:     o.MetricsAddr,
-		Port:                   o.Port,
+	mgr, err := manager.New(config.GetConfigOrDie(), manager.Options{
+		Scheme: scheme,
+		//MetricsBindAddress:     o.MetricsAddr,
+		Metrics: metricsserver.Options{
+			BindAddress: o.MetricsAddr,
+		},
+		//Port:                   o.Port,
 		HealthProbeBindAddress: o.ProbeAddr,
 		LeaderElection:         o.EnableLeaderElection,
 		LeaderElectionID:       o.LeaderElectionID,
@@ -82,10 +72,30 @@ func main() {
 		// this will also affect clusterwide searches by operator which we dont want
 		// so we specify so that these roles do not need to be granted
 		LeaderElectionNamespace: o.OperatorNamespace,
-		Namespace:               o.WatchedNamespace,
+		//Namespace:               o.WatchedNamespace,
+		//Cache: cache.Options{
+		//	DefaultNamespaces: map[string]cache.Config{
+		//		o.WatchedNamespace
+		//	},
+		//},
 	})
+
+	//mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
+	//	Scheme: scheme,
+	//	//MetricsBindAddress:     o.MetricsAddr,
+	//	Metrics:                ctrlSrv.Options{},
+	//	Port:                   o.Port,
+	//	HealthProbeBindAddress: o.ProbeAddr,
+	//	LeaderElection:         o.EnableLeaderElection,
+	//	LeaderElectionID:       o.LeaderElectionID,
+	//	// Specified the namespace the leader "lease" resource belongs
+	//	// this will also affect clusterwide searches by operator which we dont want
+	//	// so we specify so that these roles do not need to be granted
+	//	LeaderElectionNamespace: o.OperatorNamespace,
+	//	Namespace:               o.WatchedNamespace,
+	//})
 	if err != nil {
-		setupLog.Error(err, "unable to start manager")
+		setupLog.Error(err, "unable to create manager")
 		os.Exit(1)
 	}
 

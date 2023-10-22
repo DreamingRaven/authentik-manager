@@ -1,4 +1,4 @@
-CHART_DIR_PATH="charts/akm"
+CHART_DIR_PATH="./charts/akm"
 CHART_NAME="akm"
 CHART_NAMESPACE="auth"
 FORWARD_PORT=8079
@@ -133,7 +133,7 @@ build: ## Build the container image
 
 .PHONY: install
 install: build ## Install helm chart to default cluster with local images
-	bash scripts/auto-add-helm-deps.sh ${CHART_DIR_PATH}
+	#bash scripts/auto-add-helm-deps.sh ${CHART_DIR_PATH}
 	helm dependency build ${CHART_DIR_PATH}
 	helm upgrade --install --create-namespace --namespace ${CHART_NAMESPACE} --set operator.deployment.imagePullPolicy=Never --set operator.deployment.image=${LOCAL_TAG} ${CHART_NAME} ${CHART_DIR_PATH}/.
 
