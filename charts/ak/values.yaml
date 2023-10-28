@@ -294,6 +294,10 @@ akm:
 # postgres admin dashboard
 pgadmin:
   enabled: false
+  image:
+    registry: "docker.io"
+    repository: "dpage/pgadmin4"
+    tag: "latest"
   persistence:
     enable: false
     name: pgadmin-pvc
@@ -302,7 +306,6 @@ pgadmin:
     mountPath: /var/lib/pgadmin/data
   deployment:
     imagePullPolicy: Always
-    image: "docker.io/dpage/pgadmin4:latest"
     name: pgadmin
     replicas: 1
     env: # statically defined environment variables can be as many as desired
