@@ -14,7 +14,7 @@ LOCAL_TAG=localhost/controller:local
 
 SRC_VERSION=$(shell git describe --abbrev=0)
 # Instead of using the --raw-output option tr works with all versions of yq, both the python and go version
-APP_VERSION=$(yq ".authentik.image.tag" charts/ak/values.yaml | tr -d '"')
+APP_VERSION=$(shell yq ".authentik.image.tag" charts/ak/values.yaml | tr -d '"')
 #APP_VERSION=$(shell cat charts/ak/values.yaml | grep -P -o '(?<=ghcr.io/goauthentik/server:).*(?=\")')
 
 # Docs arguments
