@@ -163,7 +163,7 @@ helm-chart-build:
   - export APP_VER="$(yq ".authentik.image.tag" ${CHARTS_DIR}/ak/values.yaml | tr -d '"')"
   # gitlab trunicates to last 20 commits so if tag was older things will start breaking
   - export HELM_VER="$(git describe --abbrev=0)" # helm does not like --long git tags
-  - echo "src version ${SRC_VER}"
+  - echo "app version ${APP_VER}"
   - echo "helm version ${HELM_VER}"
   - mkdir -p ./package
   - |
@@ -171,7 +171,7 @@ helm-chart-build:
     do
       dir=${dir%*/} # removes trailing "/"
       helm dependency build "${dir}"/
-      helm package "${dir}"/ --destination ./package --app-version ${SRC_VER} --version ${HELM_VER}
+      helm package "${dir}"/ --destination ./package --app-version ${APP_VER} --version ${HELM_VER}
     done
   artifacts:
     paths:
