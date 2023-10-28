@@ -110,6 +110,10 @@ redis:
 
 ldap:
   enabled: false
+  image:
+    registry: "docker.io"
+    repository: "nitnelave/lldap"
+    tag: "v0.5.0-alpine"
   persistence:
     enabled: false
     name: ldap-pvc
@@ -119,7 +123,6 @@ ldap:
     # mountPath: /bitnami/openldap
   deployment:
     imagePullPolicy: Always
-    image: "docker.io/nitnelave/lldap:v0.5.0-alpine"
     name: ldap
     replicas: 1
     env: # statically defined environment variables can be as many as desired

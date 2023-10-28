@@ -40,7 +40,7 @@ spec:
       #     name: data
       containers:
       - name: {{ .Values.ldap.deployment.name }}
-        image: {{ .Values.ldap.deployment.image | quote }}
+        image: "{{ .Values.ldap.image.registry }}/{{ .Values.ldap.image.repository}}:{{ .Values.ldap.image.tag}}"
         imagePullPolicy: {{ .Values.ldap.deployment.imagePullPolicy }}
         # command: ["/bin/bash", "-c"]
         # args: ["sleep 3600"]
