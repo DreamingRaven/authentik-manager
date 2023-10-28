@@ -39,10 +39,12 @@ Demo
 If you want to quickly demo authentik-manager on your local desktop Linux system you will need:
 
 - minikube
+- podman
 - kubectl
 - helm
 - make
 - git
+- yq
 
 Then you can start the full cluster, AKM, and install example |crd|\ s. This will open your browser to the minikube |k8s| dashboard and provide final instructions as you go:
 
