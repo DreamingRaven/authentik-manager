@@ -53,7 +53,7 @@ docker_build_branch:
   script:
     - git fetch --unshallow
     # - export APP_VER="$(cat ${CHARTS_DIR}/ak/values.yaml | grep -P -o '(?<=ghcr.io/goauthentik/server:).*(?=\")')"
-    - export APP_VER="$(yq --raw-output ".authentik.image.tag" ${CHARTS_DIR}/ak/values.yaml)"
+    - export APP_VER="$(yq ".authentik.image.tag" ${CHARTS_DIR}/ak/values.yaml | tr -d '"')"
     - export SRC_VER="$(set -o pipefail && git describe --long 2>/dev/null | sed 's/\([^-]*-g\)/r\1/;s/-/./g' || printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)")"
     - export SRC_VER_SHORT="$(git describe --abbrev=0)"
     # - sed -e '1 s/\(^FROM\)/FROM --platform=\$$\{BUILDPLATFORM\}/; t' -e ' 1,// s//FROM --platform=\$$\{BUILDPLATFORM\}/' ${DOCKERFILE_PATH} > ${DOCKERFILE_PATH}.cross
@@ -105,7 +105,7 @@ docker_build_multi_arch_tag:
   script:
     - git fetch --unshallow
     # - export APP_VER="$(cat ${CHARTS_DIR}/ak/values.yaml | grep -P -o '(?<=ghcr.io/goauthentik/server:).*(?=\")')"
-    - export APP_VER="$(yq --raw-output ".authentik.image.tag" ${CHARTS_DIR}/ak/values.yaml)"
+    - export APP_VER="$(yq ".authentik.image.tag" ${CHARTS_DIR}/ak/values.yaml | tr -d '"')"
     - export SRC_VER="$(set -o pipefail && git describe --long 2>/dev/null | sed 's/\([^-]*-g\)/r\1/;s/-/./g' || printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)")"
     - export SRC_VER_SHORT="$(git describe --abbrev=0)"
     # - sed -e '1 s/\(^FROM\)/FROM --platform=\$$\{BUILDPLATFORM\}/; t' -e ' 1,// s//FROM --platform=\$$\{BUILDPLATFORM\}/' ${DOCKERFILE_PATH} > ${DOCKERFILE_PATH}.cross
@@ -160,7 +160,7 @@ helm-chart-build:
   - helm plugin install https://github.com/chartmuseum/helm-push.git
   # - export SRC_VER="$(set -o pipefail && git describe --long 2>/dev/null | sed 's/\([^-]*-g\)/r\1/;s/-/./g' || printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)")"
   # - export SRC_VER="$(cat ${CHARTS_DIR}/ak/values.yaml | grep -P -o '(?<=ghcr.io/goauthentik/server:).*(?=\")')"
-  - export APP_VER="$(yq --raw-output ".authentik.image.tag" ${CHARTS_DIR}/ak/values.yaml)"
+  - export APP_VER="$(yq ".authentik.image.tag" ${CHARTS_DIR}/ak/values.yaml | tr -d '"')"
   # gitlab trunicates to last 20 commits so if tag was older things will start breaking
   - export HELM_VER="$(git describe --abbrev=0)" # helm does not like --long git tags
   - echo "src version ${SRC_VER}"
