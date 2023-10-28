@@ -152,6 +152,10 @@ ldap:
 
 authentik:
   enabled: true
+  image:
+    registry: "ghcr.io"
+    repository: "goauthentik/server"
+    tag: "2023.10.1"
   # domain: <BASE_DOMAIN>
   config:
     name: authentik-config
@@ -194,7 +198,6 @@ authentik:
       env: AUTHENTIK_EMAIL__PASSWORD
   deployment:
     imagePullPolicy: Always
-    image: "ghcr.io/goauthentik/server:2023.10.1"
     name: authentik
     replicas: 3
     env: # statically defined environment variables can be as many as desired

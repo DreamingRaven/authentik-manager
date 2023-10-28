@@ -37,7 +37,7 @@ spec:
     spec:
       containers:
         - name: authentik-{{ $aktype }}
-          image: {{ .Values.authentik.deployment.image | quote }}
+          image: "{{ .Values.authentik.image.registry }}/{{ .Values.authentik.image.repository}}:{{ .Values.authentik.image.tag}}"
           imagePullPolicy: {{ .Values.authentik.deployment.imagePullPolicy }}
           args:
           - |-
