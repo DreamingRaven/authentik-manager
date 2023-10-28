@@ -13,7 +13,8 @@ REGISTRY_AUTH_FILE=${DOCKER_AUTH_FILE}
 LOCAL_TAG=localhost/controller:local
 
 SRC_VERSION=$(shell git describe --abbrev=0)
-APP_VERSION=$(shell cat charts/ak/values.yaml | grep -P -o '(?<=ghcr.io/goauthentik/server:).*(?=\")')
+#APP_VERSION=$(shell cat charts/ak/values.yaml | grep -P -o '(?<=ghcr.io/goauthentik/server:).*(?=\")')
+APP_VERSION=$(yq --raw-output ".authentik.image.tag" charts/ak/values.yaml)
 
 # Docs arguments
 TAG=akm/docs
