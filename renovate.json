@@ -1,10 +1,26 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:base",
+    ":rebaseStalePrs",
+    ":semanticCommits",
+    ":semanticCommitScope(deps)",
+    "helpers:pinGitHubActionDigests"
+  ],
   "packageRules": [
     {
       "description": "Automerge non-major updates",
       "matchUpdateTypes": ["patch"],
       "automerge": true
+    }
+  ],
+  "regexManagers": [
+    {
+      "fileMatch": ["(^|/)Makefile$"],
+      "matchStrings": [
+        "MINIKUBE_KUBE_VERSION=(?<currentValue>.*) # renovate: datasource=(?<datasource>.*) depName=(?<depName>.*)"
+      ],
+      "extractVersionTemplate": "^v?(?<version>.*)$"
     }
   ]
 }

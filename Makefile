@@ -3,7 +3,7 @@ CHART_NAME="akm"
 CHART_NAMESPACE="auth"
 FORWARD_PORT=8079
 DOCS_PORT=8078
-MINIKUBE_KUBE_VERSION=1.27.2
+MINIKUBE_KUBE_VERSION=1.28.3 # renovate: datasource=github-tags depName=kubernetes/kubernetes
 PRIVATE_REGISTRY="registry.gitlab.com"
 DOCKER_AUTH_FILE="${HOME}/.docker/config.json"
 # https://docs.podman.io/en/latest/markdown/podman-login.1.html#authfile-path
@@ -13,8 +13,9 @@ REGISTRY_AUTH_FILE=${DOCKER_AUTH_FILE}
 LOCAL_TAG=localhost/controller:local
 
 SRC_VERSION=$(shell git describe --abbrev=0)
+# Instead of using the --raw-output option tr works with all versions of yq, both the python and go version
+APP_VERSION=$(yq ".authentik.image.tag" charts/ak/values.yaml | tr -d '"')
 #APP_VERSION=$(shell cat charts/ak/values.yaml | grep -P -o '(?<=ghcr.io/goauthentik/server:).*(?=\")')
-APP_VERSION=$(yq --raw-output ".authentik.image.tag" charts/ak/values.yaml)
 
 # Docs arguments
 TAG=akm/docs
