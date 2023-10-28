@@ -1,8 +1,11 @@
 operator:
   enabled: true
+  image:
+    registry: "registry.gitlab.com"
+    repository: "georgeraven/authentik-manager"
+    tag: "latest"
   deployment:
     imagePullPolicy: Always
-    image: "registry.gitlab.com/georgeraven/authentik-manager:latest"
     name: authentik-manager
     replicas: 1
     env: # statically defined environment variables can be as many as desired

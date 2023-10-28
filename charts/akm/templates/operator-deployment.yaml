@@ -26,7 +26,7 @@ spec:
       serviceAccountName: {{ .Values.operator.serviceAccount.name }}
       containers:
         - name: operator
-          image: {{ .Values.operator.deployment.image | quote }}
+          image: "{{ .Values.operator.image.registry }}/{{ .Values.operator.image.repository}}:{{ .Values.operator.image.tag}}"
           imagePullPolicy: {{ .Values.operator.deployment.imagePullPolicy }}
           args:
           - "--leader-elect"
