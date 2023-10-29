@@ -23,6 +23,13 @@ spec:
         {{ .key }}: {{ .value }}
         {{- end }}
     spec:
+      # TODO: Create init container to generate from env variables the pgpass file
+      # https://www.postgresql.org/docs/9.1/libpq-pgpass.html
+      # This init container should generate a file in the following format:
+      # hostname:port:database:username:password
+      # The weakness of this approach is it less dynamic and requires the deployment to be restarted
+      # however the awkwardness of the format also including semi-dynamic variables makes this a necessary evil
+      # databases dont tend to rapidly change credentials so this should be almost never incurred.
       containers:
         - name: pgadmin
           image: "{{ .Values.pgadmin.image.registry }}/{{ .Values.pgadmin.image.repository}}:{{ .Values.pgadmin.image.tag}}"
