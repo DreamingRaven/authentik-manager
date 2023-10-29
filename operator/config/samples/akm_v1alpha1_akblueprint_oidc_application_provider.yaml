@@ -3,7 +3,7 @@ kind: AkBlueprint
 metadata:
   labels:
     app.kubernetes.io/name: akblueprint
-    app.kubernetes.io/instance: auth
+    app.kubernetes.io/instance: akm
     app.kubernetes.io/part-of: operator
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/created-by: operator
