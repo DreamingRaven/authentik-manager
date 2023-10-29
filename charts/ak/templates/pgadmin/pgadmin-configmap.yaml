@@ -1,0 +1,26 @@
+{{ if .Values.pgadmin.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.pgadmin.config.name }}
+data:
+  # /pgadmin4/servers.json
+  # servers is json that will pre-populate with the given server
+  # https://stackoverflow.com/a/63318968
+  # https://www.pgadmin.org/docs/pgadmin4/latest/container_deployment.html
+  servers.json: |
+    {
+        "Servers": {
+            "ak-db": {
+                "Name": "ak-db",
+                "Group": "Servers",
+                "Port": {{ .Values.postgresql.postgresql.service.ports.postgresql }},
+                "Username": "postgres",
+                "Host": "{{ .Values.postgresql.fullnameOverride }}-hl",
+                "SSLMode": "prefer",
+                "MaintenanceDB": "{{ .Values.postgresql.auth.database }}",
+                "PassFile": "/path/to/pgpassfile"
+            }
+        }
+    }
+{{- end }}

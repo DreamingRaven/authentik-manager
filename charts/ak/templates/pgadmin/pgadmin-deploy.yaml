@@ -33,27 +33,37 @@ spec:
               containerPort: {{ .containerPort }}
             {{- end }}
           env:
-            # static admin email from global var
-            - name: PGADMIN_DEFAULT_EMAIL
-              value: {{ .Values.global.admin.email }}
-            # statically defined envs
             {{- range .Values.pgadmin.deployment.env }}
             - name: {{ .name | quote }}
               value: {{ .value | quote }}
             {{- end }}
-            # secret imported envs
-            {{- range .Values.pgadmin.secrets.lookup }}
+            {{- range .Values.pgadmin.secrets }}
+            {{- $secretContext := . }}
+            {{- range .lookup }}
             - name: {{ .env }}
               valueFrom:
                 secretKeyRef:
-                  name: {{ $.Values.pgadmin.secrets.secretName }}
+                  name: {{ $secretContext.name }}
                   key: {{ .key }}
+                  optional: false
             {{- end }}
-      {{- if .Values.pgadmin.persistence.enable }}
+            {{- end }}
           volumeMounts:
-          - mountPath: {{ .Values.pgadmin.persistence.mountPath }}
+          - name: servers-config
+            mountPath: {{ .Values.pgadmin.servers.path }}
+            subPath: {{ .Values.pgadmin.servers.key }}
+      {{- if .Values.pgadmin.persistence.enabled }}
+          - mountPath: "/var/lib/pgadmin/data"
             name: data
+      {{- end }}
       volumes:
+      - name: servers-config
+        configMap:
+          name: {{ .Values.pgadmin.config.name }}
+          items:
+          - key: {{ .Values.pgadmin.servers.key }}
+            path: {{ .Values.pgadmin.servers.key }}
+      {{- if .Values.pgadmin.persistence.enabled }}
       - name: data
         persistentVolumeClaim:
           claimName: {{ .Values.pgadmin.persistence.name | lower | quote }}

@@ -11,7 +11,7 @@ global:
     # the administrative user you want in ldap and the entire SSO
     # ATM does very little
     name: somebody
-    email: somebody@pm.me
+    email: somebody@example.org
 
 # nameOverride: someNameForChart # set if you want to override the chart name for name generation
 # instanceOverride: auth # set to override the instance label to associate to other apps like the operator
@@ -311,11 +311,19 @@ pgadmin:
     env: # statically defined environment variables can be as many as desired
     - name: PGADMIN_LISTEN_PORT
       value: 80
+    - name: PGADMIN_DEFAULT_EMAIL
+      value: somebody@example.org
+  config:
+    name: pg-servers
+  servers:
+    # this key must be the file in the path
+    key: servers.json
+    path: /pgadmin4/servers.json
   secrets:
-    secretName: auth
+  - name: auth
     lookup:
-    - env: PGADMIN_DEFAULT_PASSWORD
-      key: pgAdminPassword
+    - key: pgAdminPassword
+      env: PGADMIN_DEFAULT_PASSWORD
   service:
     name: pgadmin
   ports:
