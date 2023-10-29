@@ -19,7 +19,7 @@ data:
                 "Host": "{{ .Values.postgresql.fullnameOverride }}-hl",
                 "SSLMode": "prefer",
                 "MaintenanceDB": "{{ .Values.postgresql.auth.database }}",
-                "PassFile": "/path/to/pgpassfile"
+                "PassFile": "/pgpassfile"
             }
         }
     }
