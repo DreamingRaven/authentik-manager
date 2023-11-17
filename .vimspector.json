@@ -1,0 +1,43 @@
+// Vimspector configuration. Dont worry comments are not important here as specially handled
+{
+	"configurations": {
+		// Go
+		// https://github.com/golang/vscode-go/blob/master/docs/debugging.md#launchjson-attributes
+	  "Operator": {
+	    "adapter": "vscode-go",
+	    "filetypes": [ "go" ],
+	    "default": true,
+	    "configuration": {
+	      "request": "launch",
+	      "protocol": "auto",
+	      "stopOnEntry": true,
+	      "console": "integratedTerminal",
+	      "program": "${workspaceRoot}/operator",
+				"mode": "debug",
+	      "cwd": "${workspaceRoot}/operator"
+	    }
+	  },
+		// Python
+		// https://github.com/microsoft/debugpy/wiki/Debug-configuration-settings
+	  "API": {
+	    "adapter": "debugpy",
+	    "filetypes": [ "python" ],
+	    "default": false,
+	    "configuration": {
+				"python": "${workspaceRoot}/venv/bin/python",
+				"request": "launch",
+	    	"program": "${workspaceRoot}/main.py",
+	    	"stopOnEntry": true,
+	    	"cwd": "${workspaceRoot}"
+	    },
+	    "breakpoints": {
+	      "exception": {
+	        "raised": "N",
+	        "caught": "N",
+	        "uncaught": "Y",
+	        "userUnhandled": "N"
+	      }
+	    }
+	  }
+	}
+}
