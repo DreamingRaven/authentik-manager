@@ -99,7 +99,7 @@ login.lock:
 
 .PHONY: test
 test: ## Run go tests
-	go test -v ./operator/...
+	cd operator && go test -v ./...
 
 .PHONY: template
 template: templates.yaml ## Generate a concrete template for inspection
