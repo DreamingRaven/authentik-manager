@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"testing"
 
+	akmv1a1 "gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1"
 	yamlv3 "gopkg.in/yaml.v3"
 )
 
 type SimpleSchema struct {
-	Value yamlv3.Node `json:"value" yaml:"value"`
+	Value []byte `json:"value" yaml:"value"`
 }
 
 func TestSimpleYamlNodeTag(t *testing.T) {
@@ -35,6 +36,20 @@ func checkByteSlicesEqual(t *testing.T, expected, actual []byte) {
 	}
 }
 
+//func TestAkTaggable(t *testing.T) {
+//	yamlData := genYamlData()
+//	t.Logf("old: %v", string(yamlData))
+//	bp := akmv1a1.BP{}
+//	if err := yamlv3.Unmarshal(yamlData, &bp); err != nil {
+//		t.Fatalf("Failed to unmarshal YAML: %v", err)
+//	}
+//	yamlDataNew, err := yamlv3.Marshal(&bp)
+//	if err != nil {
+//		t.Fatalf("Failed to marshal YAML: %v", err)
+//	}
+//	t.Logf("new: %v", string(yamlDataNew))
+//}
+
 //func TestTaggable(t *testing.T) {
 //	yamlData := genYamlData()
 //	bp := akmv1a1.BP{}
@@ -53,6 +68,52 @@ func checkByteSlicesEqual(t *testing.T, expected, actual []byte) {
 //	}
 //
 //}
+
+// BLUEPRINT MODEL TESTING SECTION
+
+func bpModelSampleData() []byte {
+	yamlString := `
+attrs:
+  backends:
+  - authentik.core.auth.InbuiltBackend
+  - authentik.sources.ldap.auth.LDAPBackend
+  - authentik.core.auth.TokenBackend
+  configure_flow: !Find [authentik_flows.flow, [slug, default-password-change]]
+identifiers:
+  name: default-authentication-password
+id: default-authentication-password
+model: authentik_stages_password.passwordstage
+`
+	return []byte(yamlString)
+}
+
+func TestBpModelSchema(t *testing.T) {
+	yamlData := bpModelSampleData()
+	t.Logf("old: %v", string(yamlData))
+	bp := akmv1a1.BPModel{}
+	if err := yamlv3.Unmarshal(yamlData, &bp); err != nil {
+		t.Fatalf("Failed to unmarshal YAML: %v", err)
+	}
+	yamlDataNew, err := yamlv3.Marshal(&bp)
+	if err != nil {
+		t.Fatalf("Failed to marshal YAML: %v", err)
+	}
+	t.Logf("new: %v", string(yamlDataNew))
+	checkByteSlicesEqual(t, yamlData, yamlDataNew)
+
+}
+
+// TRUNK SECTION
+
+func weirdSimpleData() []byte {
+	yamlString := `
+value:
+	- !Find [hello world]
+	- !Find [hello world]
+	- !Find [hello world]
+`
+	return []byte(yamlString)
+}
 
 func genYamlData() []byte {
 	yamlString := `
