@@ -99,24 +99,30 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&controllers.AkReconciler{utils.ControlBase{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
-	}}).SetupWithManager(mgr); err != nil {
+	if err = (&controllers.AkReconciler{
+		ControlBase: utils.ControlBase{
+			Client: mgr.GetClient(),
+			Scheme: mgr.GetScheme(),
+		},
+	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Ak")
 		os.Exit(1)
 	}
-	if err = (&controllers.AkBlueprintReconciler{utils.ControlBase{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
-	}}).SetupWithManager(mgr); err != nil {
+	if err = (&controllers.AkBlueprintReconciler{
+		ControlBase: utils.ControlBase{
+			Client: mgr.GetClient(),
+			Scheme: mgr.GetScheme(),
+		},
+	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "AkBlueprint")
 		os.Exit(1)
 	}
-	if err = (&controllers.OIDCReconciler{utils.ControlBase{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
-	}}).SetupWithManager(mgr); err != nil {
+	if err = (&controllers.OIDCReconciler{
+		ControlBase: utils.ControlBase{
+			Client: mgr.GetClient(),
+			Scheme: mgr.GetScheme(),
+		},
+	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "OIDC")
 		os.Exit(1)
 	}
