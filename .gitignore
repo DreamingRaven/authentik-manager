@@ -6,3 +6,4 @@ charts/**/charts
 export_blueprint*.yaml
 ./*.yaml
 *.cross
+**__debug*
