@@ -13,7 +13,7 @@ import (
 
 // TestRawSimple checks if a list of Raws can be marshaled and unmarshaled
 func TestRawSimpleList(t *testing.T) {
-	byteData := listRawData()
+	byteData := listRawDataTag()
 	tmp := Raw{}
 	t.Log(string(byteData))
 
@@ -31,7 +31,7 @@ func TestRawSimpleList(t *testing.T) {
 
 // TestRawSimple checks if a list of Raws can be marshaled and unmarshaled
 func TestRawSimpleMap(t *testing.T) {
-	byteData := mapRawData()
+	byteData := mapRawDataTag()
 	tmp := Raw{}
 	t.Log(string(byteData))
 
@@ -54,7 +54,7 @@ func checkByteSlicesEqual(t *testing.T, expected, actual []byte) {
 	}
 }
 
-func listRawData() []byte {
+func listRawDataTag() []byte {
 	yamlString := `
 - !Find [me, me2]
 - some random string
@@ -62,7 +62,20 @@ func listRawData() []byte {
 	return []byte(yamlString)
 }
 
-func mapRawData() []byte {
+func MixedRawData() []byte {
+	yamlString := `
+- some:
+	  less:
+	  - something
+	  - smething2
+	  more: !Find [me, me2]
+	  mores: !Find somestring
+- some random string
+`
+	return []byte(yamlString)
+}
+
+func mapRawDataTag() []byte {
 	yamlString := `
 bvv: another random string
 aaa: !Find me

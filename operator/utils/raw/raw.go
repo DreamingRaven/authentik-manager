@@ -113,11 +113,15 @@ func unmarshalYAMLRecurse(value *yaml.Node) error {
 // into the content of the original node otherwise does nothing
 func tagToContent(value *yaml.Node) error {
 	fmt.Printf("Node `%+v`\n", value)
-	// create regex used throught
+	// create regex used throughout
 	re := regexp.MustCompile(`^!\w+`)
 	if re.MatchString(value.Tag) {
-		return fmt.Errorf("Tag `%v` found but not implemented\n", value.Tag)
+		fmt.Printf("Tag `%v` converted\n", value.Tag)
+		// TODO: Handle !!str
+		//value.Kind = yaml.ScalarNode
+		value.Tag = "!!str"
+	} else {
+		fmt.Printf("Tag `%v` ignored\n", value.Tag)
 	}
-	fmt.Printf("Tag `%v` ignored\n", value.Tag)
 	return nil
 }
