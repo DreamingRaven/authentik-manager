@@ -117,11 +117,39 @@ func tagToContent(value *yaml.Node) error {
 	re := regexp.MustCompile(`^!\w+`)
 	if re.MatchString(value.Tag) {
 		fmt.Printf("Tag `%v` converted\n", value.Tag)
-		// TODO: Handle !!str
-		//value.Kind = yaml.ScalarNode
+		// move tag to value and ensure there is never trailing white-space
+		if value.Value != "" {
+			// when the value already exists
+			value.Value = fmt.Sprintf("%v %v", value.Tag, value.Value)
+		} else {
+			// when we are free to create a new value
+			value.Value = value.Tag
+		}
+		// move daughter node values into this nodes values
+		// TODO: recurse over children nodes and extract values
+		values := gatherChildrenValues(value)
+		fmt.Println("gathered values", values)
+		if values != nil {
+			value.Value = fmt.Sprintf("%v %v", value.Value, values)
+		}
+
+		// set other fields
+		value.Kind = yaml.ScalarNode
 		value.Tag = "!!str"
 	} else {
 		fmt.Printf("Tag `%v` ignored\n", value.Tag)
 	}
+	fmt.Printf("Node `%+v`\n", value)
 	return nil
+}
+
+// gatherChildrenValues returns a slice of all the values of the children
+// of the provided node iteratively.
+// Maps do not work with preceding yaml tags so this only works for slices / lists
+func gatherChildrenValues(node *yaml.Node) []string {
+	var values []string
+	for i := 0; i < len(node.Content); i++ {
+		values = append(values, node.Content[i].Value)
+	}
+	return values
 }
