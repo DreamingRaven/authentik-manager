@@ -7,6 +7,7 @@ package raw
 
 import (
 	"fmt"
+	"regexp"
 
 	"gopkg.in/yaml.v3"
 )
@@ -67,12 +68,50 @@ type Raw yaml.Node
 // Go-YAML Special Functions
 ////////////////////////////
 
+// UnmarshalYAML implements the Unmarshaler interface for go-yaml
+// its primary purpose is to preserve tags.
+// This function will use a regex to check if a tag is a yaml tag
+// or if it is an inbuilt go-yaml !!tag. The former are preserved
+// in content the latter are left alone as normal.
+// This function recurses down into sub-nodes to preserve tags
 func (r *Raw) UnmarshalYAML(value *yaml.Node) error {
-	fmt.Printf("Inbound:   %+v\n", value)
-	fmt.Printf("Content 0: %+v\n", value.Content[0])
-	fmt.Printf("Content 1: %+v\n", value.Content[1])
-	fmt.Printf("Outbound:  %+v\n", r)
-	return fmt.Errorf("UnmarshalYAML not implemented")
+	// we have gotten out alive
+	err := r.unmarshalYAMLRecurse(value)
+	if err != nil {
+		return err
+	}
+	r = (*Raw)(value)
+	return nil
+}
+
+// unmarshalYAMLRecurse recurses into sub-nodes and applies the tag logic
+func (r *Raw) unmarshalYAMLRecurse(value *yaml.Node) error {
+	// Check this node for tag and deal with it
+	err := r.TagToContent(value)
+	if err != nil {
+		return err
+	}
+	// recurse into sub-nodes
+	for i := 0; i < len(value.Content); i++ {
+		err := r.unmarshalYAMLRecurse(value.Content[i])
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// TagToContent extracts tags that match the given regex and inserts them as strings
+// into the content of the original node otherwise does nothing
+func (r *Raw) TagToContent(value *yaml.Node) error {
+	fmt.Printf("Node `%+v`\n", value)
+	// create regex used throught
+	re := regexp.MustCompile(`^!\w+`)
+	if re.MatchString(value.Tag) {
+		return fmt.Errorf("Tag `%v` found but not implemented\n", value.Tag)
+	}
+	fmt.Printf("Tag `%v` ignored\n", value.Tag)
+	return nil
 }
 
 func (r *Raw) MarshalYAML() (interface{}, error) {
