@@ -7,21 +7,39 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-
 /////////////////////////////////
 // TESTING LIST OF RAWS WITH TAGS
 /////////////////////////////////
 
 // TestRawSimple checks if a list of Raws can be marshaled and unmarshaled
-func TestRawSimple(t *testing.T) {
+func TestRawSimpleList(t *testing.T) {
 	byteData := listRawData()
-	type tmpStruct struct {
-		Value []Raw `json:"value" yaml:"value"`
+	tmp := Raw{}
+	t.Log(string(byteData))
+
+	decoder := yaml.NewDecoder(bytes.NewReader(byteData))
+	if err := decoder.Decode(&tmp); err != nil {
+		t.Fatalf("Failed to decode YAML: %v", err)
 	}
-	tmp := tmpStruct{}
-	if err := yaml.Unmarshal(byteData, &tmp); err != nil {
-		t.Fatalf("Failed to unmarshal YAML: %v", err)
+
+	byteDataNew, err := yaml.Marshal(&tmp)
+	if err != nil {
+		t.Fatalf("Failed to marshal YAML: %v", err)
 	}
+	checkByteSlicesEqual(t, byteData, byteDataNew)
+}
+
+// TestRawSimple checks if a list of Raws can be marshaled and unmarshaled
+func TestRawSimpleMap(t *testing.T) {
+	byteData := mapRawData()
+	tmp := Raw{}
+	t.Log(string(byteData))
+
+	decoder := yaml.NewDecoder(bytes.NewReader(byteData))
+	if err := decoder.Decode(&tmp); err != nil {
+		t.Fatalf("Failed to decode YAML: %v", err)
+	}
+
 	byteDataNew, err := yaml.Marshal(&tmp)
 	if err != nil {
 		t.Fatalf("Failed to marshal YAML: %v", err)
@@ -38,10 +56,16 @@ func checkByteSlicesEqual(t *testing.T, expected, actual []byte) {
 
 func listRawData() []byte {
 	yamlString := `
-value:
-- !Find [hello world]
-- !Find [hello world]
-- !Find [hello world]
+- !Find [me, me2]
+- some random string
+`
+	return []byte(yamlString)
+}
+
+func mapRawData() []byte {
+	yamlString := `
+bvv: another random string
+aaa: !Find me
 `
 	return []byte(yamlString)
 }

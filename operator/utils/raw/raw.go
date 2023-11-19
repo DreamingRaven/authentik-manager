@@ -68,6 +68,10 @@ type Raw yaml.Node
 ////////////////////////////
 
 func (r *Raw) UnmarshalYAML(value *yaml.Node) error {
+	fmt.Printf("Inbound:   %+v\n", value)
+	fmt.Printf("Content 0: %+v\n", value.Content[0])
+	fmt.Printf("Content 1: %+v\n", value.Content[1])
+	fmt.Printf("Outbound:  %+v\n", r)
 	return fmt.Errorf("UnmarshalYAML not implemented")
 }
 
