@@ -84,8 +84,16 @@ func (r *Raw) UnmarshalYAML(value *yaml.Node) error {
 	return nil
 }
 
+// MarshalYAML implements the Marshaler interface for go-yaml
+// this piggybacks from the existing yaml.Node implementation
+// simply converting Raw to yaml.Node.
 func (r *Raw) MarshalYAML() (interface{}, error) {
-	return nil, fmt.Errorf("MarshalYAML not implemented")
+	tmp := (*yaml.Node)(r)
+	byteData, err := yaml.Marshal(tmp)
+	if err != nil {
+		return nil, err
+	}
+	return byteData, err
 }
 
 ////////////////////
@@ -112,11 +120,11 @@ func unmarshalYAMLRecurse(value *yaml.Node) error {
 // TagToContent extracts tags that match the given regex and inserts them as strings
 // into the content of the original node otherwise does nothing
 func tagToContent(value *yaml.Node) error {
-	fmt.Printf("Node `%+v`\n", value)
+	//fmt.Printf("Node `%+v`\n", value)
 	// create regex used throughout
 	re := regexp.MustCompile(`^!\w+`)
 	if re.MatchString(value.Tag) {
-		fmt.Printf("Tag `%v` converted\n", value.Tag)
+		//fmt.Printf("Tag `%v` converted\n", value.Tag)
 		// move tag to value and ensure there is never trailing white-space
 		if value.Value != "" {
 			// when the value already exists
@@ -128,7 +136,7 @@ func tagToContent(value *yaml.Node) error {
 		// move daughter node values into this nodes values
 		// TODO: recurse over children nodes and extract values
 		values := gatherChildrenValues(value)
-		fmt.Println("gathered values", values)
+		//fmt.Println("gathered values", values)
 		if values != nil {
 			value.Value = fmt.Sprintf("%v %v", value.Value, values)
 		}
@@ -137,9 +145,9 @@ func tagToContent(value *yaml.Node) error {
 		value.Kind = yaml.ScalarNode
 		value.Tag = "!!str"
 	} else {
-		fmt.Printf("Tag `%v` ignored\n", value.Tag)
+		//fmt.Printf("Tag `%v` ignored\n", value.Tag)
 	}
-	fmt.Printf("Node `%+v`\n", value)
+	//fmt.Printf("Node `%+v`\n", value)
 	return nil
 }
 

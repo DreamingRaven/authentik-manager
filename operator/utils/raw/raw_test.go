@@ -50,6 +50,8 @@ func TestRawSimpleMap(t *testing.T) {
 // function to check if two byte slices are equal or t.fatalf
 func checkByteSlicesEqual(t *testing.T, expected, actual []byte) {
 	if !bytes.Equal(expected, actual) {
+		t.Logf("old: %v", string(expected))
+		t.Logf("new: %v", string(actual))
 		t.Fatalf("Byte slices are not equal. Expected: %v, Actual: %v", expected, actual)
 	}
 }
