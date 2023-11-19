@@ -76,7 +76,7 @@ type Raw yaml.Node
 // This function recurses down into sub-nodes to preserve tags
 func (r *Raw) UnmarshalYAML(value *yaml.Node) error {
 	// we have gotten out alive
-	err := r.unmarshalYAMLRecurse(value)
+	err := unmarshalYAMLRecurse(value)
 	if err != nil {
 		return err
 	}
@@ -84,16 +84,24 @@ func (r *Raw) UnmarshalYAML(value *yaml.Node) error {
 	return nil
 }
 
+func (r *Raw) MarshalYAML() (interface{}, error) {
+	return nil, fmt.Errorf("MarshalYAML not implemented")
+}
+
+////////////////////
+// Private Functions
+////////////////////
+
 // unmarshalYAMLRecurse recurses into sub-nodes and applies the tag logic
-func (r *Raw) unmarshalYAMLRecurse(value *yaml.Node) error {
+func unmarshalYAMLRecurse(value *yaml.Node) error {
 	// Check this node for tag and deal with it
-	err := r.TagToContent(value)
+	err := tagToContent(value)
 	if err != nil {
 		return err
 	}
 	// recurse into sub-nodes
 	for i := 0; i < len(value.Content); i++ {
-		err := r.unmarshalYAMLRecurse(value.Content[i])
+		err := unmarshalYAMLRecurse(value.Content[i])
 		if err != nil {
 			return err
 		}
@@ -103,7 +111,7 @@ func (r *Raw) unmarshalYAMLRecurse(value *yaml.Node) error {
 
 // TagToContent extracts tags that match the given regex and inserts them as strings
 // into the content of the original node otherwise does nothing
-func (r *Raw) TagToContent(value *yaml.Node) error {
+func tagToContent(value *yaml.Node) error {
 	fmt.Printf("Node `%+v`\n", value)
 	// create regex used throught
 	re := regexp.MustCompile(`^!\w+`)
@@ -112,8 +120,4 @@ func (r *Raw) TagToContent(value *yaml.Node) error {
 	}
 	fmt.Printf("Tag `%v` ignored\n", value.Tag)
 	return nil
-}
-
-func (r *Raw) MarshalYAML() (interface{}, error) {
-	return nil, fmt.Errorf("MarshalYAML not implemented")
 }
