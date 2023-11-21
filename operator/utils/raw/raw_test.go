@@ -14,15 +14,15 @@ import (
 // TestRawSimple checks if a list of Raws can be marshaled and unmarshaled
 func TestRawSimpleList(t *testing.T) {
 	byteData := listRawDataTag()
-	tmp := Raw{}
+	tmp := &Raw{}
 	t.Log(string(byteData))
 
 	decoder := yaml.NewDecoder(bytes.NewReader(byteData))
-	if err := decoder.Decode(&tmp); err != nil {
+	if err := decoder.Decode(tmp); err != nil {
 		t.Fatalf("Failed to decode YAML: %v", err)
 	}
 
-	byteDataNew, err := yaml.Marshal(&tmp)
+	byteDataNew, err := yaml.Marshal(tmp)
 	if err != nil {
 		t.Fatalf("Failed to marshal YAML: %v", err)
 	}
@@ -32,15 +32,15 @@ func TestRawSimpleList(t *testing.T) {
 // TestRawSimple checks if a list of Raws can be marshaled and unmarshaled
 func TestRawSimpleMap(t *testing.T) {
 	byteData := mapRawDataTag()
-	tmp := Raw{}
+	tmp := &Raw{}
 	t.Log(string(byteData))
 
 	decoder := yaml.NewDecoder(bytes.NewReader(byteData))
-	if err := decoder.Decode(&tmp); err != nil {
+	if err := decoder.Decode(tmp); err != nil {
 		t.Fatalf("Failed to decode YAML: %v", err)
 	}
 
-	byteDataNew, err := yaml.Marshal(&tmp)
+	byteDataNew, err := yaml.Marshal(tmp)
 	if err != nil {
 		t.Fatalf("Failed to marshal YAML: %v", err)
 	}

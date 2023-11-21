@@ -80,7 +80,8 @@ func (r *Raw) UnmarshalYAML(value *yaml.Node) error {
 	if err != nil {
 		return err
 	}
-	r = (*Raw)(value)
+	*r = Raw(*value) // update the actual content of raw by dereference
+	fmt.Printf("UnmarshalYAML: %v\n", r)
 	return nil
 }
 
@@ -88,12 +89,28 @@ func (r *Raw) UnmarshalYAML(value *yaml.Node) error {
 // this piggybacks from the existing yaml.Node implementation
 // simply converting Raw to yaml.Node.
 func (r *Raw) MarshalYAML() (interface{}, error) {
-	tmp := (*yaml.Node)(r)
+
+	fmt.Printf("MarshalYAML: %v\n", r)
+	tmp := yaml.Node{
+		Kind:        r.Kind,
+		Style:       r.Style,
+		Tag:         r.Tag,
+		Value:       r.Value,
+		Anchor:      r.Anchor,
+		Alias:       r.Alias,
+		Content:     r.Content,
+		HeadComment: r.HeadComment,
+		LineComment: r.LineComment,
+		FootComment: r.FootComment,
+		Line:        r.Line,
+		Column:      r.Column,
+	}
 	byteData, err := yaml.Marshal(tmp)
 	if err != nil {
 		return nil, err
 	}
-	return byteData, err
+	fmt.Printf("MarshalYAML: %v\n", string(byteData))
+	return string(byteData), nil
 }
 
 ////////////////////
@@ -144,6 +161,7 @@ func tagToContent(value *yaml.Node) error {
 		// set other fields
 		value.Kind = yaml.ScalarNode
 		value.Tag = "!!str"
+		fmt.Printf("Node `%+v`\n", value)
 	} else {
 		//fmt.Printf("Tag `%v` ignored\n", value.Tag)
 	}
