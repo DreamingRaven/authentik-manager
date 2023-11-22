@@ -26,6 +26,12 @@ func TestRawSimpleList(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to marshal YAML: %v", err)
 	}
+
+	//err = os.WriteFile("test-list.yaml", byteDataNew, 0644)
+	//if err != nil {
+	//	t.Fatalf("Failed to write YAML: %v", err)
+	//}
+
 	checkByteSlicesEqual(t, byteData, byteDataNew)
 }
 
@@ -58,6 +64,7 @@ func checkByteSlicesEqual(t *testing.T, expected, actual []byte) {
 
 func listRawDataTag() []byte {
 	yamlString := `
+root:
 - !Find [me, me2]
 - some random string
 `
@@ -66,6 +73,7 @@ func listRawDataTag() []byte {
 
 func MixedRawData() []byte {
 	yamlString := `
+root:
 - some:
 	  less:
 	  - something
@@ -79,8 +87,9 @@ func MixedRawData() []byte {
 
 func mapRawDataTag() []byte {
 	yamlString := `
-bvv: another random string
-aaa: !Find me
+root:
+  bvv: another random string
+  aaa: !Find me
 `
 	return []byte(yamlString)
 }

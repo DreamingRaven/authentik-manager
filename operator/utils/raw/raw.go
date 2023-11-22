@@ -91,21 +91,8 @@ func (r *Raw) UnmarshalYAML(value *yaml.Node) error {
 func (r *Raw) MarshalYAML() (interface{}, error) {
 
 	fmt.Printf("MarshalYAML: %v\n", r)
-	tmp := yaml.Node{
-		Kind:        r.Kind,
-		Style:       r.Style,
-		Tag:         r.Tag,
-		Value:       r.Value,
-		Anchor:      r.Anchor,
-		Alias:       r.Alias,
-		Content:     r.Content,
-		HeadComment: r.HeadComment,
-		LineComment: r.LineComment,
-		FootComment: r.FootComment,
-		Line:        r.Line,
-		Column:      r.Column,
-	}
-	byteData, err := yaml.Marshal(tmp)
+	var tmp yaml.Node = yaml.Node(*r)
+	byteData, err := yaml.Marshal(&tmp)
 	if err != nil {
 		return nil, err
 	}
@@ -161,9 +148,10 @@ func tagToContent(value *yaml.Node) error {
 		// set other fields
 		value.Kind = yaml.ScalarNode
 		value.Tag = "!!str"
+		value.Style = yaml.FlowStyle
 		fmt.Printf("Node `%+v`\n", value)
 	} else {
-		//fmt.Printf("Tag `%v` ignored\n", value.Tag)
+		fmt.Printf("Tag `%v` ignored `%+v`\n", value.Tag, value)
 	}
 	//fmt.Printf("Node `%+v`\n", value)
 	return nil
