@@ -11,10 +11,18 @@ import (
 // TESTING LIST OF RAWS WITH TAGS
 /////////////////////////////////
 
+type RawListStruct struct {
+	Root *Raw `yaml:"root"`
+}
+
+type RawMapStruct struct {
+	Root *Raw `yaml:"root"`
+}
+
 // TestRawSimple checks if a list of Raws can be marshaled and unmarshaled
 func TestRawSimpleList(t *testing.T) {
 	byteData := listRawDataTag()
-	tmp := &Raw{}
+	tmp := &RawListStruct{}
 	t.Log(string(byteData))
 
 	decoder := yaml.NewDecoder(bytes.NewReader(byteData))
@@ -38,7 +46,7 @@ func TestRawSimpleList(t *testing.T) {
 // TestRawSimple checks if a list of Raws can be marshaled and unmarshaled
 func TestRawSimpleMap(t *testing.T) {
 	byteData := mapRawDataTag()
-	tmp := &Raw{}
+	tmp := &RawMapStruct{}
 	t.Log(string(byteData))
 
 	decoder := yaml.NewDecoder(bytes.NewReader(byteData))
