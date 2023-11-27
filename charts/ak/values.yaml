@@ -220,7 +220,7 @@ authentik:
       value: info
     - name: AUTHENTIK_DISABLE_UPDATE_CHECK
       value: false
-    - name: AUTHENTIK_ERROR_REPORTING
+    - name: AUTHENTIK_ERROR_REPORTING__ENABLED
       value: false
     - name: AUTHENTIK_AVATARS
       value: gravatar
