@@ -71,17 +71,15 @@ func checkByteSlicesEqual(t *testing.T, expected, actual []byte) {
 }
 
 func listRawDataTag() []byte {
-	yamlString := `
-root:
-- !Find [me, me2]
-- some random string
+	yamlString := `root:
+    - '!Find [me, me2]'
+    - some random string
 `
 	return []byte(yamlString)
 }
 
 func MixedRawData() []byte {
-	yamlString := `
-root:
+	yamlString := `root:
 - some:
 	  less:
 	  - something
@@ -94,10 +92,9 @@ root:
 }
 
 func mapRawDataTag() []byte {
-	yamlString := `
-root:
-  bvv: another random string
-  aaa: !Find me
+	yamlString := `root:
+    aaa: '!Find me'
+    bvv: another random string
 `
 	return []byte(yamlString)
 }

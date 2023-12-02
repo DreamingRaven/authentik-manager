@@ -75,14 +75,12 @@ type Raw yaml.Node
 // in content the latter are left alone as normal.
 // This function recurses down into sub-nodes to preserve tags
 func (r *Raw) UnmarshalYAML(value *yaml.Node) error {
-	fmt.Printf("UnmarshalYAML IN: %v\n", value)
 	// we have gotten out alive
 	err := unmarshalYAMLRecurse(value)
 	if err != nil {
 		return err
 	}
 	*r = Raw(*value) // update the actual content of raw by dereference
-	fmt.Printf("UnmarshalYAML OUT: %v\n", r)
 	return nil
 }
 
@@ -135,7 +133,7 @@ func (r *Raw) MarshalChildren(value *yaml.Node) (interface{}, error) {
 // MarshalMap delegation function to make types easier to handle
 func (r *Raw) MarshalMap(value *yaml.Node) (map[string]interface{}, error) {
 	tmp := make(map[string]interface{})
-	// loop over map i += 2 to since we have key and value as indipendent nodes in mapping nodes
+	// loop over map i += 2 since we have key and value as 1D slice in Content
 	for i := 1; i < len(value.Content); i += 2 {
 		sub, err := r.MarshalChildren(value.Content[i])
 		if err != nil {
@@ -157,21 +155,6 @@ func (r *Raw) MarshalList(value *yaml.Node) ([]interface{}, error) {
 		tmp = append(tmp, sub)
 	}
 	return tmp, nil
-}
-
-// FilterPipe gets the first instance of the | symbol in the message
-// and replaces it with nothing returning the new bytes. This is used
-// to turn a yaml literal block into a map. This does nothing if no
-// pipe is found.
-// defunkt since pipe is not created by the marshaller
-func (r *Raw) FilterPipe(msg []byte) []byte {
-	fmt.Printf("FilterPipe: %v\n", string(msg))
-	newMsg := []byte{}
-	// regex replace first pipe symbol
-	re := regexp.MustCompile(`\|`)
-	newMsg = re.ReplaceAll(msg, []byte(""))
-	fmt.Printf("FilterPipe: %v\n", string(newMsg))
-	return newMsg
 }
 
 ////////////////////
@@ -223,7 +206,7 @@ func tagToContent(value *yaml.Node) error {
 		value.Kind = yaml.ScalarNode
 		value.Tag = "!!str"
 		value.Style = yaml.FlowStyle
-		fmt.Printf("Node `%+v`\n", value)
+		//fmt.Printf("Node `%+v`\n", value)
 	} else {
 		fmt.Printf("Tag `%v` ignored `%+v`\n", value.Tag, value)
 	}
