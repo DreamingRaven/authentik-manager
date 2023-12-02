@@ -134,14 +134,14 @@ func (r *Raw) MarshalChildren(value *yaml.Node) (interface{}, error) {
 
 // MarshalMap delegation function to make types easier to handle
 func (r *Raw) MarshalMap(value *yaml.Node) (map[string]interface{}, error) {
-	//var tmp map[string]interface{}
 	tmp := make(map[string]interface{})
-	for i := 0; i < len(value.Content); i++ {
+	// loop over map i += 2 to since we have key and value as indipendent nodes in mapping nodes
+	for i := 1; i < len(value.Content); i += 2 {
 		sub, err := r.MarshalChildren(value.Content[i])
 		if err != nil {
 			return nil, err
 		}
-		tmp[value.Content[i].Value] = sub
+		tmp[value.Content[i-1].Value] = sub
 	}
 	return tmp, nil
 }
