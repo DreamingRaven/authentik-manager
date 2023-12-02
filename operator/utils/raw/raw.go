@@ -101,60 +101,11 @@ func (r *Raw) UnmarshalYAML(value *yaml.Node) error {
 func (r *Raw) MarshalYAML() (interface{}, error) {
 	var tmp yaml.Node = yaml.Node(*r)
 	// Marshal the children recursively into intermediate representation
-	intermediate, err := r.MarshalChildren(&tmp)
+	intermediate, err := r.marshalChildren(&tmp)
 	if err != nil {
 		return nil, err
 	}
 	return intermediate, nil
-}
-
-// MarshalChildren is a recurive function that partially marshalls the children
-// into a map[string]interface{}, a []interface{}, or a str literal value
-// from a given yaml.Node based on its tags.
-// This is necessary as go-yaml expects this as return from MarshalYAML
-// otherwise if you go straight to string it will treat everything as a yaml
-// multiline string.
-func (r *Raw) MarshalChildren(value *yaml.Node) (interface{}, error) {
-	// the atomic case
-	if value.Kind == yaml.ScalarNode {
-		return value.Value, nil
-	}
-	// the map case
-	if value.Kind == yaml.MappingNode {
-		return r.MarshalMap(value)
-	}
-	// the list case
-	if value.Kind == yaml.SequenceNode {
-		return r.MarshalList(value)
-	}
-	return "", fmt.Errorf("not implemented for node kind: %v", value.Kind)
-}
-
-// MarshalMap delegation function to make types easier to handle
-func (r *Raw) MarshalMap(value *yaml.Node) (map[string]interface{}, error) {
-	tmp := make(map[string]interface{})
-	// loop over map i += 2 since we have key and value as 1D slice in Content
-	for i := 1; i < len(value.Content); i += 2 {
-		sub, err := r.MarshalChildren(value.Content[i])
-		if err != nil {
-			return nil, err
-		}
-		tmp[value.Content[i-1].Value] = sub
-	}
-	return tmp, nil
-}
-
-// MarshalList delegation function to make types easier to handle
-func (r *Raw) MarshalList(value *yaml.Node) ([]interface{}, error) {
-	var tmp []interface{}
-	for i := 0; i < len(value.Content); i++ {
-		sub, err := r.MarshalChildren(value.Content[i])
-		if err != nil {
-			return nil, err
-		}
-		tmp = append(tmp, sub)
-	}
-	return tmp, nil
 }
 
 ////////////////////
@@ -223,4 +174,53 @@ func gatherChildrenValues(node *yaml.Node) []string {
 		values = append(values, node.Content[i].Value)
 	}
 	return values
+}
+
+// MarshalChildren is a recurive function that partially marshalls the children
+// into a map[string]interface{}, a []interface{}, or a str literal value
+// from a given yaml.Node based on its tags.
+// This is necessary as go-yaml expects this as return from MarshalYAML
+// otherwise if you go straight to string it will treat everything as a yaml
+// multiline string.
+func (r *Raw) marshalChildren(value *yaml.Node) (interface{}, error) {
+	// the atomic case
+	if value.Kind == yaml.ScalarNode {
+		return value.Value, nil
+	}
+	// the map case
+	if value.Kind == yaml.MappingNode {
+		return r.marshalMap(value)
+	}
+	// the list case
+	if value.Kind == yaml.SequenceNode {
+		return r.marshalList(value)
+	}
+	return "", fmt.Errorf("not implemented for node kind: %v", value.Kind)
+}
+
+// MarshalMap delegation function to make types easier to handle
+func (r *Raw) marshalMap(value *yaml.Node) (map[string]interface{}, error) {
+	tmp := make(map[string]interface{})
+	// loop over map i += 2 since we have key and value as 1D slice in Content
+	for i := 1; i < len(value.Content); i += 2 {
+		sub, err := r.marshalChildren(value.Content[i])
+		if err != nil {
+			return nil, err
+		}
+		tmp[value.Content[i-1].Value] = sub
+	}
+	return tmp, nil
+}
+
+// MarshalList delegation function to make types easier to handle
+func (r *Raw) marshalList(value *yaml.Node) ([]interface{}, error) {
+	var tmp []interface{}
+	for i := 0; i < len(value.Content); i++ {
+		sub, err := r.marshalChildren(value.Content[i])
+		if err != nil {
+			return nil, err
+		}
+		tmp = append(tmp, sub)
+	}
+	return tmp, nil
 }
