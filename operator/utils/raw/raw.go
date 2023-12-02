@@ -75,29 +75,103 @@ type Raw yaml.Node
 // in content the latter are left alone as normal.
 // This function recurses down into sub-nodes to preserve tags
 func (r *Raw) UnmarshalYAML(value *yaml.Node) error {
+	fmt.Printf("UnmarshalYAML IN: %v\n", value)
 	// we have gotten out alive
 	err := unmarshalYAMLRecurse(value)
 	if err != nil {
 		return err
 	}
 	*r = Raw(*value) // update the actual content of raw by dereference
-	fmt.Printf("UnmarshalYAML: %v\n", r)
+	fmt.Printf("UnmarshalYAML OUT: %v\n", r)
 	return nil
 }
 
 // MarshalYAML implements the Marshaler interface for go-yaml
-// this piggybacks from the existing yaml.Node implementation
-// simply converting Raw to yaml.Node.
+// I really dont like this interface for go-yaml, and is undocumented.
+// In short the interface returned can can be one of 3 things:
+// - a string
+// - a map[string]interface{}
+// - a []interface{}
+// This depends on the yamly node kind, and is the now another representation
+// for this abstraction. We now have:
+// - original file: bytes
+// - go-yaml node: yaml.Node
+// - go-yaml intermediate format: map[string]interface{} | []interface{} | string
+// - custom type: Raw
+// All to prevent custom yaml tags from authentik getting mangled,
+// since there was no other way.
 func (r *Raw) MarshalYAML() (interface{}, error) {
-
-	fmt.Printf("MarshalYAML: %v\n", r)
 	var tmp yaml.Node = yaml.Node(*r)
-	byteData, err := yaml.Marshal(&tmp)
+	// Marshal the children recursively into intermediate representation
+	intermediate, err := r.MarshalChildren(&tmp)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("MarshalYAML: %v\n", string(byteData))
-	return string(byteData), nil
+	return intermediate, nil
+}
+
+// MarshalChildren is a recurive function that partially marshalls the children
+// into a map[string]interface{}, a []interface{}, or a str literal value
+// from a given yaml.Node based on its tags.
+// This is necessary as go-yaml expects this as return from MarshalYAML
+// otherwise if you go straight to string it will treat everything as a yaml
+// multiline string.
+func (r *Raw) MarshalChildren(value *yaml.Node) (interface{}, error) {
+	// the atomic case
+	if value.Kind == yaml.ScalarNode {
+		return value.Value, nil
+	}
+	// the map case
+	if value.Kind == yaml.MappingNode {
+		return r.MarshalMap(value)
+	}
+	// the list case
+	if value.Kind == yaml.SequenceNode {
+		return r.MarshalList(value)
+	}
+	return "", fmt.Errorf("not implemented for node kind: %v", value.Kind)
+}
+
+// MarshalMap delegation function to make types easier to handle
+func (r *Raw) MarshalMap(value *yaml.Node) (map[string]interface{}, error) {
+	//var tmp map[string]interface{}
+	tmp := make(map[string]interface{})
+	for i := 0; i < len(value.Content); i++ {
+		sub, err := r.MarshalChildren(value.Content[i])
+		if err != nil {
+			return nil, err
+		}
+		tmp[value.Content[i].Value] = sub
+	}
+	return tmp, nil
+}
+
+// MarshalList delegation function to make types easier to handle
+func (r *Raw) MarshalList(value *yaml.Node) ([]interface{}, error) {
+	var tmp []interface{}
+	for i := 0; i < len(value.Content); i++ {
+		sub, err := r.MarshalChildren(value.Content[i])
+		if err != nil {
+			return nil, err
+		}
+		tmp = append(tmp, sub)
+	}
+	return tmp, nil
+}
+
+// FilterPipe gets the first instance of the | symbol in the message
+// and replaces it with nothing returning the new bytes. This is used
+// to turn a yaml literal block into a map. This does nothing if no
+// pipe is found.
+// defunkt since pipe is not created by the marshaller
+func (r *Raw) FilterPipe(msg []byte) []byte {
+	fmt.Printf("FilterPipe: %v\n", string(msg))
+	newMsg := []byte{}
+	// regex replace first pipe symbol
+	re := regexp.MustCompile(`\|`)
+	newMsg = re.ReplaceAll(msg, []byte(""))
+	fmt.Printf("FilterPipe: %v\n", string(newMsg))
+	return newMsg
 }
 
 ////////////////////
