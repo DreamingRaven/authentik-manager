@@ -16,6 +16,8 @@ This work is still under heavy development, but please submit an issue if you do
 |---------|---------------------------------------------------------------------------------------------------------------------------------|
 | master  | [https://gitlab.com/GeorgeRaven/authentik-manager/badges/master/pipeline.svg](https://georgeraven.gitlab.io/authentik-manager/) |
 
+[![docs](https://gitlab.com/GeorgeRaven/authentik-manager/badges/master/pipeline.svg)](https://georgeraven.gitlab.io/authentik-manager/)
+
 ## At a Glimpse
 
 ```mermaid
