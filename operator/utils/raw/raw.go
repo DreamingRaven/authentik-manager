@@ -6,6 +6,7 @@
 package raw
 
 import (
+	"encoding/json"
 	"fmt"
 	"regexp"
 
@@ -68,12 +69,28 @@ type Raw yaml_v3.Node
 // Json Special Functions
 /////////////////////////
 
+// MarshalJSON is one of two json interfaces to serialise and deserialise.
+// This takes a go-yaml node and serialises it to json.
 func (r *Raw) MarshalJSON() ([]byte, error) {
-	panic("Raw MarshalJSON not implemented")
+	mp, err := r.MarshalYAML()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(mp)
 }
 
+// UnmarshalJSON is one of two json interfaces to serialise and deserialise.
+// This takes a json byte array and deserialises it to a go-yaml node
 func (r *Raw) UnmarshalJSON(data []byte) error {
-	panic("Raw UnmarshalJSON not implemented")
+	var jsonObj interface{}
+	if err := json.Unmarshal(data, &jsonObj); err != nil {
+		return err
+	}
+	yamlData, err := yaml_v3.Marshal(jsonObj)
+	if err != nil {
+		return err
+	}
+	return yaml_v3.Unmarshal(yamlData, r)
 }
 
 ////////////////////////////
