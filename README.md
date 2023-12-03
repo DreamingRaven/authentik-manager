@@ -12,18 +12,9 @@ This work is still under heavy development, but please submit an issue if you do
 
 ## Documentation Versions
 
-.. |pages-default| image:: https://gitlab.com/GeorgeRaven/authentik-manager/badges/master/pipeline.svg
-  :target: https://georgeraven.gitlab.io/authentik-manager/
-  :alt: Documentation status (master branch)
-
-.. list-table::
-    :widths: 25 30
-    :header-rows: 1
-
-    * - Version
-      - Badge to Documentation
-    * - master
-      - |pages-default|
+| Version | Docs                                                                                                                            |
+|---------|---------------------------------------------------------------------------------------------------------------------------------|
+| master  | [https://gitlab.com/GeorgeRaven/authentik-manager/badges/master/pipeline.svg](https://georgeraven.gitlab.io/authentik-manager/) |
 
 ## At a Glimpse
 
