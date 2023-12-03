@@ -1,10 +1,7 @@
 # Authentik Manager
 
-.. |akm_ver| image:: https://img.shields.io/gitlab/v/tag/41806964?color=teal&label=AKM&sort=semver&style=for-the-badge
-  :target: https://gitlab.com/GeorgeRaven/authentik-manager
-  :alt: GitLab tag (latest by SemVer)
-
-|akm_ver|
+[![docs](https://gitlab.com/GeorgeRaven/authentik-manager/badges/master/pipeline.svg)](https://georgeraven.gitlab.io/authentik-manager/)
+[![GitLab](https://img.shields.io/gitlab/v/tag/41806964?color=teal&label=AKM&sort=semver&style=for-the-badge)](https://gitlab.com/GeorgeRaven/authentik-manager)
 
 Authentik-Manager (AKM) is a hybrid operator that deploys, configures, and manages the life-cycle of authentik, declaratively. This operator is primarily geared towards GitOps and enabling authentik to be consistently, reproducibly, and collaboratively managed.
 
@@ -16,7 +13,6 @@ This work is still under heavy development, but please submit an issue if you do
 |---------|---------------------------------------------------------------------------------------------------------------------------------|
 | master  | [https://gitlab.com/GeorgeRaven/authentik-manager/badges/master/pipeline.svg](https://georgeraven.gitlab.io/authentik-manager/) |
 
-[![docs](https://gitlab.com/GeorgeRaven/authentik-manager/badges/master/pipeline.svg)](https://georgeraven.gitlab.io/authentik-manager/)
 
 ## At a Glimpse
 
