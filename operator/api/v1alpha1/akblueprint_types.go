@@ -11,8 +11,7 @@ You may obtain a copy of the License in the project root (LICENSE) or at
 package v1alpha1
 
 import (
-	"encoding/json"
-
+	"gitlab.com/GeorgeRaven/authentik-manager/operator/utils/raw"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -55,7 +54,7 @@ type BP struct {
 	// +kubebuilder:validation:Schemaless
 
 	// Context (optional) authentik default context (whatever that means)
-	Context json.RawMessage `json:"context,omitempty"`
+	Context raw.Raw `json:"context,omitempty"`
 
 	// +kubebuilder:validation:MinItems=1
 
@@ -71,7 +70,7 @@ type BPMeta struct {
 
 	// Labels (optional) key-value store for special labels
 	// https://goauthentik.io/developer-docs/blueprints/v1/structure#special-labels
-	Labels json.RawMessage `json:"labels,omitempty"`
+	Labels raw.Raw `json:"labels,omitempty"`
 
 	// Name of the authentik blueprint for authentik to register
 	Name string `json:"name"`
@@ -100,7 +99,7 @@ type BPModel struct {
 	//+kubebuilder:validation:Schemaless
 
 	// Identifiers (optional) key-value identifiers to allow filtering of this stage, and identifying it
-	Identifiers json.RawMessage `json:"identifiers,omitempty"`
+	Identifiers raw.Raw `json:"identifiers,omitempty"`
 
 	// Id (optional) is similar to identifiers except is optional and is just an ID to reference this model using !KeyOf syntax in authentik
 	Id string `json:"id,omitempty"`
@@ -109,7 +108,7 @@ type BPModel struct {
 	//+kubebuilder:validation:Schemaless
 
 	// Attrs is a map of settings / options / overrides of the defaults of this model
-	Attrs json.RawMessage `json:"attrs,omitempty"`
+	Attrs raw.Raw `json:"attrs,omitempty"`
 }
 
 // AkBlueprintStatus defines the observed state of AkBlueprint
