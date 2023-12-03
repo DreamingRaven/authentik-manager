@@ -118,6 +118,7 @@ import (
 	akmv1a1 "gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1"
 	akmv1alpha1 "gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1"
 	"gitlab.com/GeorgeRaven/authentik-manager/operator/utils"
+	"gitlab.com/GeorgeRaven/authentik-manager/operator/utils/raw"
 )
 
 // OIDCReconciler reconciles a OIDC object
@@ -270,6 +271,13 @@ func (r *OIDCReconciler) BlueprintFromOIDC(crd *akmv1a1.OIDC) ([]*akmv1a1.AkBlue
 	if err != nil {
 		return nil, err
 	}
+	// unmarshal app identifier into raw.Raw
+	aIRaw := raw.Raw{}
+	err = json.Unmarshal(appIdentifierBytes, &aIRaw)
+	if err != nil {
+		return nil, err
+	}
+
 	//TODO: instead of instantiating like so lets turn this into a propper struct
 	// to allow for consistency and re-use, especially when any changes are necessary
 	// it will notify us of where we need to change in code references a lot sooner.
@@ -281,20 +289,32 @@ func (r *OIDCReconciler) BlueprintFromOIDC(crd *akmv1a1.OIDC) ([]*akmv1a1.AkBlue
 	appAttrs["provider"] = fmt.Sprintf("!KeyOf %v", provName)
 	appAttrs["slug"] = crd.Namespace
 	appAttrsBytes, err := json.Marshal(appAttrs)
+	// unmarshall app attrs into raw.Raw
+	aARaw := raw.Raw{}
+	err = json.Unmarshal(appAttrsBytes, &aARaw)
+	if err != nil {
+		return nil, err
+	}
 
 	// authentik "application" model
 	entries[0] = akmv1a1.BPModel{
 		Model:       "authentik_core.application",
 		State:       "present",
 		Id:          appName,
-		Identifiers: json.RawMessage(appIdentifierBytes),
-		Attrs:       json.RawMessage(appAttrsBytes),
+		Identifiers: aIRaw,
+		Attrs:       aARaw,
 	}
 
 	// provider meta
 	provIdentifier := make(map[string]interface{})
 	provIdentifier["slug"] = provName
 	provIdentifierBytes, err := json.Marshal(provIdentifier)
+	if err != nil {
+		return nil, err
+	}
+	// unmarshal provider identifier into raw.Raw
+	pIRaw := raw.Raw{}
+	err = json.Unmarshal(provIdentifierBytes, &pIRaw)
 	if err != nil {
 		return nil, err
 	}
@@ -337,14 +357,23 @@ func (r *OIDCReconciler) BlueprintFromOIDC(crd *akmv1a1.OIDC) ([]*akmv1a1.AkBlue
 		"sub_mode": crd.Spec.SubMode,
 	}
 	provAttrsBytes, err := json.Marshal(provAttrs)
+	if err != nil {
+		return nil, err
+	}
+	// unmarshall provider attrs into raw.Raw
+	pARaw := raw.Raw{}
+	err = json.Unmarshal(provAttrsBytes, &pARaw)
+	if err != nil {
+		return nil, err
+	}
 
 	// authentik "provider" model
 	entries[1] = akmv1a1.BPModel{
 		Model:       "authentik_providers_oauth2.oauth2provider",
 		State:       "present",
 		Id:          provName,
-		Identifiers: json.RawMessage(provIdentifierBytes),
-		Attrs:       json.RawMessage(provAttrsBytes),
+		Identifiers: pIRaw,
+		Attrs:       pARaw,
 	}
 
 	var blueprints = make([]*akmv1a1.AkBlueprint, len(entries))
