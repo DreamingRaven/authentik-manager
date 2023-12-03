@@ -1,5 +1,4 @@
-Authentik Manager
-=================
+# Authentik Manager
 
 .. |akm_ver| image:: https://img.shields.io/gitlab/v/tag/41806964?color=teal&label=AKM&sort=semver&style=for-the-badge
   :target: https://gitlab.com/GeorgeRaven/authentik-manager
@@ -11,8 +10,7 @@ Authentik-Manager (AKM) is a hybrid operator that deploys, configures, and manag
 
 This work is still under heavy development, but please submit an issue if you do try it out, and let us know if there are any problems.
 
-Documentation Versions
-++++++++++++++++++++++
+## Documentation Versions
 
 .. |pages-default| image:: https://gitlab.com/GeorgeRaven/authentik-manager/badges/master/pipeline.svg
   :target: https://georgeraven.gitlab.io/authentik-manager/
@@ -27,8 +25,7 @@ Documentation Versions
     * - master
       - |pages-default|
 
-At a Glimpse
-++++++++++++
+## At a Glimpse
 
 ```mermaid
 
