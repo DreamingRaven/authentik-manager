@@ -224,6 +224,13 @@ func (r *Raw) marshalChildren(value *yaml_v3.Node) (interface{}, error) {
 	if value.Kind == yaml_v3.SequenceNode {
 		return r.marshalList(value)
 	}
+	if value.Kind == yaml_v3.DocumentNode {
+		// TODO: do this for each content since there is more than just the first
+		return r.marshalChildren(value.Content[0])
+	}
+	if value.Kind == 0 {
+		return "", fmt.Errorf("This node is in uninitialized state of kind %v", value.Kind)
+	}
 	return "", fmt.Errorf("not implemented for node kind: %v", value.Kind)
 }
 
