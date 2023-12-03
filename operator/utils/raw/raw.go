@@ -1,6 +1,6 @@
 // Package raw provides abstractions for using raw data from potentially tagged yaml
 // files. One such example is the custom !Find tag found in Authentik blueprints.
-// This yaml.Node will subsume all sub-nodes in the yaml file, the user is then
+// This yaml_v3.Node will subsume all sub-nodes in the yaml file, the user is then
 // responsible for manipulating it.
 // A Key difference this abstraction makes is that all yaml tags are retained.
 package raw
@@ -9,12 +9,11 @@ import (
 	"fmt"
 	"regexp"
 
-	"gopkg.in/yaml.v3"
 	yaml_v3 "gopkg.in/yaml.v3"
 )
 
 // A Raw abstraction so we can optionally deal with the details at a higher level.
-// This is effectively an alias for yaml.Node that implements MarshalYAML and
+// This is effectively an alias for yaml_v3.Node that implements MarshalYAML and
 // UnmarshalYAML to retain all tags.
 // https://pkg.go.dev/gopkg.in/yaml.v3#Node
 //
@@ -63,7 +62,19 @@ import (
 //		Line   int
 //		Column int
 //	}
-type Raw yaml.Node
+type Raw yaml_v3.Node
+
+/////////////////////////
+// Json Special Functions
+/////////////////////////
+
+func (r *Raw) MarshalJSON() ([]byte, error) {
+	panic("Raw MarshalJSON not implemented")
+}
+
+func (r *Raw) UnmarshalJSON(data []byte) error {
+	panic("Raw UnmarshalJSON not implemented")
+}
 
 ////////////////////////////
 // Go-YAML Special Functions
@@ -75,7 +86,7 @@ type Raw yaml.Node
 // or if it is an inbuilt go-yaml !!tag. The former are preserved
 // in content the latter are left alone as normal.
 // This function recurses down into sub-nodes to preserve tags
-func (r *Raw) UnmarshalYAML(value *yaml.Node) error {
+func (r *Raw) UnmarshalYAML(value *yaml_v3.Node) error {
 	// we have gotten out alive
 	err := unmarshalYAMLRecurse(value)
 	if err != nil {
@@ -94,13 +105,13 @@ func (r *Raw) UnmarshalYAML(value *yaml.Node) error {
 // This depends on the yamly node kind, and is the now another representation
 // for this abstraction. We now have:
 // - original file: bytes
-// - go-yaml node: yaml.Node
+// - go-yaml node: yaml_v3.Node
 // - go-yaml intermediate format: map[string]interface{} | []interface{} | string
 // - custom type: Raw
 // All to prevent custom yaml tags from authentik getting mangled,
 // since there was no other way.
 func (r *Raw) MarshalYAML() (interface{}, error) {
-	var tmp yaml.Node = yaml.Node(*r)
+	var tmp yaml_v3.Node = yaml_v3.Node(*r)
 	// Marshal the children recursively into intermediate representation
 	intermediate, err := r.marshalChildren(&tmp)
 	if err != nil {
@@ -114,7 +125,7 @@ func (r *Raw) MarshalYAML() (interface{}, error) {
 ////////////////////
 
 // unmarshalYAMLRecurse recurses into sub-nodes and applies the tag logic
-func unmarshalYAMLRecurse(value *yaml.Node) error {
+func unmarshalYAMLRecurse(value *yaml_v3.Node) error {
 	// Check this node for tag and deal with it
 	err := tagToContent(value)
 	if err != nil {
@@ -132,7 +143,7 @@ func unmarshalYAMLRecurse(value *yaml.Node) error {
 
 // TagToContent extracts tags that match the given regex and inserts them as strings
 // into the content of the original node otherwise does nothing
-func tagToContent(value *yaml.Node) error {
+func tagToContent(value *yaml_v3.Node) error {
 	//fmt.Printf("Node `%+v`\n", value)
 	// create regex used throughout
 	re := regexp.MustCompile(`^!\w+`)
@@ -155,9 +166,9 @@ func tagToContent(value *yaml.Node) error {
 		}
 
 		// set other fields
-		value.Kind = yaml.ScalarNode
+		value.Kind = yaml_v3.ScalarNode
 		value.Tag = "!!str"
-		value.Style = yaml.FlowStyle
+		value.Style = yaml_v3.FlowStyle
 		//fmt.Printf("Node `%+v`\n", value)
 	} else {
 		fmt.Printf("Tag `%v` ignored `%+v`\n", value.Tag, value)
@@ -169,7 +180,7 @@ func tagToContent(value *yaml.Node) error {
 // gatherChildrenValues returns a slice of all the values of the children
 // of the provided node iteratively.
 // Maps do not work with preceding yaml tags so this only works for slices / lists
-func gatherChildrenValues(node *yaml.Node) []string {
+func gatherChildrenValues(node *yaml_v3.Node) []string {
 	var values []string
 	for i := 0; i < len(node.Content); i++ {
 		values = append(values, node.Content[i].Value)
@@ -179,28 +190,28 @@ func gatherChildrenValues(node *yaml.Node) []string {
 
 // MarshalChildren is a recurive function that partially marshalls the children
 // into a map[string]interface{}, a []interface{}, or a str literal value
-// from a given yaml.Node based on its tags.
+// from a given yaml_v3.Node based on its tags.
 // This is necessary as go-yaml expects this as return from MarshalYAML
 // otherwise if you go straight to string it will treat everything as a yaml
 // multiline string.
-func (r *Raw) marshalChildren(value *yaml.Node) (interface{}, error) {
+func (r *Raw) marshalChildren(value *yaml_v3.Node) (interface{}, error) {
 	// the atomic case
-	if value.Kind == yaml.ScalarNode {
+	if value.Kind == yaml_v3.ScalarNode {
 		return value.Value, nil
 	}
 	// the map case
-	if value.Kind == yaml.MappingNode {
+	if value.Kind == yaml_v3.MappingNode {
 		return r.marshalMap(value)
 	}
 	// the list case
-	if value.Kind == yaml.SequenceNode {
+	if value.Kind == yaml_v3.SequenceNode {
 		return r.marshalList(value)
 	}
 	return "", fmt.Errorf("not implemented for node kind: %v", value.Kind)
 }
 
 // MarshalMap delegation function to make types easier to handle
-func (r *Raw) marshalMap(value *yaml.Node) (map[string]interface{}, error) {
+func (r *Raw) marshalMap(value *yaml_v3.Node) (map[string]interface{}, error) {
 	tmp := make(map[string]interface{})
 	// loop over map i += 2 since we have key and value as 1D slice in Content
 	for i := 1; i < len(value.Content); i += 2 {
@@ -214,7 +225,7 @@ func (r *Raw) marshalMap(value *yaml.Node) (map[string]interface{}, error) {
 }
 
 // MarshalList delegation function to make types easier to handle
-func (r *Raw) marshalList(value *yaml.Node) ([]interface{}, error) {
+func (r *Raw) marshalList(value *yaml_v3.Node) ([]interface{}, error) {
 	var tmp []interface{}
 	for i := 0; i < len(value.Content); i++ {
 		sub, err := r.marshalChildren(value.Content[i])
@@ -258,12 +269,12 @@ func (in *Raw) DeepCopyInto(out *Raw) {
 	}
 }
 
-// deepCopyYamlNode is a yaml.Node wrapper for DeepCopy which casts the in yaml.Node
-// to Raw deepcopies it and converts back to out yaml.Node
+// deepCopyYamlNode is a yaml_v3.Node wrapper for DeepCopy which casts the in yaml_v3.Node
+// to Raw deepcopies it and converts back to out yaml_v3.Node
 // This is to allow reuse of the Raw.DeepCopyInto function
-func deepCopyYamlNode(in, out *yaml.Node) {
+func deepCopyYamlNode(in, out *yaml_v3.Node) {
 	rin := Raw(*in)
 	rout := new(Raw)
 	rin.DeepCopyInto(rout)
-	*out = yaml.Node(*rout)
+	*out = yaml_v3.Node(*rout)
 }

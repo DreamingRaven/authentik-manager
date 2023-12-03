@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"gopkg.in/yaml.v3"
+	yaml_v3 "gopkg.in/yaml.v3"
 )
 
 /////////////////////////////////
@@ -25,12 +25,12 @@ func TestRawSimpleList(t *testing.T) {
 	tmp := &RawListStruct{}
 	t.Log(string(byteData))
 
-	decoder := yaml.NewDecoder(bytes.NewReader(byteData))
+	decoder := yaml_v3.NewDecoder(bytes.NewReader(byteData))
 	if err := decoder.Decode(tmp); err != nil {
 		t.Fatalf("Failed to decode YAML: %v", err)
 	}
 
-	byteDataNew, err := yaml.Marshal(tmp)
+	byteDataNew, err := yaml_v3.Marshal(tmp)
 	if err != nil {
 		t.Fatalf("Failed to marshal YAML: %v", err)
 	}
@@ -49,12 +49,12 @@ func TestRawSimpleMap(t *testing.T) {
 	tmp := &RawMapStruct{}
 	t.Log(string(byteData))
 
-	decoder := yaml.NewDecoder(bytes.NewReader(byteData))
+	decoder := yaml_v3.NewDecoder(bytes.NewReader(byteData))
 	if err := decoder.Decode(tmp); err != nil {
 		t.Fatalf("Failed to decode YAML: %v", err)
 	}
 
-	byteDataNew, err := yaml.Marshal(tmp)
+	byteDataNew, err := yaml_v3.Marshal(tmp)
 	if err != nil {
 		t.Fatalf("Failed to marshal YAML: %v", err)
 	}
