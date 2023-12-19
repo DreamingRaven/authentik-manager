@@ -24,6 +24,22 @@ import (
 //	t.Fatalf("Not yet implemented")
 //}
 
+func TestYAMLToJSON(t *testing.T) {
+	byteData := mapRawDataTag()
+	tmp := &RawMapStruct{}
+	t.Log(string(byteData))
+	decoder := yaml_v3.NewDecoder(bytes.NewReader(byteData))
+	if err := decoder.Decode(tmp); err != nil {
+		t.Fatalf("Failed to decode YAML: %v", err)
+	}
+	byteDataNew, err := yaml_v3.Marshal(tmp)
+	if err != nil {
+		t.Fatalf("Failed to marshal YAML: %v", err)
+	}
+	checkByteSlicesEqual(t, byteData, byteDataNew)
+
+}
+
 func TestJSONToYAML(t *testing.T) {
 	jsonData := []byte(`{"root":{"aaa":"!Find me","bvv":"another random string"}}`)
 	tmp := &Raw{}
