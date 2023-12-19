@@ -2,7 +2,6 @@ package raw
 
 import (
 	"bytes"
-	"fmt"
 	"testing"
 
 	yaml_v3 "gopkg.in/yaml.v3"
@@ -26,16 +25,17 @@ import (
 //}
 
 func TestJSONToYAML(t *testing.T) {
-	jsonData := mapRawDataTag()
-	tmp := &RawMapStruct{}
-	t.Log(string(jsonData))
+	jsonData := []byte(`{"root":{"aaa":"!Find me","bvv":"another random string"}}`)
+	tmp := &Raw{}
 	decoder := yaml_v3.NewDecoder(bytes.NewReader(jsonData))
 	if err := decoder.Decode(tmp); err != nil {
-		t.Fatalf("Failed to decode YAML: %v", err)
+		t.Fatalf("Failed to decode JSON: %v", err)
 	}
-	fmt.Printf("json data: %+v\n", string(jsonData))
-	fmt.Printf("yaml data: %+v\n", *tmp)
-	t.Fatalf("Not yet implemented")
+	byteDataNew, err := yaml_v3.Marshal(tmp)
+	if err != nil {
+		t.Fatalf("Failed to marshal YAML: %v", err)
+	}
+	checkByteSlicesEqual(t, mapRawDataTag(), byteDataNew)
 }
 
 /////////////////////////////////

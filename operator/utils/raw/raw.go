@@ -6,6 +6,7 @@
 package raw
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"regexp"
@@ -82,15 +83,11 @@ func (r *Raw) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON is one of two json interfaces to serialise and deserialise.
 // This takes a json byte array and deserialises it to a go-yaml node
 func (r *Raw) UnmarshalJSON(data []byte) error {
-	var jsonObj interface{}
-	if err := json.Unmarshal(data, &jsonObj); err != nil {
+	decoder := yaml_v3.NewDecoder(bytes.NewReader(data))
+	if err := decoder.Decode(r); err != nil {
 		return err
 	}
-	yamlData, err := yaml_v3.Marshal(jsonObj)
-	if err != nil {
-		return err
-	}
-	return yaml_v3.Unmarshal(yamlData, r)
+	return nil
 }
 
 ////////////////////////////
