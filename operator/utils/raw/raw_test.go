@@ -2,10 +2,41 @@ package raw
 
 import (
 	"bytes"
+	"fmt"
 	"testing"
 
 	yaml_v3 "gopkg.in/yaml.v3"
 )
+
+/////////////////////////
+// TESTING JSON WITH TAGS
+/////////////////////////
+
+//// TestRawSimpleMapJSON checks if a list of Raws can be marshaled and unmarshaled
+//func TestRawSimpleMapJSON(t *testing.T) {
+//	byteData := mapRawDataTag()
+//	tmp := &RawMapStruct{}
+//	t.Log(string(byteData))
+//	decoder := yaml_v3.NewDecoder(bytes.NewReader(byteData))
+//	if err := decoder.Decode(tmp); err != nil {
+//		t.Fatalf("Failed to decode YAML: %v", err)
+//	}
+//	fmt.Printf("%+v\n", tmp)
+//	t.Fatalf("Not yet implemented")
+//}
+
+func TestJSONToYAML(t *testing.T) {
+	jsonData := mapRawDataTag()
+	tmp := &RawMapStruct{}
+	t.Log(string(jsonData))
+	decoder := yaml_v3.NewDecoder(bytes.NewReader(jsonData))
+	if err := decoder.Decode(tmp); err != nil {
+		t.Fatalf("Failed to decode YAML: %v", err)
+	}
+	fmt.Printf("json data: %+v\n", string(jsonData))
+	fmt.Printf("yaml data: %+v\n", *tmp)
+	t.Fatalf("Not yet implemented")
+}
 
 /////////////////////////////////
 // TESTING LIST OF RAWS WITH TAGS

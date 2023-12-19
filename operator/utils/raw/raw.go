@@ -188,7 +188,7 @@ func tagToContent(value *yaml_v3.Node) error {
 		value.Style = yaml_v3.FlowStyle
 		//fmt.Printf("Node `%+v`\n", value)
 	} else {
-		fmt.Printf("Tag `%v` ignored `%+v`\n", value.Tag, value)
+		//fmt.Printf("Tag `%v` ignored `%+v`\n", value.Tag, value)
 	}
 	//fmt.Printf("Node `%+v`\n", value)
 	return nil
