@@ -2,6 +2,7 @@ package raw
 
 import (
 	"bytes"
+	"encoding/json"
 	"testing"
 
 	yaml_v3 "gopkg.in/yaml.v3"
@@ -32,9 +33,9 @@ func TestYAMLToJSON(t *testing.T) {
 	if err := decoder.Decode(tmp); err != nil {
 		t.Fatalf("Failed to decode YAML: %v", err)
 	}
-	byteDataNew, err := yaml_v3.Marshal(tmp)
+	byteDataNew, err := json.Marshal(tmp)
 	if err != nil {
-		t.Fatalf("Failed to marshal YAML: %v", err)
+		t.Fatalf("Failed to marshal JSON: %v", err)
 	}
 	checkByteSlicesEqual(t, byteData, byteDataNew)
 
