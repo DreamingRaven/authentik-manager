@@ -6,24 +6,54 @@ import (
 	"testing"
 
 	yaml_v3 "gopkg.in/yaml.v3"
+	yaml_k8s "sigs.k8s.io/yaml"
 )
 
-/////////////////////////
-// TESTING JSON WITH TAGS
-/////////////////////////
+///////////////////////
+// TESTING k8s yaml lib
+///////////////////////
 
-//// TestRawSimpleMapJSON checks if a list of Raws can be marshaled and unmarshaled
-//func TestRawSimpleMapJSON(t *testing.T) {
-//	byteData := mapRawDataTag()
-//	tmp := &RawMapStruct{}
-//	t.Log(string(byteData))
-//	decoder := yaml_v3.NewDecoder(bytes.NewReader(byteData))
-//	if err := decoder.Decode(tmp); err != nil {
-//		t.Fatalf("Failed to decode YAML: %v", err)
-//	}
-//	fmt.Printf("%+v\n", tmp)
-//	t.Fatalf("Not yet implemented")
-//}
+func TestK8sYAMLToJSON(t *testing.T) {
+	byteData := mapRawDataTag()
+	tmp := &RawMapStruct{}
+	decoder := yaml_v3.NewDecoder(bytes.NewReader(byteData))
+	if err := decoder.Decode(tmp); err != nil {
+		t.Fatalf("Failed to decode YAML: %v", err)
+	}
+	// Check k8s Marshal working as expected
+	yb, err := yaml_k8s.Marshal(tmp)
+	if err != nil {
+		t.Fatalf("Failed to marshal YAML: %v", err)
+	}
+	// Check k8s yaml to json working as expected
+	b, err := yaml_k8s.YAMLToJSON(yb)
+	if err != nil {
+		t.Fatalf("Failed to convert YAML to JSON: %v", err)
+	}
+	checkByteSlicesEqual(t, jsonRawDataTag(), b)
+}
+
+func TestK8sJSONToYAML(t *testing.T) {
+	jsonData := jsonRawDataTag()
+	tmp := &RawMapStruct{}
+	err := yaml_k8s.Unmarshal(jsonData, tmp)
+	if err != nil {
+		t.Fatalf("Failed to unmarshal JSON: %v", err)
+	}
+	yb, err := yaml_k8s.Marshal(tmp)
+	if err != nil {
+		t.Fatalf("Failed to marshal YAML: %v", err)
+	}
+	b, err := yaml_k8s.YAMLToJSON(yb)
+	if err != nil {
+		t.Fatalf("Failed to convert YAML to JSON: %v", err)
+	}
+	checkByteSlicesEqual(t, jsonRawDataTag(), b)
+}
+
+///////////////////////
+// TESTING JSON LIBRARY
+///////////////////////
 
 func TestYAMLToJSON(t *testing.T) {
 	byteData := mapRawDataTag()
@@ -37,12 +67,12 @@ func TestYAMLToJSON(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to marshal JSON: %v", err)
 	}
-	checkByteSlicesEqual(t, byteData, byteDataNew)
+	checkByteSlicesEqual(t, jsonRawDataTag(), byteDataNew)
 
 }
 
 func TestJSONToYAML(t *testing.T) {
-	jsonData := []byte(`{"root":{"aaa":"!Find me","bvv":"another random string"}}`)
+	jsonData := jsonRawDataTag()
 	tmp := &Raw{}
 	decoder := yaml_v3.NewDecoder(bytes.NewReader(jsonData))
 	if err := decoder.Decode(tmp); err != nil {
@@ -60,11 +90,11 @@ func TestJSONToYAML(t *testing.T) {
 /////////////////////////////////
 
 type RawListStruct struct {
-	Root *Raw `yaml:"root"`
+	Root *Raw `yaml:"root" json:"root"`
 }
 
 type RawMapStruct struct {
-	Root *Raw `yaml:"root"`
+	Root *Raw `yaml:"root" json:"root"`
 }
 
 // TestRawSimple checks if a list of Raws can be marshaled and unmarshaled
@@ -145,4 +175,9 @@ func mapRawDataTag() []byte {
     bvv: another random string
 `
 	return []byte(yamlString)
+}
+
+func jsonRawDataTag() []byte {
+	jsonString := `{"root":{"aaa":"!Find me","bvv":"another random string"}}`
+	return []byte(jsonString)
 }
