@@ -226,7 +226,8 @@ func (r *Raw) marshalChildren(value *yaml_v3.Node) (interface{}, error) {
 		return r.marshalChildren(value.Content[0])
 	}
 	if value.Kind == 0 {
-		return "", fmt.Errorf("This node is in uninitialized state of kind %v", value.Kind)
+		//return "", fmt.Errorf("This node is in uninitialized state of kind %v", value.Kind)
+		return make(map[string]interface{}), nil
 	}
 	return "", fmt.Errorf("not implemented for node kind: %v", value.Kind)
 }
