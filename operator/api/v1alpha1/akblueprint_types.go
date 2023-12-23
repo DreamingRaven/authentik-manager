@@ -25,18 +25,18 @@ type AkBlueprintSpec struct {
 	// Due to the nature of OCI storage that is not currently supported but may be in the future.
 	// Note that internal storage does not resolve YAML tags like !KeyOf since it is direct to db.
 	// https://goauthentik.io/developer-docs/blueprints/
-	StorageType string `json:"storageType,omitempty"`
+	StorageType string `yaml:"storageType,omitempty" json:"storageType,omitempty"`
 
 	// File is the location where the blueprint should be saved to in authentik-workers
 	// by default authentik looks in the /blueprints dir so any location in this will be picked up.
 	// The file will overwrite existing configurations underneath it so if it is called the same as
 	// an authentik in built blueprint you will instead use the new one
 	// e.g. /blueprints/default/10-flow-default-authentication-flow.yaml
-	File string `json:"file,omitempty"`
+	File string `yaml:"file,omitempty" json:"file,omitempty"`
 
 	// Blueprint is a container for a complete single authentik blueprint yaml spec
 	// https://goauthentik.io/developer-docs/blueprints/v1/structure#structure
-	Blueprint BP `json:"blueprint,omitempty"`
+	Blueprint BP `yaml:"blueprint,omitempty" json:"blueprint,omitempty"`
 }
 
 // BP is a whole blueprint struct containing the full structure of an authentik blueprint
@@ -45,10 +45,10 @@ type BP struct {
 	//+kubebuilder:default=1
 
 	// Version is the version of this blueprint
-	Version int `json:"version"`
+	Version int `yaml:"version" json:"version"`
 
 	// Metadata block specifying labels and names of the blueprint
-	Metadata BPMeta `json:"metadata"`
+	Metadata BPMeta `yaml:"metadata" json:"metadata"`
 
 	// +kubebuilder:pruning:PreserveUnknownFields
 	// +kubebuilder:validation:Schemaless
@@ -59,7 +59,7 @@ type BP struct {
 	// +kubebuilder:validation:MinItems=1
 
 	// Entries lists models we want to use via this blueprint
-	Entries []BPModel `json:"entries"`
+	Entries []BPModel `yaml:"entries" json:"entries"`
 }
 
 // BPMeta is the metadata of an authentik blueprint as authentik likes
@@ -73,14 +73,14 @@ type BPMeta struct {
 	Labels *raw.Raw `yaml:"labels,omitempty" json:"labels,omitempty"`
 
 	// Name of the authentik blueprint for authentik to register
-	Name string `json:"name"`
+	Name string `yaml:"name" json:"name"`
 }
 
 // BPModel is a rough outline of the structure of models authentik likes in its blueprints
 type BPModel struct {
 
 	// Model "app.model" notation of which model from authentik to call
-	Model string `json:"model"`
+	Model string `yaml:"model" json:"model"`
 
 	//+kubebuilder:validation:Optional
 	//+kubebuilder:validation:Enum="present";"create";"absent"
@@ -89,10 +89,10 @@ type BPModel struct {
 	// present: (default) keeps the object in sync with its definition in this blueprint
 	// create: only creates the initial object with its values here
 	// absent: deletes the object
-	State string `json:"state,omitempty"`
+	State string `yaml:"state,omitempty" json:"state,omitempty"`
 
 	// Conditions (optional) a list of conditions which if all match the model will be activated. If not the model will be inactive
-	Conditions []string `json:"conditions,omitempty"`
+	Conditions []string `yaml:"conditions,omitempty" json:"conditions,omitempty"`
 
 	//+kubebuilder:validation:Optional
 	//+kubebuilder:pruning:PreserveUnknownFields
@@ -122,20 +122,20 @@ type AkBlueprintStatus struct {
 
 // AkBlueprint is the Schema for the akblueprints API
 type AkBlueprint struct {
-	metav1.TypeMeta   `json:",inline"`
-	metav1.ObjectMeta `json:"metadata,omitempty"`
+	metav1.TypeMeta   `yaml:",inline" json:",inline"`
+	metav1.ObjectMeta `yaml:"metadata,omitempty" json:"metadata,omitempty"`
 
-	Spec   AkBlueprintSpec   `json:"spec,omitempty"`
-	Status AkBlueprintStatus `json:"status,omitempty"`
+	Spec   AkBlueprintSpec   `yaml:"spec,omitempty" json:"spec,omitempty"`
+	Status AkBlueprintStatus `yaml:"status,omitempty" json:"status,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 
 // AkBlueprintList contains a list of AkBlueprint
 type AkBlueprintList struct {
-	metav1.TypeMeta `json:",inline"`
-	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []AkBlueprint `json:"items"`
+	metav1.TypeMeta `yaml:",inline" json:",inline"`
+	metav1.ListMeta `yaml:"metadata,omitempty" json:"metadata,omitempty"`
+	Items           []AkBlueprint `yaml:"items" json:"items"`
 }
 
 func init() {
