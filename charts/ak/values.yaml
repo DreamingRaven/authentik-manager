@@ -37,6 +37,9 @@ secret:
   # it everywhere in subcharts
   name: auth
 
+netpol:
+  enabled: true
+
 ingress:
   name: auth
   class: nginx
