@@ -301,8 +301,8 @@ func (r *OIDCReconciler) BlueprintFromOIDC(crd *akmv1a1.OIDC) ([]*akmv1a1.AkBlue
 		Model:       "authentik_core.application",
 		State:       "present",
 		Id:          appName,
-		Identifiers: aIRaw,
-		Attrs:       aARaw,
+		Identifiers: &aIRaw,
+		Attrs:       &aARaw,
 	}
 
 	// provider meta
@@ -372,8 +372,8 @@ func (r *OIDCReconciler) BlueprintFromOIDC(crd *akmv1a1.OIDC) ([]*akmv1a1.AkBlue
 		Model:       "authentik_providers_oauth2.oauth2provider",
 		State:       "present",
 		Id:          provName,
-		Identifiers: pIRaw,
-		Attrs:       pARaw,
+		Identifiers: &pIRaw,
+		Attrs:       &pARaw,
 	}
 
 	var blueprints = make([]*akmv1a1.AkBlueprint, len(entries))

@@ -4,18 +4,20 @@ import (
 	"fmt"
 	"testing"
 
-	"gopkg.in/yaml.v2"
+	yaml_v3 "gopkg.in/yaml.v3"
+	_ "k8s.io/apimachinery/pkg/util/yaml"
 )
 
 func TestAkBpApiYaml(t *testing.T) {
 	bytes := exampleAkBlueprintYaml()
+	fmt.Printf("%s\n", bytes)
 	akbp := &AkBlueprint{}
-	err := yaml.Unmarshal(bytes, akbp)
+	err := yaml_v3.Unmarshal(bytes, akbp)
 	if err != nil {
 		t.Fatalf("Failed to unmarshal YAML: %v", err)
 	}
 	fmt.Printf("%+v\n", akbp)
-	remarshalled, err := yaml.Marshal(akbp)
+	remarshalled, err := yaml_v3.Marshal(akbp)
 	if err != nil {
 		t.Fatalf("Failed to marshal YAML: %v", err)
 	}
