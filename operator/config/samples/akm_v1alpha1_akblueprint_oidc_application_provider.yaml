@@ -11,7 +11,7 @@ metadata:
   namespace: auth
 spec:
   file: /blueprints/operator/oidc-application-provider-sample.yml
-  blueprint:
+  blueprint: |
     version: 1
     metadata:
       labels:

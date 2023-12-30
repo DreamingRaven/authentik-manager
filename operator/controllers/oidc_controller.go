@@ -106,6 +106,7 @@ import (
 
 	"github.com/alexflint/go-arg"
 	"golang.org/x/oauth2"
+	yaml_v3 "gopkg.in/yaml.v3"
 	corev1 "k8s.io/api/core/v1"
 	netv1 "k8s.io/api/networking/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -378,7 +379,21 @@ func (r *OIDCReconciler) BlueprintFromOIDC(crd *akmv1a1.OIDC) ([]*akmv1a1.AkBlue
 
 	var blueprints = make([]*akmv1a1.AkBlueprint, len(entries))
 	for ix, el := range entries {
-		bp := &akmv1a1.AkBlueprint{
+
+		bp := akmv1a1.BP{
+			Version: 1,
+			Metadata: akmv1a1.BPMeta{
+				Name: el.Id,
+			},
+			Entries: []akmv1a1.BPModel{el},
+		}
+
+		bpBytes, err := yaml_v3.Marshal(&bp)
+		if err != nil {
+			return nil, err
+		}
+
+		akbp := &akmv1a1.AkBlueprint{
 			// Metadata
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      el.Id,
@@ -390,17 +405,11 @@ func (r *OIDCReconciler) BlueprintFromOIDC(crd *akmv1a1.OIDC) ([]*akmv1a1.AkBlue
 			// Specification
 			Spec: akmv1a1.AkBlueprintSpec{
 				// Setting to near-arbitrary but unique path assuming name is properly sanitised
-				File: fmt.Sprintf("/blueprints/operator/%v", el.Id),
-				Blueprint: akmv1a1.BP{
-					Version: 1,
-					Metadata: akmv1a1.BPMeta{
-						Name: el.Id,
-					},
-					Entries: []akmv1a1.BPModel{el},
-				},
+				File:      fmt.Sprintf("/blueprints/operator/%v", el.Id),
+				Blueprint: string(bpBytes),
 			},
 		}
-		blueprints[ix] = bp
+		blueprints[ix] = akbp
 	}
 
 	// set that we are controlling this resource

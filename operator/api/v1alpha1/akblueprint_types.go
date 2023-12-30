@@ -36,7 +36,11 @@ type AkBlueprintSpec struct {
 
 	// Blueprint is a container for a complete single authentik blueprint yaml spec
 	// https://goauthentik.io/developer-docs/blueprints/v1/structure#structure
-	Blueprint BP `yaml:"blueprint,omitempty" json:"blueprint,omitempty"`
+	//Blueprint BP `yaml:"blueprint,omitempty" json:"blueprint,omitempty"`
+
+	//+kubebuilder:validation:Type=string
+	//+kubebuilder:validation:Optional
+	Blueprint string `yaml:"blueprint,omitempty" json:"blueprint,omitempty"`
 }
 
 // BP is a whole blueprint struct containing the full structure of an authentik blueprint

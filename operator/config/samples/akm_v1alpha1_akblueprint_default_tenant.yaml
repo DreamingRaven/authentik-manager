@@ -11,7 +11,7 @@ metadata:
   namespace: auth
 spec:
   file: /blueprints/default/default-tenant.yaml
-  blueprint:
+  blueprint: |
     metadata:
       name: Default - Tenant
     version: 1

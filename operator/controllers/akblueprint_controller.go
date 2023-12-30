@@ -11,6 +11,7 @@ You may obtain a copy of the License in the project root (LICENSE) or at
 package controllers
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -26,6 +27,7 @@ import (
 	"github.com/lib/pq"
 
 	"github.com/alexflint/go-arg"
+	yaml_v3 "gopkg.in/yaml.v3"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -236,6 +238,13 @@ func (r *AkBlueprintReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return ctrl.Result{}, nil
 	}
 
+	// DECODE CRD INTO STRUCTURED BLUEPRINT
+	bp := &akmv1a1.BP{}
+	decoder := yaml_v3.NewDecoder(bytes.NewReader([]byte(crd.Spec.Blueprint)))
+	if err := decoder.Decode(bp); err != nil {
+		return ctrl.Result{}, err
+	}
+
 	// CREATE CONFIGMAP
 	if crd.Spec.StorageType == "file" {
 		name := fmt.Sprintf("bp-%v-%v", crd.Namespace, crd.Name)
@@ -247,7 +256,7 @@ func (r *AkBlueprintReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		cm := &corev1.ConfigMap{}
 		err = r.Get(ctx, types.NamespacedName{Name: name, Namespace: crd.Namespace}, cm)
 		if err != nil && errors.IsNotFound(err) {
-			// configmap was not found rety and notify the user
+			// configmap was not found create and notify the user
 			l.Info(fmt.Sprintf("Not found. Creating configmap `%v` in `%v`", name, crd.Namespace))
 			err = r.Create(ctx, cmWant)
 			if err != nil {
@@ -279,7 +288,8 @@ func (r *AkBlueprintReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
-	metajson, err := json.Marshal(&crd.Spec.Blueprint.Metadata)
+
+	metajson, err := json.Marshal(&bp.Metadata)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
@@ -555,12 +565,12 @@ func (r *AkBlueprintReconciler) configForBlueprint(crd *akmv1a1.AkBlueprint, nam
 	cleanFP := filepath.Clean(crd.Spec.File)
 	var dataMap = make(map[string]string)
 	// set the key to be the filename and extension from path
-	// set data to be the blueprint string
-	b, err := yaml.Marshal(crd.Spec.Blueprint)
-	if err != nil {
-		return nil, err
-	}
-	dataMap[filepath.Base(cleanFP)] = string(b)
+	//// set data to be the blueprint string
+	//b, err := yaml.Marshal(crd.Spec.Blueprint)
+	//if err != nil {
+	//	return nil, err
+	//}
+	dataMap[filepath.Base(cleanFP)] = string(crd.Spec.Blueprint)
 
 	var annMap = make(map[string]string)
 	annMap["akm.goauthentik.io/path"] = filepath.Dir(cleanFP)

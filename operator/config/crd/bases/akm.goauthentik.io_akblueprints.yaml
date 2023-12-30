@@ -36,75 +36,7 @@ spec:
             description: AkBlueprintSpec defines the desired state of AkBlueprint
             properties:
               blueprint:
-                description: Blueprint is a container for a complete single authentik
-                  blueprint yaml spec https://goauthentik.io/developer-docs/blueprints/v1/structure#structure
-                properties:
-                  context:
-                    description: Context (optional) authentik default context (whatever
-                      that means)
-                    x-kubernetes-preserve-unknown-fields: true
-                  entries:
-                    description: Entries lists models we want to use via this blueprint
-                    items:
-                      description: BPModel is a rough outline of the structure of
-                        models authentik likes in its blueprints
-                      properties:
-                        attrs:
-                          description: Attrs is a map of settings / options / overrides
-                            of the defaults of this model
-                          x-kubernetes-preserve-unknown-fields: true
-                        conditions:
-                          description: Conditions (optional) a list of conditions
-                            which if all match the model will be activated. If not
-                            the model will be inactive
-                          items:
-                            type: string
-                          type: array
-                        id:
-                          description: Id (optional) is similar to identifiers except
-                            is optional and is just an ID to reference this model
-                            using !KeyOf syntax in authentik
-                          type: string
-                        identifiers:
-                          description: Identifiers (optional) key-value identifiers
-                            to allow filtering of this stage, and identifying it
-                          x-kubernetes-preserve-unknown-fields: true
-                        model:
-                          description: Model "app.model" notation of which model from
-                            authentik to call
-                          type: string
-                        state:
-                          description: 'State (optional) desired state of this model
-                            when loaded from "present", "create", "absent" present:
-                            (default) keeps the object in sync with its definition
-                            in this blueprint create: only creates the initial object
-                            with its values here absent: deletes the object'
-                          enum:
-                          - present
-                          - create
-                          - absent
-                          type: string
-                      type: object
-                    minItems: 1
-                    type: array
-                  metadata:
-                    description: Metadata block specifying labels and names of the
-                      blueprint
-                    properties:
-                      labels:
-                        description: Labels (optional) key-value store for special
-                          labels https://goauthentik.io/developer-docs/blueprints/v1/structure#special-labels
-                        x-kubernetes-preserve-unknown-fields: true
-                      name:
-                        description: Name of the authentik blueprint for authentik
-                          to register
-                        type: string
-                    type: object
-                  version:
-                    default: 1
-                    description: Version is the version of this blueprint
-                    type: integer
-                type: object
+                type: string
               file:
                 description: File is the location where the blueprint should be saved
                   to in authentik-workers by default authentik looks in the /blueprints
