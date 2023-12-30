@@ -127,13 +127,13 @@ You can override any of the values of the |helm| chart as normal through this CR
 
    While you can enable secret generation it is highly discouraged, as the operator plugin we use to hybridise the sdk consumes an inordinate amount of resources trying to reconcile what is already reconciled.
 
+Authentik should be created for you, simply visit ``https://<global.domain.full>/if/flow/initial-setup/``. If you have not got DNS set up you may need to connect directly by editing your ``/etc/hosts`` file to add the line ``<minikube ip> <global.domain.full>``. Remember to replace minikube ip with minikubes actual ip address which you can find with ``minikube ip`` command. Also replace ``global.domain.full`` to whatever you set it as in the Ak crd you just applied.
+
 
 Declare an Application CRD
 ++++++++++++++++++++++++++
 
-.. note::
-
-   We are still actively working on this! With this the most basic functions of the operator will be ready. We will add higher levels of automation as we go forward.
+Your authentik installation should be ready to go. There are a few example CRs in ``operator/config/samples/akm_*`` which can do various blueprint things like changing the logos, setting up a default tenant, etc. We are still working on OIDC abstractions but the akblueprint should work as expected which you can use to declare almost anything for the time being while we set up more automation for things like OIDC.
 
 .. _section_usage_ak:
 
@@ -162,7 +162,7 @@ While you may have set the domain to be ``auth.example.org`` this must actually 
 
    Also note for local development you can also visit auth.example.org:30443 or any port for that matter, as long as the domain is correct. This is useful as usually a local deployment will not be on the default port 80 (http) or 443 (https). If you wanted to proxy all local requests from 443 (https) to 30443 (non standard) so that browsers play nicer, then you can use socat. :code:`socat TCP-LISTEN:443,fork TCP:192.168.49.2:30443`. This assumes the IP of the load balancer is 192.168.49.2 and is routable.
 
-   If you are using minikube you can find this IP using :code:`minikube -n ingress-nginx service ingress-nginx-controller --url` if the ingress-nginx addon is enabled. 
+   If you are using minikube you can find this IP using :code:`minikube -n ingress-nginx service ingress-nginx-controller --url` if the ingress-nginx addon is enabled.
 
 If the cluster is remote / if you want others to be able to access it too, you will need to change your DNS records to point the domain name to the IP which hosts |k8s|, and from which it is available from.
 
@@ -184,7 +184,7 @@ Each ingress resource is configured individually to listen to authentik but not 
 .. code-block:: yaml
 
    #Additional annotations necessary to have authentik be an authentication middleware on the nginx proxy.
-   
+
    annotations:
       nginx.ingress.kubernetes.io/auth-url: http://{ OUTPOST SERVICE}.{ OUTPOST NAMESPACE }.svc.cluster.local:9000/outpost.goauthentik.io/auth/nginx
       nginx.ingress.kubernetes.io/auth-signin: https://{ INGRESS HOST OF YOUR APP }/outpost.goauthentik.io/start?rd=$escaped_request_uri
