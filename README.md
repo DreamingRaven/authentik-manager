@@ -46,6 +46,7 @@ flowchart TD
             akmsql[postgresql]
             akmpod1-->akmsql
             akmpod2-->akmsql
+            pgadmin-->akmsql
 
         end
         ak[ak crd]
@@ -53,14 +54,21 @@ flowchart TD
         ak-.->|produces|netpol
         akm-.-|reconcile|ak
         akbp-.->|produces|akbpsec
-        akbpsec---|mount|akmpod1
+        akbpsec---|mount|akmpod2
         akbp[akblueprint]
         akm-.-|reconcile|akbp
-        akbpoidc[akblueprint oidc]
-        akbpoidcsec[configmap]
-        akbpoidc-.->|produces|akbpoidcsec
-        akm-.-|reconcile|akbpoidc
-        akbpoidcsec---|mount|akmpod1
+
+        oidcProBp[akblueprint oidc provider]
+        oidcProBpCm[configmap]
+        oidcProBp-.->|produces|oidcProBpCm
+        akm-.-|reconcile|oidcProBp
+        oidcProBpCm---|mount|akmpod2
+
+        oidcAppBp[akblueprint oidc application]
+        oidcAppBpCm[configmap]
+        oidcAppBp-.->|produces|oidcAppBpCm
+        akm-.-|reconcile|oidcAppBp
+        oidcAppBpCm---|mount|akmpod2
 
         akmpod1---|mount|akmconfig[configmap]
         akmpod1---|env|akmsecret[secret]
@@ -68,8 +76,8 @@ flowchart TD
     end
 
     akm-.->|reconcile|oidc
-    oidc-.->|produces|akbpoidc
-
+    oidc-.->|produces|oidcAppBp
+    oidc-.->|produces|oidcProBp
 
     subgraph app[some application]
 
