@@ -78,6 +78,44 @@ func (r *AkBlueprintReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	tableName := "authentik_blueprints_blueprintinstance"
 	markedForDeletion := false
 
+	//// GET CRD WORKAROUND / MONKEY PATCH
+	//// currently the controller-runtime does not support yaml.v3 unmarshalling of custom YAML tags
+	//// When you call r.Get the controller-runtime will try to unmarshal the yaml, we need to NOT do this
+	//// since it is based on a yaml.v2 fork. Instead we use yaml.v3 by calling kube directly ourselved to get
+	//// the yaml bytes we are interested in.
+	//clientset, err := k8s.NewClient(req.Namespace)
+	//if err != nil {
+	//	l.Error(err, "Failed to create k8s client. Retrying.")
+	//	return ctrl.Result{}, err
+	//}
+	//fmt.Printf("clientset: %v\n", clientset)
+
+	//// https://docs.openshift.com/container-platform/3.11/admin_guide/custom_resource_definitions.html
+	//// API endpoints are defined by the following template: /apis/<spec:group>/<spec:version>/<scope>/*/<names-plural>/...
+	////crdBytes, err := clientset.RESTClient().Get().RequestURI("/openapi/v3").DoRaw(ctx)
+	//apiEndpoint := "/apis/akm.goauthentik.io/v1alpha1/namespaces/" + req.Namespace + "/akblueprints/" + req.Name
+	//fmt.Printf("apiEndpoint: %v\n", apiEndpoint)
+	//crdBytes, err := clientset.RESTClient().Get().RequestURI(apiEndpoint).DoRaw(ctx)
+	//if err != nil {
+	//	if errors.IsNotFound(err) {
+	//		// Request object not found, could have been deleted after reconcile request.
+	//		// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
+	//		// Return and don't requeue
+	//		l.Info("AkBlueprint trigger deletion...")
+	//		// I prefer early return but we actually cant do that here as we need the CRD and the DB to be ready
+	//		// the DB requires the CRD but I also dont want to open the DB twice.
+	//		markedForDeletion = true
+	//	} else {
+	//		// Error reading the object - requeue the request.
+	//		l.Error(err, "AkBlueprint trigger irretrievable, Retrying.")
+	//		return ctrl.Result{}, err
+	//	}
+	//} else {
+
+	//	l.Info("AkBlueprint trigger.")
+	//}
+	//fmt.Printf("crdBytes: %v\n", string(crdBytes))
+
 	// GET CRD
 	crd := &akmv1a1.AkBlueprint{}
 	err := r.Get(ctx, req.NamespacedName, crd)
