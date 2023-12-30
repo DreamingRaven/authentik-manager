@@ -114,8 +114,8 @@ redis:
 ldap:
   enabled: false
   image:
-    registry: "docker.io"
-    repository: "nitnelave/lldap"
+    registry: docker.io
+    repository: nitnelave/lldap
     tag: "v0.5.0-alpine"
   persistence:
     enabled: false
@@ -159,9 +159,9 @@ ldap:
 authentik:
   enabled: true
   image:
-    registry: "ghcr.io"
-    repository: "goauthentik/server"
-    tag: "2023.10.4"
+    registry: ghcr.io
+    repository: goauthentik/server
+    tag: "2023.10.5"
   # domain: <BASE_DOMAIN>
   config:
     name: authentik-config
@@ -298,8 +298,8 @@ akm:
 pgadmin:
   enabled: false
   image:
-    registry: "docker.io"
-    repository: "dpage/pgadmin4"
+    registry: docker.io
+    repository: dpage/pgadmin4
     tag: "7.8"
   persistence:
     enable: false
