@@ -43,5 +43,5 @@ spec:
       identifiers:
         domain: authentik-default
         default: True
-      state: create
+      state: created
       model: authentik_tenants.tenant
