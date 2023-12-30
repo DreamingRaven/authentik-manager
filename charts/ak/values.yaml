@@ -37,11 +37,13 @@ secret:
   # it everywhere in subcharts
   name: auth
 
+# this enables or disables the general netpol so other apps can be sideloaded in the same namespace
 netpol:
   enabled: true
 
 ingress:
   name: auth
+  namespace: ingress-nginx # this sets the namespace the netpol will allow ingress from
   class: nginx
   enable: true
   clusterIssuer: letsencrypt-staging # must match cert-manager cluster issuer

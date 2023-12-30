@@ -16,6 +16,12 @@ spec:
     - namespaceSelector:
         matchLabels:
           kubernetes.io/metadata.name: {{ .Release.Namespace }}
+  - from:
+    # allow ingress from other pods in the ingress-namespace
+    # this is important for cert endpoints
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: {{ .Values.ingress.namespace }}
   egress:
   - to:
     # allow DNS lookups
