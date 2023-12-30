@@ -14,6 +14,9 @@ spec:
   blueprint: |
     metadata:
       name: Default - Tenant
+      labels:
+        blueprints.goauthentik.io/description: The default authentication tenant with its own silo of users and configuration
+        blueprints.goauthentik.io/instantiate: "true"
     version: 1
     entries:
     - model: authentik_blueprints.metaapplyblueprint

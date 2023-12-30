@@ -15,6 +15,9 @@ spec:
     version: 1
     metadata:
       name: Default - Authentication flow
+      labels:
+        blueprints.goauthentik.io/description: The default flow used to authenticate users
+        blueprints.goauthentik.io/instantiate: "true"
     entries:
     - model: authentik_blueprints.metaapplyblueprint
       attrs:

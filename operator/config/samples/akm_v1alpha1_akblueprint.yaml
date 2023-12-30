@@ -1,30 +1,31 @@
-apiVersion: akm.goauthentik.io/v1alpha1
-kind: AkBlueprint
-metadata:
-  labels:
-    app.kubernetes.io/name: akblueprint
-    app.kubernetes.io/instance: akm
-    app.kubernetes.io/part-of: operator
-    app.kubernetes.io/managed-by: kustomize
-    app.kubernetes.io/created-by: operator
-  name: akblueprint-sample
-  namespace: auth
-spec:
-  file: /blueprints/operator/blueprint-sample.yml
-  blueprint:
-    version: 1
-    metadata:
-      labels:
-        source: akm
-      name: blueprint-sample
-    entries:
-    - model: authentik_flows.flow
-      state: present
-      identifiers:
-        slug: akm-sample
-      id: akm-flow
-      attrs:
-        denied_action: message_continue
-        designation: stage_configuration
-        name: default-oobe-setup
-        title: Welcome to authentik!
+#apiVersion: akm.goauthentik.io/v1alpha1
+#kind: AkBlueprint
+#metadata:
+#  labels:
+#    app.kubernetes.io/name: akblueprint
+#    app.kubernetes.io/instance: akm
+#    app.kubernetes.io/part-of: operator
+#    app.kubernetes.io/managed-by: kustomize
+#    app.kubernetes.io/created-by: operator
+#  name: akblueprint-sample
+#  namespace: auth
+#spec:
+#  file: /blueprints/operator/blueprint-sample.yml
+#  blueprint: |
+#    version: 1
+#    metadata:
+#      labels:
+#        blueprints.goauthentik.io/description: A sample flow to change the default out of the box welcome title
+#        blueprints.goauthentik.io/instantiate: "true"
+#      name: blueprint-sample
+#    entries:
+#    - model: authentik_flows.flow
+#      state: present
+#      identifiers:
+#        slug: akm-sample
+#      id: akm-flow
+#      attrs:
+#        denied_action: message_continue
+#        designation: stage_configuration
+#        name: default-oobe-setup
+#        title: Welcome to authentik!
