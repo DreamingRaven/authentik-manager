@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=https://goauthentik.io/blueprints/schema.json
 metadata:
   name: Default - Tenant
 version: 1
