@@ -17,6 +17,8 @@ AkBlueprint
 
 |ak-fig|
 
+Currently only file-based blueprints are supported, direct-to-database blueprints are broadly implemented but a lot of quality of life is still missing like custom YAML tag support.
+
 Spec
 ----
 
@@ -36,7 +38,7 @@ Spec
       namespace: auth
     spec:
       file: /blueprints/operator/blueprint-sample.yml
-      blueprint:
+      blueprint: |
         version: 1
         metadata:
           labels:
