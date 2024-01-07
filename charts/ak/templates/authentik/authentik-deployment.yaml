@@ -83,6 +83,29 @@ spec:
             - name: {{ .env }}
               value: {{ printf "file://%s/%s" $.Values.authentik.secrets.basePath .file }}
             {{- end }}
+
+          {{- if eq $aktype "worker"}}
+          {{- else }}
+          startupProbe:
+            httpGet:
+              path: /-/health/live/
+              port: {{ (first .Values.authentik.ports).name }}
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 60
+          livenessProbe:
+            httpGet:
+              path: /-/health/live/
+              port: {{ (first .Values.authentik.ports).name }}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /-/health/ready/
+              port: {{ (first .Values.authentik.ports).name }}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          {{- end }}
           volumeMounts:
           # config mount
           # authentik does not use a standard config so this does nothing
