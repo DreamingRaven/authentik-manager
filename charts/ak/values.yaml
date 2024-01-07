@@ -287,6 +287,15 @@ authentik:
   #     name: example-custom-blueprint-configmap
   #     key: my-default-blueprint
   #   dest: /blueprints/default/some-default-blueprint.yaml
+  # CustomCss allows you to mount a custom css file into the authentik server
+  # or use a preset / generated one
+  customCss:
+    enabled: false
+    generate: true
+    preset: deepcypher
+    configMap:
+      name: authentik-custom-css
+      key: custom.css
 
 # Authentik Manager
 akm:
