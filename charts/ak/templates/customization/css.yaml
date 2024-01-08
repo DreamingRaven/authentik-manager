@@ -5,12 +5,10 @@ kind: ConfigMap
 metadata:
     name: {{ .Values.authentik.customCss.configMap.name }}
 data:
-    {{ .Values.authentik.customCss.configMap.key }}: |
-      /* Custom CSS */
-      /* this file should be mounted to /web/dist/custom.css in the authentik server */
-      /* Example custom CSS you can use your own in the helm chart / operator values */
-      {{- if eq .Values.authentik.customCss.preset "deepcypher"}}
-      /* DeepCypher Preset */
-      {{- end }}
+  {{ .Values.authentik.customCss.configMap.key }}: |
+    /* Custom CSS */
+    /* this file should be mounted to /web/dist/custom.css in the authentik server */
+    /* Example custom CSS you can use your own in the helm chart / operator values */
+    {{ .Values.authentik.customCss.css | nindent 4 }}
 {{- end }}
 {{- end }}

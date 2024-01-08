@@ -124,6 +124,13 @@ spec:
             name: {{ .name }}
             subPath: {{ .configMap.key }}
           {{- end }}
+          {{- else }}
+          {{- if .Values.authentik.customCss.enabled }}
+          # Custom CSS mount
+          - name: custom-css
+            mountPath: /web/dist/custom.css
+            subPath: custom.css
+          {{- end }}
           {{- end }}
       volumes:
       - name: config
@@ -148,6 +155,16 @@ spec:
           items:
           - key: {{ .configMap.key }}
             path: {{ .configMap.key }}
+      {{- end }}
+      {{- else }}
+      {{- if .Values.authentik.customCss.enabled }}
+      # Custom CSS configmap volume
+      - name: custom-css
+        configMap:
+          name: {{ .Values.authentik.customCss.configMap.name }}
+          items:
+          - key: {{ .Values.authentik.customCss.configMap.key }}
+            path: custom.css
       {{- end }}
       {{- end }}
 {{- end }}

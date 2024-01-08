@@ -292,10 +292,24 @@ authentik:
   customCss:
     enabled: false
     generate: true
-    preset: deepcypher
     configMap:
       name: authentik-custom-css
       key: custom.css
+    css: |
+      /* User CSS */
+      /* remove this comment pair to enable this custom CSS
+      :root {
+        --ak-accent: #fd4b2d;
+        --ak-dark-foreground: #fafafa;
+        --ak-dark-foreground-darker: #bebebe;
+        --ak-dark-foreground-link: #5a5cb9;
+        --ak-dark-background: #18191a;
+        --ak-dark-background-darker: #000000;
+        --ak-dark-background-light: #1c1e21;
+        --ak-dark-background-light-ish: #212427;
+        --ak-dark-background-lighter: #2b2e33;
+      }
+      */
 
 # Authentik Manager
 akm:
