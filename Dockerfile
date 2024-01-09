@@ -6,7 +6,7 @@ ARG EXPOSE_PORT_PROTOCOL="tcp"
 ARG USERNAME="archer"
 
 
-FROM golang:1.21.5-alpine as gopiler
+FROM golang:1.21.6-alpine as gopiler
 ARG SRC_DIR
 ARG PKG_DIR
 RUN mkdir -p ${PKG_DIR}
@@ -33,7 +33,7 @@ RUN make html
 RUN tree ${PKG_DIR}/${DOC_DIR}/build/
 
 
-FROM golang:1.21.5-alpine as runner
+FROM golang:1.21.6-alpine as runner
 ARG PKG_DIR
 ARG DOC_DIR
 ARG USERNAME
