@@ -54,6 +54,7 @@ Authentik, redis, and postgres all use passwords between each other. We need to 
      redisSentinelPassword: dVR3bTdZdE4ydjh5cm5EY2RteWNMb1lyZjNhaVRp
      sessionSecret: cFN4U1lZQVlncG1JVmlPek9hTVJkdjJZaTVkQ21t
      smtpPassword: WWl4N1BXQVZLQ1JvSjdaRzF6U2QxT3FBVWlGV1F6
+     smtpUsername: WWl4N1BXQVZLQ1JvSjdaRzF6U2QxT3FBVWlGV1F6
 
 .. code-block:: bash
    :caption: example generating a single base64 encoded secret
