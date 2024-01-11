@@ -25,7 +25,6 @@ smtp:
   # enable me to allow users to reset their own passwords etc
   # if diabled also disabled smtp password file env value
   enabled: false
-  username: somebody@example.org
   port: 587
   host: smtp.gmail.com
   from: noreply@example.org
@@ -204,6 +203,9 @@ authentik:
     - key: smtpPassword
       file: smtp-pass
       env: AUTHENTIK_EMAIL__PASSWORD
+    - key: smtpUsername
+      file: smtp-user
+      env: AUTHENTIK_EMAIL__USERNAME
   deployment:
     imagePullPolicy: Always
     name: authentik

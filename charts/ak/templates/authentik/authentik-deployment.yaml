@@ -68,8 +68,6 @@ spec:
               value: {{ .Values.smtp.host }}
             - name: AUTHENTIK_EMAIL__PORT
               value: {{ .Values.smtp.port | quote }}
-            - name: AUTHENTIK_EMAIL__USERNAME
-              value: {{ .Values.smtp.username }}
             # AUTHENTIK AUTOGEN VARIABLES
             - name: AUTHENTIK_COOKIE_DOMAIN
               value: {{ .Values.global.domain.full }}

@@ -22,7 +22,6 @@ spec:
         full: auth.example.org
     smtp:
       enabled: false
-      username: somebody@example.org
       port: 587
       host: smtp.gmail.com
       from: noreply@example.org
