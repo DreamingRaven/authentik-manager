@@ -85,6 +85,14 @@ spec:
             {{- end }}
 
           {{- if eq $aktype "worker"}}
+          readinessProbe:
+            exec:
+              command:
+              - ak
+              - healthcheck
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 11
           {{- else }}
           startupProbe:
             httpGet:
