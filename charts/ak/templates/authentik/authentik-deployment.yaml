@@ -66,6 +66,8 @@ spec:
             # SMTP AUTOGEN VARIABLES
             - name: AUTHENTIK_EMAIL__HOST
               value: {{ .Values.smtp.host }}
+            - name: AUTHENTIK_EMAIL__FROM
+              value: {{ .Values.smtp.from }}
             - name: AUTHENTIK_EMAIL__PORT
               value: {{ .Values.smtp.port | quote }}
             # AUTHENTIK AUTOGEN VARIABLES
