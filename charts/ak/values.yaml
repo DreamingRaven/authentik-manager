@@ -210,6 +210,9 @@ authentik:
     imagePullPolicy: Always
     name: authentik
     replicas: 3
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 80
     env: # statically defined environment variables can be as many as desired
     - name: AUTHENTIK_LISTERN__HTTP
       value: 0.0.0.0:9000

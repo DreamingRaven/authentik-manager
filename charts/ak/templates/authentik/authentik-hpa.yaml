@@ -1,0 +1,24 @@
+{{- if .Values.authentik.enabled }}
+{{- $akouter := . }}
+{{- $aktypes := list "server" "worker" }}
+{{- range $aktypes }}
+{{- $aktype := . }}
+{{- with $akouter }}
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "ak.fullname" . }}-{{ $aktype }}
+  labels:
+    {{- include "ak.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "ak.fullname" . }}-{{ $aktype }}
+  minReplicas: {{ .Values.authentik.deployment.minReplicas }}
+  maxReplicas: {{ .Values.authentik.deployment.maxReplicas }}
+  targetCPUUtilizationPercentage: {{ .Values.authentik.deployment.targetCPUUtilizationPercentage }}
+{{- end }}
+{{- end }}
+{{- end }}
