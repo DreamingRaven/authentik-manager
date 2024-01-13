@@ -10,7 +10,7 @@ We have prepared for you various relatively self contained topics to help you ge
 
 .. toctree::
   :glob:
-  :maxdepth: 3
+  :maxdepth: 1
   :caption: Basic helm chart usage
 
   /basics/*

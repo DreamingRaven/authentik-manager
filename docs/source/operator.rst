@@ -26,7 +26,7 @@ To control and configure AKM we use |crd|\ s. Following are all the currently av
 
 .. toctree::
   :glob:
-  :maxdepth: 3
+  :maxdepth: 1
   :caption: AKM CRD Definitions and Descriptions
 
   /crds/*

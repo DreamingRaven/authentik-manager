@@ -71,13 +71,19 @@
 .. _secret: https://kubernetes.io/docs/concepts/configuration/secret/
 .. |secret| replace:: Secret
 
+.. |akm| replace:: :term:`AKM`
+.. |auth| replace:: :term:`authentication`
 .. |authentik| replace:: :term:`authentik`
-.. |helm| replace:: :term:`Helm`
-.. |k8s| replace:: :term:`Kubernetes`
+.. |authorization| replace:: :term:`authorization`
 .. |controller| replace:: :term:`controller`
 .. |crd| replace:: :term:`CRD`
-.. |operator| replace:: :term:`operator`
+.. |declarative| replace:: :term:`declarative`
 .. |gitops| replace:: :term:`GitOps`
+.. |helm| replace:: :term:`Helm`
+.. |iac| replace:: :term:`IaC`
+.. |k8s| replace:: :term:`Kubernetes`
+.. |oidc| replace:: :term:`OIDC`
+.. |operator| replace:: :term:`operator`
 
 .. |section_basics| replace:: :ref:`section_basics`
 .. |section_install| replace:: :ref:`section_install`

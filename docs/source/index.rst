@@ -28,6 +28,7 @@ Contents
   :numbered:
 
   license
+  demos
   basics
   advanced
   operator
