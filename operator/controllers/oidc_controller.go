@@ -218,6 +218,10 @@ func (r *OIDCReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		}
 	}
 
+	// Generate secret and configmap for OIDC
+	// Secret contains OIDC clientID and clientSecret
+	// Configmap contains well-known configuration endpoints for the application to use
+
 	//TODO: add live testing of OIDC by operator and locking system to prevent binding to non-functioning OIDC
 	// GENERATE OR UPDATE INGRESS WELL-KNOWN
 	//in := r.IngressFromOIDC(crd)

@@ -73,6 +73,12 @@ spec:
                 - confidential
                 - public
                 type: string
+              configmap:
+                description: Configmap containing public information NOT YET USED
+                properties:
+                  name:
+                    type: string
+                type: object
               domains:
                 description: Domains is a list of domain names the OIDC controller
                   should capture the /well-known paths from. Each domain will be enforced
@@ -88,6 +94,13 @@ spec:
                 default: days=30
                 description: RefreshTokenValidity
                 type: string
+              secret:
+                description: Secret containing OIDC clientId and clientSecret NOT
+                  YET USED
+                properties:
+                  name:
+                    type: string
+                type: object
               signingKey:
                 default: authentik Self-signed Certificate
                 description: SigningKey

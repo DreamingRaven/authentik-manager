@@ -93,6 +93,28 @@ type OIDCSpec struct {
 
 	//SubMode
 	SubMode string `json:"subMode,omitempty"`
+
+	//+kubebuilder:validation:Optional
+
+	//Configmap containing public information NOT YET USED
+	Configmap ConfigmapSettings `json:"configmap,omitempty"`
+
+	//+kubebuilder:validation:Optional
+
+	//Secret containing OIDC clientId and clientSecret NOT YET USED
+	Secret SecretSettings `json:"secret,omitempty"`
+}
+
+// ConfigmapSettings defines various information on the configmap to use or generate for well-known OIDC configuration or public information
+type ConfigmapSettings struct {
+	//+kubebuilder:validation:Optional
+	Name string `json:"name"`
+}
+
+// SecretSettings defines various information on the secret to use or generate with clientID and clientSecret for confidential clients
+type SecretSettings struct {
+	//+kubebuilder:validation:Optional
+	Name string `json:"name"`
 }
 
 // OIDCStatus defines the observed state of OIDC
