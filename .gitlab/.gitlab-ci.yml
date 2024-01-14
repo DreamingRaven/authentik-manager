@@ -36,12 +36,11 @@ docker_build_branch:
   image: docker:24.0.7 # an alpine image
   services:
     - docker:dind
-  before_script:
-    - docker info
   rules:
    - !reference [.rules_default_branch_push, rules]
    - !reference [.rules_nondefault_branch_push, rules]
   before_script:
+    - docker info
     - apk add --no-cache git make bash sed grep yq
     - sed --version
     - docker login registry.gitlab.com
@@ -87,13 +86,12 @@ docker_build_multi_arch_tag:
   image: docker:24.0.7 # an alpine image
   services:
     - docker:dind
-  before_script:
-    - docker info
   # only:
   # - tags
   rules:
    - !reference [.rules_default_branch_tag, rules]
   before_script:
+    - docker info
     - apk add --no-cache git make bash sed grep yq
     - sed --version
     - docker login registry.gitlab.com
