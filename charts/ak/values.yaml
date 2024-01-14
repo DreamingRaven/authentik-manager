@@ -1,17 +1,19 @@
-# TODO example domain comply with RFC2606 https://www.rfc-editor.org/rfc/rfc2606
+# Replace the domain
+# These examples comply with RFC2606 https://www.rfc-editor.org/rfc/rfc2606
+# replace org.example with your domain
 global:
   domain:
     # the base domain which should be used for authentication
-    base: example.org
+    base: org.example
     # the domain where authentik ingress will listen
-    full: auth.example.org
+    full: auth.org.example
     # the domain where the ldap ingress will listen
-    ldap: ldap.example.org
+    ldap: ldap.org.example
   admin:
     # the administrative user you want in ldap and the entire SSO
     # ATM does very little
     name: somebody
-    email: somebody@example.org
+    email: somebody@org.example
 
 # nameOverride: someNameForChart # set if you want to override the chart name for name generation
 # instanceOverride: auth # set to override the instance label to associate to other apps like the operator
@@ -27,7 +29,7 @@ smtp:
   enabled: false
   port: 587
   host: smtp.gmail.com
-  from: noreply@example.org
+  from: noreply@org.example
 
 secret:
   generate: true
@@ -345,7 +347,7 @@ pgadmin:
     - name: PGADMIN_LISTEN_PORT
       value: 80
     - name: PGADMIN_DEFAULT_EMAIL
-      value: somebody@example.org
+      value: somebody@org.example
   config:
     name: pg-servers
   servers:

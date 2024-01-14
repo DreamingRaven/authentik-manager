@@ -41,16 +41,16 @@ demo: all ## (Re)Create minikube cluster and apply example CRDs to a fully worki
 	@minikube addons list
 	@echo THE IP OF YOUR MINIKUBE CLUSTER:
 	@minikube ip
-	@echo NOTE: the full domain is the .global.domain.full value in the auth chart that you probably set to something else, auth.example.org by default
+	@echo NOTE: the full domain is the .global.domain.full value in the auth chart that you probably set to something else, auth.org.example by default
 	@echo Please ensure you have added the above minikube ip AND your value for .global.domain.full as the following line in your /etc/hosts file replacing the following defaults if they are different:
 	@echo
 	@echo ...
-	@echo 192.168.49.2	auth.example.org
+	@echo 192.168.49.2	auth.org.example
 	@echo ...
 	@echo
 	@echo Please run in a new terminal:
 	@echo
-	@echo xdg-open "https://auth.example.org/if/flow/initial-setup/"
+	@echo xdg-open "https://auth.org.example/if/flow/initial-setup/"
 	@echo
 	@echo Lastly please note that it can take some time for authentik to become available, I will start a dashboard so you can monitor its progress and of associated resources. You may have to refresh multiple times over 10 minutes on slower hardware or minikube with fewer resources. Consider allocating more minikube resources if this is the case.
 	@echo e.g. minikube config set cpus 4 \&\& minikube config set memory 8192 then restart the demo
@@ -151,13 +151,13 @@ forward: ## Forward authentik worker
 	@echo Please ensure you have added the full domain to authentik as the following line in your /etc/hosts file:
 	@echo
 	@echo ...
-	@echo 127.0.0.1	auth.example.org
+	@echo 127.0.0.1	auth.org.example
 	@echo ...
 	@echo
 	@echo Please run in a new terminal:
 	@echo
 	@echo sudo socat TCP-LISTEN:443,fork TCP:127.0.0.1:${FORWARD_PORT}
-	@echo xdg-open "https://auth.example.org:${FORWARD_PORT}/if/flow/initial-setup/"
+	@echo xdg-open "https://auth.org.example:${FORWARD_PORT}/if/flow/initial-setup/"
 	@echo
 	kubectl port-forward svc/authentik-server -n ${CHART_NAMESPACE} ${FORWARD_PORT}:443
 
@@ -174,7 +174,7 @@ users: ## Defunkt
 	@kubectl get secret -n ${CHART_NAMESPACE} auth -o=jsonpath='{.data.ldapAdminPassword}' | base64 -d
 	@echo ""
 	@echo "enter above password to login and to see all users:"
-	# if you are not using the default domain name (which you should have changed in production) then this will fail as it is hardcoded to example.org so copy, paste, and modify to use
+	# if you are not using the default domain name (which you should have changed in production) then this will fail as it is hardcoded to org.example so copy, paste, and modify to use
 	@kubectl exec deploy/openldap --stdin --tty -n ${CHART_NAMESPACE} -- ldapsearch -H ldap://127.0.0.1:1389 -x -b "dc=example,dc=org" -D "cn=admin,dc=example,dc=org" -W
 	# @kubectl get pods -n ${CAHRT_NAMESPACE} -l=app=authelia -o jsonpath='{.metadata.name}' | xargs -I {} kubectl exec --stdin --tty -n ${CHART_NAMESPACE} {} -- ldapsearch -H ldap://127.0.0.1:1389 -x -b "dc=example,dc=org" -D "cn=admin,dc=example,dc=org" -W
 

@@ -22,11 +22,11 @@ Private Registry Credentials
    spec:
      containers:
      - name: private-container
-       image: registry.example.org
+       image: registry.org.example
      imagePullSecrets:
      - name: regcred
 
-So now we know how to point a pod to a secret which should contain registry credentials for (in our example) our private registry ``registry.example.org``. This secret in the example we use here is called ``regcred``. ``regcred`` must be in the same namespace as the pod (if empty defaults to ``default``), otherwise it will not be able to find and mount it. So now what does this ``regcred`` contain? Well its almost like any other secret except it follows a slightly more strict format. Lets look at a specific example:
+So now we know how to point a pod to a secret which should contain registry credentials for (in our example) our private registry ``registry.org.example``. This secret in the example we use here is called ``regcred``. ``regcred`` must be in the same namespace as the pod (if empty defaults to ``default``), otherwise it will not be able to find and mount it. So now what does this ``regcred`` contain? Well its almost like any other secret except it follows a slightly more strict format. Lets look at a specific example:
 
 .. code-block:: yaml
    :caption: Registry credentials secret regcred
@@ -54,7 +54,7 @@ If we take a look at what this base64 encoded value is, it is the following:
 
    {
            "auths": {
-                   "registry.example.org": {
+                   "registry.org.example": {
                            "auth": "dXNlcjpwYXNzd29yZAo="
                    }
            }
@@ -81,12 +81,12 @@ While the above is useful for a whole understanding of registry credentials, one
 .. code-block:: bash
    :caption: Registry credential generating shortcut
 
-   podman login registry.example.org --authfile ${HOME}/.docker/config.json
+   podman login registry.org.example --authfile ${HOME}/.docker/config.json
    kubectl create secret -n default generic regcred --from-file .dockerconfigjson=${HOME}/.docker/config.json
 
 :substitutes:
 
-  - ``registry.example.org``: Your private registry e.g registry.gitlab.com
+  - ``registry.org.example``: Your private registry e.g registry.gitlab.com
   - ``${HOME}/.docker/config.json``: Arbitrary path where podman will store its login info
   - ``default``: Namespace the credential will be generated for
 

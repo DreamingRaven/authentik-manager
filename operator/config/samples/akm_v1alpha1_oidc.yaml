@@ -11,4 +11,4 @@ metadata:
   namespace: default
 spec:
   domains:
-  - someapp.example.org
+  - someapp.org.example

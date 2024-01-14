@@ -87,7 +87,7 @@ Now lets install everything properly, in its own namespace and with your own val
 
 .. code-block:: bash
 
-   helm install authentik akm-registry/ak --version MAJOR.MINOR.PATCH --create-namespace --namespace auth --set global.domain.base=example.org --set global.domain.full=auth.example.org --set global.admin.name=somebody --set global.admin.email=somebody@pm.me
+   helm install authentik akm-registry/ak --version MAJOR.MINOR.PATCH --create-namespace --namespace auth --set global.domain.base=org.example --set global.domain.full=auth.org.example --set global.admin.name=somebody --set global.admin.email=somebody@pm.me
 
 
 .. note::

@@ -98,14 +98,14 @@ Now that the secret exists we can tell AKM to create an |authentik| instance for
        # Following are some basic overrides that you should consider
        global:
          domain:
-           base: example.org
-           full: auth.example.org
+           base: org.example
+           full: auth.org.example
        smtp:
          enabled: false
-         username: somebody@example.org
+         username: somebody@org.example
          port: 587
          host: smtp.gmail.com
-         from: noreply@example.org
+         from: noreply@org.example
        secret:
          # disabled here to allow you to load your own secret that you should definately have backed up
          generate: false
@@ -149,19 +149,19 @@ User creation
 If you do not have a user yet to log in with, you can create the first admin user manually, once.
 By default |authentik| has a flow to do this. To use a flow you must visit its URL.
 
-The path portion of the URL for the default user setup is ``/if/flow/initial-setup/``, where ``initial-setup`` is the slug for the blueprint. So for instance if you set your full |authentik| domain to be ``auth.example.org`` (the default in the |helm| charts), you would want to visit ``https://auth.example.org/if/flow/initial-setup/``.
+The path portion of the URL for the default user setup is ``/if/flow/initial-setup/``, where ``initial-setup`` is the slug for the blueprint. So for instance if you set your full |authentik| domain to be ``auth.org.example`` (the default in the |helm| charts), you would want to visit ``https://auth.org.example/if/flow/initial-setup/``.
 
-While you may have set the domain to be ``auth.example.org`` this must actually resolve to the IP of the |k8s| cluster load balancer which is actually serving |authentik|. you can check this by using the ``nslookup`` tool :code:`nslookup auth.example.org` If you are developing locally the easiest way to do this is by changing your ``/etc/hosts`` file to include something like the following:
+While you may have set the domain to be ``auth.org.example`` this must actually resolve to the IP of the |k8s| cluster load balancer which is actually serving |authentik|. you can check this by using the ``nslookup`` tool :code:`nslookup auth.org.example` If you are developing locally the easiest way to do this is by changing your ``/etc/hosts`` file to include something like the following:
 
 .. code-block::
 
-   192.168.49.2 auth.example.org
+   192.168.49.2 auth.org.example
 
 .. note::
 
-   You cannot visit the IP directly without setting the hostname. While it is possible to initiate a connection, the reverse proxy will not know which application to route you to since many can be hosted at the same IP. Thus it will just shrug you off with some error. The reverse proxy uses the domain name used in requests to then proxy you to some backend service like auth.example.org vs nextcloud.example.org might be on the same IP.
+   You cannot visit the IP directly without setting the hostname. While it is possible to initiate a connection, the reverse proxy will not know which application to route you to since many can be hosted at the same IP. Thus it will just shrug you off with some error. The reverse proxy uses the domain name used in requests to then proxy you to some backend service like auth.org.example vs nextcloud.org.example might be on the same IP.
 
-   Also note for local development you can also visit auth.example.org:30443 or any port for that matter, as long as the domain is correct. This is useful as usually a local deployment will not be on the default port 80 (http) or 443 (https). If you wanted to proxy all local requests from 443 (https) to 30443 (non standard) so that browsers play nicer, then you can use socat. :code:`socat TCP-LISTEN:443,fork TCP:192.168.49.2:30443`. This assumes the IP of the load balancer is 192.168.49.2 and is routable.
+   Also note for local development you can also visit auth.org.example:30443 or any port for that matter, as long as the domain is correct. This is useful as usually a local deployment will not be on the default port 80 (http) or 443 (https). If you wanted to proxy all local requests from 443 (https) to 30443 (non standard) so that browsers play nicer, then you can use socat. :code:`socat TCP-LISTEN:443,fork TCP:192.168.49.2:30443`. This assumes the IP of the load balancer is 192.168.49.2 and is routable.
 
    If you are using minikube you can find this IP using :code:`minikube -n ingress-nginx service ingress-nginx-controller --url` if the ingress-nginx addon is enabled.
 

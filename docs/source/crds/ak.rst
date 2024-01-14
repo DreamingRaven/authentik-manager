@@ -48,14 +48,14 @@ For a full list of overrideable options please see the ak charts values.yaml fil
        # Following are some basic overrides that you should consider
        global:
          domain:
-           base: example.org
-           full: auth.example.org
+           base: org.example
+           full: auth.org.example
        smtp:
          enabled: false
-         username: somebody@example.org
+         username: somebody@org.example
          port: 587
          host: smtp.gmail.com
-         from: noreply@example.org
+         from: noreply@org.example
        secret:
          # disabled here to allow you to load your own secret that you should definately have backed up
          generate: false
