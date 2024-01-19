@@ -1,14 +1,40 @@
+# this example file is used in the OIDC demo.
+# For your own uses please change the values in this file to point to a secret and
+# org.example should be changed to your organisation fqdn
+# app.org.example should be change to the fqdn of your application
 apiVersion: akm.goauthentik.io/v1alpha1
 kind: OIDC
 metadata:
-  labels:
-    app.kubernetes.io/name: oidc
-    app.kubernetes.io/instance: auth
-    app.kubernetes.io/part-of: operator
-    app.kubernetes.io/managed-by: kustomize
-    app.kubernetes.io/created-by: operator
   name: oidc-sample
   namespace: default
 spec:
-  domains:
-  - someapp.org.example
+  # An application defines a client to an OIDC provider.
+  # Think of the provider as something authentik does and the application
+  # is the things you or some application does to actually authenticate
+  applications:
+  - name: some-application
+    # (optional) explicitly group, so multiple related applications are
+    # displayed together
+    group: documentation
+    # the name of the primary provider which handles login
+    provider: some-provider
+    # defines if any or all of the policies / rules should match for login
+    policyEngineMode: any
+  # A provider outlines how authentik should handle OIDC login, what
+  # credentials it should use, along with specifics for OIDC itself to suit different
+  # applications with different requirements
+  providers:
+  - name: some-provider
+    authenticationFlow: default-authentication-flow
+    authorizationFlow: default-provider-authorization-explicit-consent
+    protocolSettings:
+      # client type confidential or public
+      ClientType: confidential
+      # (optional) explicitly defined client_id and client_secret
+      clientID: some-random-character-client-identifier
+      clientSecret: some-random-character-client-secret
+      # what URIs is the user allowed to be redirected to once they authenticate
+      # this also sets the origins for explicit consent flows
+      # usually this will be app.org.example/oauth/callback or some variation of that
+      # this is application specific so you need to know where your app is expecting users back
+      redirectURIs: app.org.example/oauth/callback
