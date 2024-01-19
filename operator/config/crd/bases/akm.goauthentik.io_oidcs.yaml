@@ -95,6 +95,8 @@ spec:
                       description: Slug is the unique name of the application used
                         internally
                       type: string
+                  required:
+                  - oidcApplicationUISettings
                   type: object
                 type: array
               providers:
@@ -141,19 +143,15 @@ spec:
                           description: ClientID (optional) identifies the application
                             to the OIDC server If a secret is provided we will automatically
                             use that instead of this
-                          maxLength: 255
-                          minLength: 40
                           type: string
                         clientSecret:
                           description: ClientSecret (optional) identifies the application
                             to the OIDC server If a secret is provided we will automatically
                             use that instead of this
-                          maxLength: 255
-                          minLength: 40
                           type: string
                         clientType:
-                          description: ClientType is the type of client to use Confidential
-                            or Public
+                          description: ClientType is the type of client to use confidential
+                            or public
                           enum:
                           - confidential
                           - public
@@ -185,7 +183,10 @@ spec:
                             with weeks,days,hours,minutes,seconds,milliseconds
                           type: string
                         scopes:
-                          default: email,openid,profile
+                          default:
+                          - email
+                          - openid
+                          - profile
                           items:
                             type: string
                           type: array
@@ -208,6 +209,16 @@ spec:
                       required:
                       - clientType
                       type: object
+                    secret:
+                      description: Secret is an object reference in this namespace
+                        to generate or lookup the clientID and clientSecret
+                      properties:
+                        name:
+                          description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                            TODO: Add other useful fields. apiVersion, kind, uid?'
+                          type: string
+                      type: object
+                      x-kubernetes-map-type: atomic
                   required:
                   - authorizationFlow
                   - machineToMachineSettings

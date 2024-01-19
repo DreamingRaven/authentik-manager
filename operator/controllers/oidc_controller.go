@@ -15,6 +15,7 @@ import (
 	"fmt"
 
 	"github.com/alexflint/go-arg"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	ctrl "sigs.k8s.io/controller-runtime"
 	klog "sigs.k8s.io/controller-runtime/pkg/log"
@@ -61,7 +62,17 @@ func (r *OIDCReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	for i := range crd.Spec.Providers {
 		provider := &crd.Spec.Providers[i]
 		fmt.Printf("provider: %v\n", provider.Name)
-		//secret := provider.GenerateSecret()
+		secret, err := spawnAndFetchOIDCSecret()
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+		fmt.Printf("secret: %v\n", secret)
+		provider_blueprint, err := reconcileProviderBlueprint()
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+		fmt.Printf("blueprint: %v\n", provider_blueprint)
+
 	}
 
 	// APPLICATIONS - generate configmap and blueprint for each application
@@ -156,6 +167,24 @@ func (r *OIDCReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	//}
 
 	return ctrl.Result{}, nil
+}
+
+// spawnAndFetchOIDCSecret creates a secret for a client application to use to register and identify itself using the client_id and client_secret within.
+func spawnAndFetchOIDCSecret() (*corev1.Secret, error) {
+	return &corev1.Secret{}, nil
+}
+
+// spawnAndFetchOIDCConfigmap creates a configmap to let the client know the relevant endpoints to use for OIDC
+func spawnAndFetchOIDCConfigmap() (*corev1.ConfigMap, error) {
+	return &corev1.ConfigMap{}, nil
+}
+
+func reconcileProviderBlueprint() (*akmv1a1.AkBlueprint, error) {
+	return &akmv1a1.AkBlueprint{}, nil
+}
+
+func reconcileApplicationBlueprint() (*akmv1a1.AkBlueprint, error) {
+	return &akmv1a1.AkBlueprint{}, nil
 }
 
 //// SecretFromOIDC creates a secret for a client application to use to register and identify itself.

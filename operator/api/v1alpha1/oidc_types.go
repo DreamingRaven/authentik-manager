@@ -11,6 +11,7 @@ You may obtain a copy of the License in the project root (LICENSE) or at
 package v1alpha1
 
 import (
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -41,9 +42,9 @@ type OIDCApplication struct {
 	// PolicyEngineMode determines if all or any policy engine should match to grant access
 	PolicyEngineMode string `json:"policyEngineMode,omitempty"`
 
-	//+kubebuilder:validation:Optional
+	//+kubebuilder:validation:Required
 	// OIDCApplicationUISettings defines the behaviour of the application displayed or clicked
-	OIDCApplicationUISettings *OIDCApplicationUISettings `json:"oidcApplicationUISettings,omitempty"`
+	OIDCApplicationUISettings OIDCApplicationUISettings `json:"oidcApplicationUISettings,omitempty"`
 }
 
 type OIDCApplicationUISettings struct {
@@ -70,8 +71,12 @@ type OIDCProvider struct {
 	// Name is the name of the provider
 	Name string `json:"name"`
 	//+kubebuilder:validation:Optional
+	// Secret is an object reference in this namespace to generate or lookup the clientID and clientSecret
+	Secret corev1.LocalObjectReference `json:"secret,omitempty"`
+
+	//+kubebuilder:validation:Optional
 	// AuthenticationFlow is the name of the authentication flow to authenticate users with
-	AuthenticationFlow string `json:"authenticationFlow"`
+	AuthenticationFlow string `json:"authenticationFlow,omitempty"`
 	//+kubebuilder:validation:Required
 	// AuthorizationFlow is the name of the authorization flow to authorize this provider
 	AuthorizationFlow string `json:"authorizationFlow"`
@@ -86,17 +91,13 @@ type OIDCProvider struct {
 type OIDCProviderProtocolSettings struct {
 	//+kubebuilder:validation:Required
 	//+kubebuilder:validation:Enum="confidential";"public"
-	// ClientType is the type of client to use Confidential or Public
+	// ClientType is the type of client to use confidential or public
 	ClientType string `json:"clientType"`
 	//+kubebuilder:validation:Optional
-	//+kubebuilder:validation:MinLength=40
-	//+kubebuilder:validation:MaxLength=255
 	// ClientID (optional) identifies the application to the OIDC server
 	// If a secret is provided we will automatically use that instead of this
 	ClientID string `json:"clientID,omitempty"`
 	//+kubebuilder:validation:Optional
-	//+kubebuilder:validation:MinLength=40
-	//+kubebuilder:validation:MaxLength=255
 	// ClientSecret (optional) identifies the application to the OIDC server
 	// If a secret is provided we will automatically use that instead of this
 	ClientSecret string `json:"clientSecret,omitempty"`
@@ -119,7 +120,7 @@ type OIDCProviderProtocolSettings struct {
 	// The length of time that a refresh token is valid in format hours=1;minutes=2;seconds=3 can be used with weeks,days,hours,minutes,seconds,milliseconds
 	RefreshTokenValidity string `json:"refreshTokenValidity,omitempty"`
 	//+kubebuilder:validation:Optional
-	//+kubebuilder:default="email,openid,profile"
+	//+kubebuilder:default={"email","openid","profile"}
 	Scopes []string `json:"scopes,omitempty"`
 	//+kubebuilder:validation:Optional
 	//+kubebuilder:default="hashedId"
