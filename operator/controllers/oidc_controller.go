@@ -25,6 +25,7 @@ import (
 	akmv1a1 "gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1"
 	akmv1alpha1 "gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1"
 	"gitlab.com/GeorgeRaven/authentik-manager/operator/utils"
+	uhelm "gitlab.com/GeorgeRaven/authentik-manager/operator/utils/helm"
 )
 
 // OIDCReconciler reconciles a OIDC object
@@ -59,6 +60,25 @@ func (r *OIDCReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	}
 	l.Info(fmt.Sprintf("Found OIDC resource `%v` in `%v`.", crd.Name, crd.Namespace))
 
+	// AUTHENTIK INSTANCE
+	// check operator and authentik instance specified are the same namespace
+	if crd.Spec.Instance.Namespace != o.OperatorNamespace {
+		l.Info(fmt.Sprintf("OIDC resource reconciliation triggered but CRD specifies a different namespace to operator (operator namespace: %v, crd namespace: %v), Ignoring.", o.OperatorNamespace, crd.Spec.Instance.Namespace))
+		return ctrl.Result{}, nil
+	}
+	aks, err := r.ListAk(o.OperatorNamespace)
+	if err != nil {
+		l.Error(err, "Failed to get Authentik instance. Retrying.")
+	}
+	if len(aks) > 1 {
+		l.Info(fmt.Sprintf("OIDC resource reconciliation triggered but more than one Authentik instance found in namespace `%v`. Ignoring.", o.OperatorNamespace))
+		return ctrl.Result{}, fmt.Errorf("more than one Authentik instance found in namespace `%v`", o.OperatorNamespace)
+	} else if len(aks) == 0 {
+		l.Info(fmt.Sprintf("OIDC resource reconciliation triggered but no Authentik instance found in namespace `%v`. Retrying.", o.OperatorNamespace))
+		return ctrl.Result{}, fmt.Errorf("no Authentik instance found in namespace `%v`", o.OperatorNamespace)
+	}
+	ak := aks[0]
+
 	// PROVIDERS - generate secret and blueprint for each provider
 	// secret contains clientID and clientSecret
 	for i := range crd.Spec.Providers {
@@ -81,7 +101,7 @@ func (r *OIDCReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	for i := range crd.Spec.Applications {
 		application := &crd.Spec.Applications[i]
 		fmt.Printf("application: %v\n", application.Name)
-		configmap, err := r.reconcileConfigmap(ctx, crd, application)
+		configmap, err := r.reconcileConfigmap(ak, ctx, crd, application)
 		if err != nil {
 			return ctrl.Result{}, err
 		}
@@ -169,7 +189,6 @@ func (r *OIDCReconciler) spawnAndFetchOIDCSecret(ctx context.Context, crd *akmv1
 
 // SecretFromOIDCProvider creates a secret specification containing the clientID and clientSecret with controller references
 func (r *OIDCReconciler) SecretFromOIDCProvider(crd *akmv1a1.OIDC, provider *akmv1a1.OIDCProvider) *corev1.Secret {
-
 	charset := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	clientSecret := provider.ProtocolSettings.ClientSecret
 	if clientSecret == "" {
@@ -200,11 +219,15 @@ func (r *OIDCReconciler) reconcileProviderBlueprint() (*akmv1a1.AkBlueprint, err
 }
 
 // reconcileConfigmap creates a configmap to let the client know the relevant endpoints to use for OIDC
-func (r *OIDCReconciler) reconcileConfigmap(ctx context.Context, crd *akmv1a1.OIDC, application *akmv1a1.OIDCApplication) (*corev1.ConfigMap, error) {
+func (r *OIDCReconciler) reconcileConfigmap(ak *akmv1a1.Ak, ctx context.Context, crd *akmv1a1.OIDC, application *akmv1a1.OIDCApplication) (*corev1.ConfigMap, error) {
+	akfqdn, err := uhelm.GetAkFQDN(ak)
+	if err != nil {
+		return nil, err
+	}
 	// generate desired configmap with all URLs based on existing AK crd
-	configmap := r.ConfigmapFromOIDC(crd, application)
+	configmap := r.ConfigmapFromOIDC(akfqdn, crd, application)
 	// Always try to update and create configmap as we want to keep it in sync
-	err := r.Update(ctx, configmap)
+	err = r.Update(ctx, configmap)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			err = r.Create(ctx, configmap)
@@ -219,15 +242,23 @@ func (r *OIDCReconciler) reconcileConfigmap(ctx context.Context, crd *akmv1a1.OI
 	return configmap, nil
 }
 
-func (r *OIDCReconciler) ConfigmapFromOIDC(crd *akmv1a1.OIDC, application *akmv1a1.OIDCApplication) *corev1.ConfigMap {
+func (r *OIDCReconciler) ConfigmapFromOIDC(akfqdn string, crd *akmv1a1.OIDC, application *akmv1a1.OIDCApplication) *corev1.ConfigMap {
+	var slug string = application.Slug
 	var dataMap = make(map[string]string)
-	dataMap["wellKnownURL"] = "https://auth.org.example/application/o/app/.well-known/openid-configuration"
-	dataMap["issuerURL"] = "https://auth.org.example/application/o/app/"
-	dataMap["authorizationURL"] = "https://auth.org.example/application/o/authorize/"
-	dataMap["tokenURL"] = "https://auth.org.example/application/o/token/"
-	dataMap["userInfoURL"] = "https://auth.org.example/application/o/userinfo/"
-	dataMap["logoutURL"] = "https://auth.org.example/application/o/app/end-session/"
-	dataMap["jwksURL"] = "https://auth.org.example/application/o/app/jwks/"
+	dataMap["wellKnownURL"] = fmt.Sprintf(
+		"https://%v/application/o/%v/.well-known/openid-configuration", akfqdn, slug)
+	dataMap["issuerURL"] = fmt.Sprintf(
+		"https://%v/application/o/%v/", akfqdn, slug)
+	dataMap["authorizationURL"] = fmt.Sprintf(
+		"https://%v/application/o/authorize/", akfqdn)
+	dataMap["tokenURL"] = fmt.Sprintf(
+		"https://%v/application/o/token/", akfqdn)
+	dataMap["userInfoURL"] = fmt.Sprintf(
+		"https://%v/application/o/userinfo/", akfqdn)
+	dataMap["logoutURL"] = fmt.Sprintf(
+		"https://%v/application/o/%v/end-session/", akfqdn, slug)
+	dataMap["jwksURL"] = fmt.Sprintf(
+		"https://%v/application/o/%v/jwks/", akfqdn, slug)
 	configmap := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        application.ConfigMap.Name,

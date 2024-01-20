@@ -18,18 +18,31 @@ import (
 // OIDCSpec defines abstract and safe interfaces to provision an authentik OIDC authentication stack
 // this is meant to be deployed with applications and secrets so that OIDC can be provisioned for them.
 type OIDCSpec struct {
+	//+kubebuilder:validation:Required
+	// Authentik Instance
+	Instance AuthentikInstance `json:"instance,omitempty"`
+	//+kubebuilder:validation:Required
 	// Provider which defines how and where OIDC takes place
 	Providers []OIDCProvider `json:"providers,omitempty"`
+	//+kubebuilder:validation:Required
 	// Applications define what the provider authenticates for
 	Applications []OIDCApplication `json:"applications,omitempty"`
 }
 
+type AuthentikInstance struct {
+	//+kubebuilder:validation:Required
+	// Namespace is the namespace of the authentik instance
+	Namespace string `json:"namespace,omitempty"`
+}
+
 type OIDCApplication struct {
+	//+kubebuilder:validation:Required
 	// Name is the name of the application to display
 	Name string `json:"name,omitempty"`
 	//+kubebuilder:validation:Required
 	// ConfigMap references the configmap that contains the application specific URLs
 	ConfigMap corev1.LocalObjectReference `json:"configMap,omitempty"`
+	//+kubebuilder:validation:Required
 	// Slug is the unique name of the application used internally
 	Slug string `json:"slug,omitempty"`
 	//+kubebuilder:validation:Optional

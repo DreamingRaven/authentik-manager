@@ -1,5 +1,5 @@
 # this example file is used in the OIDC demo.
-# For your own uses please change the values in this file to point to a secret and
+# For your own uses please change the values in this file to point to your own secret
 # org.example should be changed to your organisation fqdn
 # app.org.example should be change to the fqdn of your application
 apiVersion: akm.goauthentik.io/v1alpha1
@@ -8,11 +8,16 @@ metadata:
   name: some-oidc
   namespace: default
 spec:
+  # Select which authentik instance is to deal with this OIDC by namespace
+  instance:
+    namespace: auth
   # An application defines a client to an OIDC provider.
   # Think of the provider as something authentik does and the application
   # is the things you or some application does to actually authenticate
   applications:
   - name: some-application
+    slug: some-app
+    # specify the name of the configmap that will store the application specific URLs
     configMap:
       name: some-application-config
     # (optional) explicitly group, so multiple related applications are

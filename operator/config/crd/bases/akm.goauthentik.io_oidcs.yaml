@@ -107,9 +107,20 @@ spec:
                       type: string
                   required:
                   - configMap
+                  - name
                   - oidcApplicationUISettings
+                  - slug
                   type: object
                 type: array
+              instance:
+                description: Authentik Instance
+                properties:
+                  namespace:
+                    description: Namespace is the namespace of the authentik instance
+                    type: string
+                required:
+                - namespace
+                type: object
               providers:
                 description: Provider which defines how and where OIDC takes place
                 items:
@@ -238,6 +249,10 @@ spec:
                   - secret
                   type: object
                 type: array
+            required:
+            - applications
+            - instance
+            - providers
             type: object
           status:
             description: OIDCStatus defines the observed state of OIDC
