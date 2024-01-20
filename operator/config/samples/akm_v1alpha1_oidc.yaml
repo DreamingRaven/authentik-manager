@@ -13,6 +13,8 @@ spec:
   # is the things you or some application does to actually authenticate
   applications:
   - name: some-application
+    configMap:
+      name: some-application-config
     # (optional) explicitly group, so multiple related applications are
     # displayed together
     group: documentation
@@ -46,5 +48,5 @@ spec:
       # usually this will be app.org.example/oauth/callback or some variation of that
       # this is application specific so you need to know where your app is expecting users back
       redirectURIs:
-      - app.org.example/oauth/callback
+      - app.org.example/oauth2/callback
     machineToMachineSettings: {}

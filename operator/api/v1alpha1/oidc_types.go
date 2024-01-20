@@ -27,6 +27,9 @@ type OIDCSpec struct {
 type OIDCApplication struct {
 	// Name is the name of the application to display
 	Name string `json:"name,omitempty"`
+	//+kubebuilder:validation:Required
+	// ConfigMap references the configmap that contains the application specific URLs
+	ConfigMap corev1.LocalObjectReference `json:"configMap,omitempty"`
 	// Slug is the unique name of the application used internally
 	Slug string `json:"slug,omitempty"`
 	//+kubebuilder:validation:Optional

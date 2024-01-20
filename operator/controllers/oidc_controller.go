@@ -74,7 +74,6 @@ func (r *OIDCReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 			return ctrl.Result{}, err
 		}
 		fmt.Printf("blueprint: %v\n", provider_blueprint)
-
 	}
 
 	// APPLICATIONS - generate configmap and blueprint for each application
@@ -82,7 +81,7 @@ func (r *OIDCReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	for i := range crd.Spec.Applications {
 		application := &crd.Spec.Applications[i]
 		fmt.Printf("application: %v\n", application.Name)
-		configmap, err := r.reconcileConfigmap()
+		configmap, err := r.reconcileConfigmap(ctx, crd, application)
 		if err != nil {
 			return ctrl.Result{}, err
 		}
@@ -158,10 +157,10 @@ func (r *OIDCReconciler) spawnAndFetchOIDCSecret(ctx context.Context, crd *akmv1
 			secret = r.SecretFromOIDCProvider(crd, provider)
 			err = r.Create(ctx, secret)
 			if err != nil {
-				return &corev1.Secret{}, err
+				return nil, err
 			}
 		} else {
-			return &corev1.Secret{}, err
+			return nil, err
 		}
 	}
 	// return the secret we just created or that we found
@@ -201,8 +200,44 @@ func (r *OIDCReconciler) reconcileProviderBlueprint() (*akmv1a1.AkBlueprint, err
 }
 
 // reconcileConfigmap creates a configmap to let the client know the relevant endpoints to use for OIDC
-func (r *OIDCReconciler) reconcileConfigmap() (*corev1.ConfigMap, error) {
-	return &corev1.ConfigMap{}, nil
+func (r *OIDCReconciler) reconcileConfigmap(ctx context.Context, crd *akmv1a1.OIDC, application *akmv1a1.OIDCApplication) (*corev1.ConfigMap, error) {
+	// generate desired configmap with all URLs based on existing AK crd
+	configmap := r.ConfigmapFromOIDC(crd, application)
+	// Always try to update and create configmap as we want to keep it in sync
+	err := r.Update(ctx, configmap)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			err = r.Create(ctx, configmap)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			return nil, err
+		}
+	}
+	// apply generated configmap in this namespace
+	return configmap, nil
+}
+
+func (r *OIDCReconciler) ConfigmapFromOIDC(crd *akmv1a1.OIDC, application *akmv1a1.OIDCApplication) *corev1.ConfigMap {
+	var dataMap = make(map[string]string)
+	dataMap["wellKnownURL"] = "https://auth.org.example/application/o/app/.well-known/openid-configuration"
+	dataMap["issuerURL"] = "https://auth.org.example/application/o/app/"
+	dataMap["authorizationURL"] = "https://auth.org.example/application/o/authorize/"
+	dataMap["tokenURL"] = "https://auth.org.example/application/o/token/"
+	dataMap["userInfoURL"] = "https://auth.org.example/application/o/userinfo/"
+	dataMap["logoutURL"] = "https://auth.org.example/application/o/app/end-session/"
+	dataMap["jwksURL"] = "https://auth.org.example/application/o/app/jwks/"
+	configmap := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:        application.ConfigMap.Name,
+			Namespace:   crd.Namespace,
+			Annotations: crd.Annotations,
+		},
+		Data: dataMap,
+	}
+	ctrl.SetControllerReference(crd, configmap, r.Scheme)
+	return configmap
 }
 
 func (r *OIDCReconciler) reconcileApplicationBlueprint() (*akmv1a1.AkBlueprint, error) {

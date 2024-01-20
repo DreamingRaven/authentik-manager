@@ -47,6 +47,16 @@ spec:
                       items:
                         type: string
                       type: array
+                    configMap:
+                      description: ConfigMap references the configmap that contains
+                        the application specific URLs
+                      properties:
+                        name:
+                          description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                            TODO: Add other useful fields. apiVersion, kind, uid?'
+                          type: string
+                      type: object
+                      x-kubernetes-map-type: atomic
                     group:
                       description: Group is a string that is used to group applications
                         with the idential group
@@ -96,6 +106,7 @@ spec:
                         internally
                       type: string
                   required:
+                  - configMap
                   - oidcApplicationUISettings
                   type: object
                 type: array
