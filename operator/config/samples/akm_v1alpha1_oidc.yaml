@@ -5,7 +5,7 @@
 apiVersion: akm.goauthentik.io/v1alpha1
 kind: OIDC
 metadata:
-  name: oidc-sample
+  name: some-oidc
   namespace: default
 spec:
   # An application defines a client to an OIDC provider.
@@ -25,15 +25,19 @@ spec:
   # credentials it should use, along with specifics for OIDC itself to suit different
   # applications with different requirements
   providers:
+  # globally unique name for this provider
   - name: some-provider
+    secret:
+      # the secret that will house the client_id and client_secret in this namespace for this provider
+      name: some-provider-secret
     authenticationFlow: default-authentication-flow
     authorizationFlow: default-provider-authorization-explicit-consent
     protocolSettings:
       # client type confidential or public
       clientType: confidential
       # (optional) explicitly defined client_id and client_secret
-      clientID: some-random-character-client-identifier
-      clientSecret: some-random-character-client-secret
+      #clientID: some-random-character-client-identifier
+      #clientSecret: some-random-character-client-secret
       # what URIs is the user allowed to be redirected to once they authenticate
       # this also sets the origins for explicit consent flows
       # usually this will be app.org.example/oauth/callback or some variation of that

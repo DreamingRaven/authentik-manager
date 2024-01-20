@@ -17,6 +17,8 @@ import (
 	"github.com/alexflint/go-arg"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	klog "sigs.k8s.io/controller-runtime/pkg/log"
 
@@ -62,12 +64,12 @@ func (r *OIDCReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	for i := range crd.Spec.Providers {
 		provider := &crd.Spec.Providers[i]
 		fmt.Printf("provider: %v\n", provider.Name)
-		secret, err := spawnAndFetchOIDCSecret()
+		secret, err := r.spawnAndFetchOIDCSecret(ctx, crd, provider)
 		if err != nil {
 			return ctrl.Result{}, err
 		}
 		fmt.Printf("secret: %v\n", secret)
-		provider_blueprint, err := reconcileProviderBlueprint()
+		provider_blueprint, err := r.reconcileProviderBlueprint()
 		if err != nil {
 			return ctrl.Result{}, err
 		}
@@ -80,40 +82,17 @@ func (r *OIDCReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	for i := range crd.Spec.Applications {
 		application := &crd.Spec.Applications[i]
 		fmt.Printf("application: %v\n", application.Name)
+		configmap, err := r.reconcileConfigmap()
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+		fmt.Printf("configmap: %v\n", configmap)
+		application_blueprint, err := r.reconcileApplicationBlueprint()
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+		fmt.Printf("blueprint: %v\n", application_blueprint)
 	}
-
-	//// FETCH SECRET OR CREATE BUT NOT UPDATE
-	//oidcSecret := &corev1.Secret{}
-	//err = r.Get(ctx, types.NamespacedName{
-	//	Name:      crd.Name,
-	//	Namespace: crd.Namespace,
-	//}, oidcSecret)
-	//if err != nil {
-	//	if errors.IsNotFound(err) {
-	//		// Create secret as not found
-	//		l.Info(fmt.Sprintf("Secret not found generating `%v` in `%v`.", crd.Name, crd.Namespace))
-	//		charset := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-	//		if crd.Spec.ClientID == "" {
-	//			crd.Spec.ClientID = utils.GenerateRandomString(40, charset)
-	//		}
-	//		if crd.Spec.ClientSecret == "" {
-	//			crd.Spec.ClientSecret = utils.GenerateRandomString(128, charset)
-	//		}
-	//		oidcDesiredSecret := r.SecretFromOIDC(crd)
-	//		err = r.Create(ctx, oidcDesiredSecret)
-	//		if err != nil {
-	//			return ctrl.Result{}, err
-	//		}
-	//		oidcSecret = oidcDesiredSecret
-	//	} else {
-	//		// Some error other than "not found" when trying to fetch secret
-	//		return ctrl.Result{}, err
-	//	}
-	//} else {
-	//	l.Info(fmt.Sprintf("Secret update ignored to prevent downtime for `%v` in `%v`.", oidcSecret.Name, oidcSecret.Namespace))
-	//	crd.Spec.ClientID = string(oidcSecret.Data["clientID"])
-	//	crd.Spec.ClientSecret = string(oidcSecret.Data["clientSecret"])
-	//}
 
 	//// GENERATE OR UPDATE BLUEPRINT
 	//bps, err := r.BlueprintFromOIDC(crd)
@@ -170,39 +149,66 @@ func (r *OIDCReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 }
 
 // spawnAndFetchOIDCSecret creates a secret for a client application to use to register and identify itself using the client_id and client_secret within.
-func spawnAndFetchOIDCSecret() (*corev1.Secret, error) {
-	return &corev1.Secret{}, nil
+func (r *OIDCReconciler) spawnAndFetchOIDCSecret(ctx context.Context, crd *akmv1a1.OIDC, provider *akmv1a1.OIDCProvider) (*corev1.Secret, error) {
+	secret := &corev1.Secret{}
+	err := r.Get(ctx, types.NamespacedName{Name: provider.Secret.Name, Namespace: crd.Namespace}, secret)
+	if err != nil {
+		// if the secret does not exist, create it
+		if errors.IsNotFound(err) {
+			secret = r.SecretFromOIDCProvider(crd, provider)
+			err = r.Create(ctx, secret)
+			if err != nil {
+				return &corev1.Secret{}, err
+			}
+		} else {
+			return &corev1.Secret{}, err
+		}
+	}
+	// return the secret we just created or that we found
+	return secret, nil
 }
 
-// spawnAndFetchOIDCConfigmap creates a configmap to let the client know the relevant endpoints to use for OIDC
-func spawnAndFetchOIDCConfigmap() (*corev1.ConfigMap, error) {
+// SecretFromOIDCProvider creates a secret specification containing the clientID and clientSecret with controller references
+func (r *OIDCReconciler) SecretFromOIDCProvider(crd *akmv1a1.OIDC, provider *akmv1a1.OIDCProvider) *corev1.Secret {
+
+	charset := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	clientSecret := provider.ProtocolSettings.ClientSecret
+	if clientSecret == "" {
+		clientSecret = utils.GenerateRandomString(128, charset)
+	}
+	clientID := provider.ProtocolSettings.ClientID
+	if clientID == "" {
+		clientID = utils.GenerateRandomString(64, charset)
+	}
+	var dataMap = make(map[string][]byte)
+	dataMap["clientSecret"] = []byte(clientSecret)
+	dataMap["clientID"] = []byte(clientID)
+	oidcSecret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:        provider.Secret.Name,
+			Namespace:   crd.Namespace,
+			Annotations: crd.Annotations,
+		},
+		Data: dataMap,
+	}
+	ctrl.SetControllerReference(crd, oidcSecret, r.Scheme)
+	return oidcSecret
+}
+
+// reconcileProviderBlueprint ensure the provider blueprint exists and matches the desired state in the auth namespace
+func (r *OIDCReconciler) reconcileProviderBlueprint() (*akmv1a1.AkBlueprint, error) {
+	return &akmv1a1.AkBlueprint{}, nil
+}
+
+// reconcileConfigmap creates a configmap to let the client know the relevant endpoints to use for OIDC
+func (r *OIDCReconciler) reconcileConfigmap() (*corev1.ConfigMap, error) {
 	return &corev1.ConfigMap{}, nil
 }
 
-func reconcileProviderBlueprint() (*akmv1a1.AkBlueprint, error) {
+func (r *OIDCReconciler) reconcileApplicationBlueprint() (*akmv1a1.AkBlueprint, error) {
 	return &akmv1a1.AkBlueprint{}, nil
 }
 
-func reconcileApplicationBlueprint() (*akmv1a1.AkBlueprint, error) {
-	return &akmv1a1.AkBlueprint{}, nil
-}
-
-//// SecretFromOIDC creates a secret for a client application to use to register and identify itself.
-//func (r *OIDCReconciler) SecretFromOIDC(crd *akmv1a1.OIDC) *corev1.Secret {
-//	var dataMap = make(map[string][]byte)
-//	dataMap["clientSecret"] = []byte(crd.Spec.ClientSecret)
-//	dataMap["clientID"] = []byte(crd.Spec.ClientID)
-//	oidcSecret := &corev1.Secret{
-//		ObjectMeta: metav1.ObjectMeta{
-//			Name:        crd.Name,
-//			Namespace:   crd.Namespace,
-//			Annotations: crd.Annotations,
-//		},
-//		Data: dataMap,
-//	}
-//	ctrl.SetControllerReference(crd, oidcSecret, r.Scheme)
-//	return oidcSecret
-//}
 //
 //// BlueprintFromOIDC creates the necessary blueprint to enable OIDC for an application.
 //func (r *OIDCReconciler) BlueprintFromOIDC(crd *akmv1a1.OIDC) ([]*akmv1a1.AkBlueprint, error) {

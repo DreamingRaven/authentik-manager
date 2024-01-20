@@ -70,7 +70,7 @@ type OIDCProvider struct {
 	//+kubebuilder:validation:Required
 	// Name is the name of the provider
 	Name string `json:"name"`
-	//+kubebuilder:validation:Optional
+	//+kubebuilder:validation:Required
 	// Secret is an object reference in this namespace to generate or lookup the clientID and clientSecret
 	Secret corev1.LocalObjectReference `json:"secret,omitempty"`
 

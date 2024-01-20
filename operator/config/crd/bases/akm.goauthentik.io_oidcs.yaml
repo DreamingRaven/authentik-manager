@@ -224,6 +224,7 @@ spec:
                   - machineToMachineSettings
                   - name
                   - protocolSettings
+                  - secret
                   type: object
                 type: array
             type: object
