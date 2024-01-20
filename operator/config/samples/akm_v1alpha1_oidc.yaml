@@ -29,6 +29,8 @@ spec:
   - name: some-provider
     secret:
       # the secret that will house the client_id and client_secret in this namespace for this provider
+      # NOTE: this will only be generated if it does not exist otherwise it will use the existing secret
+      # expecting the keys clientID and clientSecret
       name: some-provider-secret
     authenticationFlow: default-authentication-flow
     authorizationFlow: default-provider-authorization-explicit-consent
@@ -36,6 +38,7 @@ spec:
       # client type confidential or public
       clientType: confidential
       # (optional) explicitly defined client_id and client_secret
+      # NOTE: it is highly recommended you use a secret / sealed-secret or leave this blank to autogenerate
       #clientID: some-random-character-client-identifier
       #clientSecret: some-random-character-client-secret
       # what URIs is the user allowed to be redirected to once they authenticate
