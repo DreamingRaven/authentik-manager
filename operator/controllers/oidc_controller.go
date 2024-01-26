@@ -26,6 +26,7 @@ import (
 	akmv1alpha1 "gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1"
 	"gitlab.com/GeorgeRaven/authentik-manager/operator/utils"
 	uhelm "gitlab.com/GeorgeRaven/authentik-manager/operator/utils/helm"
+	yaml_v3 "gopkg.in/yaml.v3"
 )
 
 // OIDCReconciler reconciles a OIDC object
@@ -89,7 +90,7 @@ func (r *OIDCReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 			return ctrl.Result{}, err
 		}
 		fmt.Printf("secret: %v\n", secret)
-		provider_blueprint, err := r.reconcileProviderBlueprint()
+		provider_blueprint, err := r.reconcileProviderBlueprint(ak, ctx, crd, provider)
 		if err != nil {
 			return ctrl.Result{}, err
 		}
@@ -106,7 +107,7 @@ func (r *OIDCReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 			return ctrl.Result{}, err
 		}
 		fmt.Printf("configmap: %v\n", configmap)
-		application_blueprint, err := r.reconcileApplicationBlueprint()
+		application_blueprint, err := r.reconcileApplicationBlueprint(ak, ctx, crd, application)
 		if err != nil {
 			return ctrl.Result{}, err
 		}
@@ -214,8 +215,33 @@ func (r *OIDCReconciler) SecretFromOIDCProvider(crd *akmv1a1.OIDC, provider *akm
 }
 
 // reconcileProviderBlueprint ensure the provider blueprint exists and matches the desired state in the auth namespace
-func (r *OIDCReconciler) reconcileProviderBlueprint() (*akmv1a1.AkBlueprint, error) {
-	return &akmv1a1.AkBlueprint{}, nil
+func (r *OIDCReconciler) reconcileProviderBlueprint(ak *akmv1a1.Ak, ctx context.Context, crd *akmv1a1.OIDC, provider *akmv1a1.OIDCProvider) (*akmv1a1.AkBlueprint, error) {
+	bpContent := &akmv1a1.BP{
+		Version: 1,
+		Metadata: akmv1a1.BPMeta{
+			Name: fmt.Sprintf("%v-provider-%v", crd.Namespace, provider.Name),
+		},
+		Entries: []akmv1a1.BPModel{
+			akmv1a1.BPModel{
+				Model: "authentik_providers_oauth2.oauth2provider",
+				State: "present",
+				Id:    "null",
+			},
+		},
+	}
+	bpContentStr, err := yaml_v3.Marshal(bpContent)
+	if err != nil {
+		return nil, err
+	}
+	bp := &akmv1a1.AkBlueprint{
+		Spec: akmv1a1.AkBlueprintSpec{
+			StorageType: "file",
+			File:        fmt.Sprintf("/blueprints/operator/%v-provider-%v.yaml", crd.Namespace, provider.Name),
+			Blueprint:   string(bpContentStr),
+		},
+	}
+	ctrl.SetControllerReference(crd, bp, r.Scheme)
+	return bp, nil
 }
 
 // reconcileConfigmap creates a configmap to let the client know the relevant endpoints to use for OIDC
@@ -271,8 +297,33 @@ func (r *OIDCReconciler) ConfigmapFromOIDC(akfqdn string, crd *akmv1a1.OIDC, app
 	return configmap
 }
 
-func (r *OIDCReconciler) reconcileApplicationBlueprint() (*akmv1a1.AkBlueprint, error) {
-	return &akmv1a1.AkBlueprint{}, nil
+func (r *OIDCReconciler) reconcileApplicationBlueprint(ak *akmv1a1.Ak, ctx context.Context, crd *akmv1a1.OIDC, application *akmv1a1.OIDCApplication) (*akmv1a1.AkBlueprint, error) {
+	bpContent := &akmv1a1.BP{
+		Version: 1,
+		Metadata: akmv1a1.BPMeta{
+			Name: fmt.Sprintf("%v-application-%v", crd.Namespace, application.Slug),
+		},
+		Entries: []akmv1a1.BPModel{
+			akmv1a1.BPModel{
+				Model: "authentik_providers_oauth2.oauth2provider",
+				State: "present",
+				Id:    "null",
+			},
+		},
+	}
+	bpContentStr, err := yaml_v3.Marshal(bpContent)
+	if err != nil {
+		return nil, err
+	}
+	bp := &akmv1a1.AkBlueprint{
+		Spec: akmv1a1.AkBlueprintSpec{
+			StorageType: "file",
+			File:        fmt.Sprintf("/blueprints/operator/%v-application-%v.yaml", crd.Namespace, application.Slug),
+			Blueprint:   string(bpContentStr),
+		},
+	}
+	ctrl.SetControllerReference(crd, bp, r.Scheme)
+	return bp, nil
 }
 
 //
