@@ -4,7 +4,7 @@ go 1.21.4
 
 require (
 	github.com/alexflint/go-arg v1.4.3
-	github.com/coreos/go-oidc/v3 v3.7.0
+	github.com/coreos/go-oidc/v3 v3.9.0
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/lib/pq v1.10.9
 	github.com/onsi/ginkgo/v2 v2.13.2
