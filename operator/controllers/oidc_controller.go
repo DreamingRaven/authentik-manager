@@ -22,11 +22,21 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	klog "sigs.k8s.io/controller-runtime/pkg/log"
 
+	_ "embed"
+
 	akmv1a1 "gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1"
 	akmv1alpha1 "gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1"
 	"gitlab.com/GeorgeRaven/authentik-manager/operator/utils"
 	uhelm "gitlab.com/GeorgeRaven/authentik-manager/operator/utils/helm"
 	yaml_v3 "gopkg.in/yaml.v3"
+)
+
+// Statically bundled templaes to ensure they are available in binaries
+var (
+	//go:embed templates/oauth2/provider.yaml
+	oauth2ProviderTemplate []byte
+	//go:embed templates/oauth2/application.yaml
+	oauth2ApplicationTemplate []byte
 )
 
 // OIDCReconciler reconciles a OIDC object
@@ -324,55 +334,6 @@ func (r *OIDCReconciler) reconcileApplicationBlueprint(ak *akmv1a1.Ak, ctx conte
 	}
 	ctrl.SetControllerReference(crd, bp, r.Scheme)
 	return bp, nil
-}
-
-func getProviderTemplate() []byte {
-	yamlString := `
-    access_code_validity: minutes=1
-    access_token_validity: minutes=5
-    authentication_flow: 30930b63-27b1-47bb-8146-832e7bb8fc35
-    authorization_flow: 2db507db-5a85-4637-9987-c2ea9cb56fce
-    client_id: zvlxY59frauDSNPQbDtKIOmksYZPb9oudc27N6Py
-    client_secret: AjHMly4d6BfTloGIOx7iabFwfdbRsXFPws1kmaORbYWRU72KGoWncViULXbrIFLgki7yIX5M9AlkY8DXaUI7H7Tt5HBEud0OjmJqjAXBshDVFOCnc8KzTIPgXAwa5h3
-    client_type: confidential
-    include_claims_in_id_token: true
-    issuer_mode: per_provider
-    name: MyProvider
-    property_mappings:
-    - d1f2df46-2e04-4a9f-a4d9-844e86491ec8
-    - d371d3e9-86a5-4892-94f6-691034c9957a
-    - 87b04e4e-bb98-4562-9acc-eb070e14c9ed
-    redirect_uris: app.org.example/oauth2/callback/
-    refresh_token_validity: days=30
-    signing_key: 1d1765cf-2bfc-4bb9-97af-0d4837c12cd7
-    sub_mode: hashed_user_id
-  conditions: []
-  id: null
-  identifiers:
-    pk: 2
-  model: authentik_providers_oauth2.oauth2provider
-  state: present
-- attrs:
-`
-	return []byte(yamlString)
-}
-
-func getApplicationTemplate() []byte {
-	yamlString := `
-    group: my-group
-    name: MyApplication
-    policy_engine_mode: any
-    provider: 2
-    slug: my-application
-  conditions: []
-  id: null
-  identifiers:
-    pk: c885d2bd-1ebd-4799-9dfa-40d87f644fca
-  model: authentik_core.application
-  state: present
-- attrs:
-`
-	return []byte(yamlString)
 }
 
 //
