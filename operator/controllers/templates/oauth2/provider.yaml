@@ -1,5 +1,10 @@
+# yaml-language-server: $schema=https://goauthentik.io/blueprints/schema.json
+version: 1
+metadata:
+  name: provider-blueprint
+entries:
 - model: authentik_providers_oauth2.oauth2provider
-  id: null
+  #id: null
   identifiers:
     #pk: 2
     slug: {{ .slug }}

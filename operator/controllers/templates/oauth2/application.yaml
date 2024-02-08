@@ -1,5 +1,10 @@
+# yaml-language-server: $schema=https://goauthentik.io/blueprints/schema.json
+version: 1
+metadata:
+  name: app-blueprint
+entries:
 - model: authentik_core.application
-  id: null
+  #id: null
   identifiers:
     #pk: c885d2bd-1ebd-4799-9dfa-40d87f644fca
     slug: {{ .slug }}
