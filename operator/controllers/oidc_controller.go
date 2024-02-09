@@ -28,6 +28,7 @@ import (
 	akmv1alpha1 "gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1"
 	"gitlab.com/GeorgeRaven/authentik-manager/operator/utils"
 	uhelm "gitlab.com/GeorgeRaven/authentik-manager/operator/utils/helm"
+	"gitlab.com/GeorgeRaven/authentik-manager/operator/utils/raw"
 	yaml_v3 "gopkg.in/yaml.v3"
 )
 
@@ -104,7 +105,7 @@ func (r *OIDCReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		if err != nil {
 			return ctrl.Result{}, err
 		}
-		fmt.Printf("blueprint: %v\n", provider_blueprint)
+		fmt.Printf("privider blueprint: %v\n", provider_blueprint)
 	}
 
 	// APPLICATIONS - generate configmap and blueprint for each application
@@ -121,7 +122,7 @@ func (r *OIDCReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		if err != nil {
 			return ctrl.Result{}, err
 		}
-		fmt.Printf("blueprint: %v\n", application_blueprint)
+		fmt.Printf("application blueprint: %v\n", application_blueprint)
 	}
 
 	//// GENERATE OR UPDATE BLUEPRINT
@@ -308,6 +309,69 @@ func (r *OIDCReconciler) ConfigmapFromOIDC(akfqdn string, crd *akmv1a1.OIDC, app
 }
 
 func (r *OIDCReconciler) reconcileApplicationBlueprint(ak *akmv1a1.Ak, ctx context.Context, crd *akmv1a1.OIDC, application *akmv1a1.OIDCApplication) (*akmv1a1.AkBlueprint, error) {
+	//// spawn template
+	//bpTmp, err := template.New("blueprint").Parse(string(oauth2ApplicationTemplate))
+	//if err != nil {
+	//	return nil, err
+	//}
+	//// create variables to pass into template
+	//varmap := map[string]interface{}{
+	//	"name":               "100",
+	//	"slug":               "value",
+	//	"group":              "100",
+	//	"provider":           "a",
+	//	"policy_engine_mode": "any",
+	//}
+	//// execute template
+	//var buf bytes.Buffer
+	//err = bpTmp.Execute(&buf, varmap)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//byteBP := byte[](buf.String())
+	//bpContent := &akmv1a1.BP{}
+	//err = yaml_v3.Unmarshal(byteBP, bpContent)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//// display template
+	//fmt.Printf("%+v", bpContent)
+
+	// TODO: Once this works skip intermediary stage and go straight to blueprint
+	// as this is far too complex, but it does add sanity checking
+
+	// Really complicated way to take a map[string]string and convert it to a raw.Raw
+	mapId := map[string]string{
+		"slug": application.Slug,
+	}
+	rawId, err := yaml_v3.Marshal(mapId)
+	if err != nil {
+		return nil, err
+	}
+	id := raw.Raw{}
+	err = yaml_v3.Unmarshal(rawId, &id)
+	if err != nil {
+		return nil, err
+	}
+
+	// Another complicated way to create the attrs map
+	mapAttrs := map[string]string{
+		"name":               application.Name,
+		"group":              application.Group,
+		"policy_engine_mode": application.PolicyEngineMode,
+		"provider":           fmt.Sprintf("!Find [authentik_providers_oauth2.oauth2provider, [slug, %v]]", application.Provider),
+		"slug":               application.Slug,
+	}
+	rawAttrs, err := yaml_v3.Marshal(mapAttrs)
+	if err != nil {
+		return nil, err
+	}
+	attrs := raw.Raw{}
+	err = yaml_v3.Unmarshal(rawAttrs, &attrs)
+	if err != nil {
+		return nil, err
+	}
+
 	bpContent := &akmv1a1.BP{
 		Version: 1,
 		Metadata: akmv1a1.BPMeta{
@@ -315,9 +379,12 @@ func (r *OIDCReconciler) reconcileApplicationBlueprint(ak *akmv1a1.Ak, ctx conte
 		},
 		Entries: []akmv1a1.BPModel{
 			akmv1a1.BPModel{
-				Model: "authentik_providers_oauth2.oauth2provider",
-				State: "present",
-				Id:    "null",
+				Model:       "authentik_providers_oauth2.oauth2provider",
+				State:       "present",
+				Id:          "null",
+				Identifiers: &id,
+				Attrs:       &attrs,
+				Conditions:  []string{},
 			},
 		},
 	}
