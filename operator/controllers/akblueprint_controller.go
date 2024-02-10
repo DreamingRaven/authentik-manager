@@ -16,6 +16,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
@@ -564,13 +565,12 @@ func (r *AkBlueprintReconciler) configForBlueprint(crd *akmv1a1.AkBlueprint, nam
 	// create the map of key values for the data in configmap from blueprint contents
 	cleanFP := filepath.Clean(crd.Spec.File)
 	var dataMap = make(map[string]string)
-	// set the key to be the filename and extension from path
-	//// set data to be the blueprint string
-	//b, err := yaml.Marshal(crd.Spec.Blueprint)
-	//if err != nil {
-	//	return nil, err
-	//}
-	dataMap[filepath.Base(cleanFP)] = string(crd.Spec.Blueprint)
+	// apply regex substitution to remove quotes ['"](?P<content>\!.*)['"] -> ${content}
+	// this is required since authentiks python yaml parser doesn't like quotes on
+	// their custom yaml tags so we have to ensure they are stripped here for consistency
+	cleanedBlueprint := regexp.MustCompile(`['"](?P<content>\!.*)['"]`).ReplaceAllString(string(crd.Spec.Blueprint), "${content}")
+	// set the configmap key to be the file name we want it to be mounted as for the volume mounts
+	dataMap[filepath.Base(cleanFP)] = cleanedBlueprint
 
 	var annMap = make(map[string]string)
 	annMap["akm.goauthentik.io/path"] = filepath.Dir(cleanFP)
