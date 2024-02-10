@@ -309,37 +309,8 @@ func (r *OIDCReconciler) ConfigmapFromOIDC(akfqdn string, crd *akmv1a1.OIDC, app
 }
 
 func (r *OIDCReconciler) reconcileApplicationBlueprint(ak *akmv1a1.Ak, ctx context.Context, crd *akmv1a1.OIDC, application *akmv1a1.OIDCApplication) (*akmv1a1.AkBlueprint, error) {
-	//// spawn template
-	//bpTmp, err := template.New("blueprint").Parse(string(oauth2ApplicationTemplate))
-	//if err != nil {
-	//	return nil, err
-	//}
-	//// create variables to pass into template
-	//varmap := map[string]interface{}{
-	//	"name":               "100",
-	//	"slug":               "value",
-	//	"group":              "100",
-	//	"provider":           "a",
-	//	"policy_engine_mode": "any",
-	//}
-	//// execute template
-	//var buf bytes.Buffer
-	//err = bpTmp.Execute(&buf, varmap)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//byteBP := byte[](buf.String())
-	//bpContent := &akmv1a1.BP{}
-	//err = yaml_v3.Unmarshal(byteBP, bpContent)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//// display template
-	//fmt.Printf("%+v", bpContent)
-
 	// TODO: Once this works skip intermediary stage and go straight to blueprint
 	// as this is far too complex, but it does add sanity checking
-
 	// Really complicated way to take a map[string]string and convert it to a raw.Raw
 	mapId := map[string]string{
 		"slug": application.Slug,
@@ -360,7 +331,7 @@ func (r *OIDCReconciler) reconcileApplicationBlueprint(ak *akmv1a1.Ak, ctx conte
 		"group":              application.Group,
 		"policy_engine_mode": application.PolicyEngineMode,
 		"provider":           fmt.Sprintf("!Find [authentik_providers_oauth2.oauth2provider, [slug, %v]]", application.Provider),
-		"slug":               application.Slug,
+		//"slug":               application.Slug,
 	}
 	rawAttrs, err := yaml_v3.Marshal(mapAttrs)
 	if err != nil {
@@ -393,6 +364,10 @@ func (r *OIDCReconciler) reconcileApplicationBlueprint(ak *akmv1a1.Ak, ctx conte
 		return nil, err
 	}
 	bp := &akmv1a1.AkBlueprint{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      fmt.Sprintf("%v-application-%v", crd.Namespace, application.Slug),
+			Namespace: ak.Namespace,
+		},
 		Spec: akmv1a1.AkBlueprintSpec{
 			StorageType: "file",
 			File:        fmt.Sprintf("/blueprints/operator/%v-application-%v.yaml", crd.Namespace, application.Slug),
@@ -400,206 +375,20 @@ func (r *OIDCReconciler) reconcileApplicationBlueprint(ak *akmv1a1.Ak, ctx conte
 		},
 	}
 	ctrl.SetControllerReference(crd, bp, r.Scheme)
+
+	//err = r.Update(ctx, bp)
+	//if err != nil {
+	//	if errors.IsNotFound(err) {
+	//		err = r.Create(ctx, bp)
+	//		if err != nil {
+	//			return nil, err
+	//		}
+	//	} else {
+	//		return nil, err
+	//	}
+	//}
 	return bp, nil
 }
-
-//
-//// BlueprintFromOIDC creates the necessary blueprint to enable OIDC for an application.
-//func (r *OIDCReconciler) BlueprintFromOIDC(crd *akmv1a1.OIDC) ([]*akmv1a1.AkBlueprint, error) {
-//	name := strings.ToLower(fmt.Sprintf("%v-%v-%v", crd.Namespace, crd.Kind, crd.Name))
-//	name = regexp.MustCompile(`[^a-zA-Z0-9\-\_]+`).ReplaceAllString(name, "")
-//	appName := fmt.Sprintf("%v-application", name)
-//	provName := fmt.Sprintf("%v-provider", name)
-//
-//	var entries = make([]akmv1a1.BPModel, 2)
-//
-//	appIdentifier := make(map[string]interface{})
-//	appIdentifier["slug"] = appName
-//	appIdentifierBytes, err := json.Marshal(appIdentifier)
-//	if err != nil {
-//		return nil, err
-//	}
-//	// unmarshal app identifier into raw.Raw
-//	aIRaw := raw.Raw{}
-//	err = json.Unmarshal(appIdentifierBytes, &aIRaw)
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	//TODO: instead of instantiating like so lets turn this into a propper struct
-//	// to allow for consistency and re-use, especially when any changes are necessary
-//	// it will notify us of where we need to change in code references a lot sooner.
-//	appAttrs := make(map[string]interface{})
-//	appAttrs["name"] = crd.Namespace
-//	appAttrs["group"] = crd.Namespace
-//	appAttrs["policy_engine_mode"] = "any"
-//	// provider must point to the pk of the provider model
-//	appAttrs["provider"] = fmt.Sprintf("!KeyOf %v", provName)
-//	appAttrs["slug"] = crd.Namespace
-//	appAttrsBytes, err := json.Marshal(appAttrs)
-//	// unmarshall app attrs into raw.Raw
-//	aARaw := raw.Raw{}
-//	err = json.Unmarshal(appAttrsBytes, &aARaw)
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	// authentik "application" model
-//	entries[0] = akmv1a1.BPModel{
-//		Model:       "authentik_core.application",
-//		State:       "present",
-//		Id:          appName,
-//		Identifiers: &aIRaw,
-//		Attrs:       &aARaw,
-//	}
-//
-//	// provider meta
-//	provIdentifier := make(map[string]interface{})
-//	provIdentifier["slug"] = provName
-//	provIdentifierBytes, err := json.Marshal(provIdentifier)
-//	if err != nil {
-//		return nil, err
-//	}
-//	// unmarshal provider identifier into raw.Raw
-//	pIRaw := raw.Raw{}
-//	err = json.Unmarshal(provIdentifierBytes, &pIRaw)
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	// provider attribs
-//	type ProviderAttribs struct {
-//	}
-//	provAttrs := map[string]interface{}{
-//		"access_code_validity":  crd.Spec.AccessCodeValidity,
-//		"access_token_validity": crd.Spec.AccessTokenValidity,
-//		//accesstoken:,
-//		//application:,
-//		"authentication_flow": fmt.Sprintf("!KeyOf %v", crd.Spec.AuthenticationFlow),
-//		//authentication_flow_id:,
-//		"authorization_flow": fmt.Sprintf("!KeyOf %v", crd.Spec.AuthorizationFlow),
-//		//authorization_flow_id:,
-//		//authorizationcode:,
-//		//backchannel_application:,
-//		//backchannel_application_id:,
-//		"client_id":     crd.Spec.ClientID,
-//		"client_secret": crd.Spec.ClientSecret,
-//		"client_type":   crd.Spec.ClientType,
-//		//devicetoken:,
-//		//id:,
-//		"include_claims_in_id_token": true,
-//		//is_backchannel:,
-//		"issuer_mode": crd.Spec.IssuerMode,
-//		//jwks_sources:,
-//		"name": crd.Namespace,
-//		//outpost:,
-//		//property_mappings:,
-//		//provider_ptr:,
-//		//provider_ptr_id:,
-//		//proxyprovider:,
-//		//redirect_uris:,
-//		"refresh_token_validity": crd.Spec.RefreshTokenValidity,
-//		//refreshtoken:,
-//		"signing_key": crd.Spec.SigningKey,
-//		//signing_key_id:,
-//		"sub_mode": crd.Spec.SubMode,
-//	}
-//	provAttrsBytes, err := json.Marshal(provAttrs)
-//	if err != nil {
-//		return nil, err
-//	}
-//	// unmarshall provider attrs into raw.Raw
-//	pARaw := raw.Raw{}
-//	err = json.Unmarshal(provAttrsBytes, &pARaw)
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	// authentik "provider" model
-//	entries[1] = akmv1a1.BPModel{
-//		Model:       "authentik_providers_oauth2.oauth2provider",
-//		State:       "present",
-//		Id:          provName,
-//		Identifiers: &pIRaw,
-//		Attrs:       &pARaw,
-//	}
-//
-//	var blueprints = make([]*akmv1a1.AkBlueprint, len(entries))
-//	for ix, el := range entries {
-//
-//		bp := akmv1a1.BP{
-//			Version: 1,
-//			Metadata: akmv1a1.BPMeta{
-//				Name: el.Id,
-//			},
-//			Entries: []akmv1a1.BPModel{el},
-//		}
-//
-//		bpBytes, err := yaml_v3.Marshal(&bp)
-//		if err != nil {
-//			return nil, err
-//		}
-//
-//		akbp := &akmv1a1.AkBlueprint{
-//			// Metadata
-//			ObjectMeta: metav1.ObjectMeta{
-//				Name:      el.Id,
-//				Namespace: "default",
-//				// TODO copy some annotations as if we copy last-applied-configuration we get:
-//				// https://github.com/argoproj/argo-cd/issues/3657
-//				//Annotations: crd.Annotations,
-//			},
-//			// Specification
-//			Spec: akmv1a1.AkBlueprintSpec{
-//				// Setting to near-arbitrary but unique path assuming name is properly sanitised
-//				File:      fmt.Sprintf("/blueprints/operator/%v", el.Id),
-//				Blueprint: string(bpBytes),
-//			},
-//		}
-//		blueprints[ix] = akbp
-//	}
-//
-//	// set that we are controlling this resource
-//	// Annoyingly setting this causes the other reconciler to take it over
-//	// when this is taken over it then gets deleted almost instantly so its kind of
-//	// a nuisance. I need to either find a good way to prevent its sudden deletion or
-//	// clean it up manually when the inital CRD is removed or changed to not need it
-//	// any more.
-//	//ctrl.SetControllerReference(crd, bp, r.Scheme)
-//	return blueprints, nil
-//}
-//
-//// IngressFromOIDC creates the necessary well-known configuration for a set of domains
-//// to a given authentik server.
-//func (r *OIDCReconciler) IngressFromOIDC(crd *akmv1a1.OIDC) *netv1.Ingress {
-//	oidcIngress := &netv1.Ingress{
-//		ObjectMeta: metav1.ObjectMeta{
-//			Name:        crd.Name,
-//			Namespace:   crd.Namespace,
-//			Annotations: crd.Annotations,
-//		},
-//	}
-//	ctrl.SetControllerReference(crd, oidcIngress, r.Scheme)
-//	return oidcIngress
-//}
-//
-//// TestOIDCLiveness checks OIDC is working and is producing expected results based on the following procedure:
-//func (r *OIDCReconciler) TestOIDCLiveness(ctx context.Context, url, id, secret, redirect string) error {
-//
-//	provider, err := oidc.NewProvider(ctx, url)
-//	if err != nil {
-//		return err
-//	}
-//	_ = oauth2.Config{
-//		ClientID:     id,
-//		ClientSecret: secret,
-//		Endpoint:     provider.Endpoint(),
-//		RedirectURL:  "http://127.0.0.1:5556/auth/google/callback",
-//		Scopes:       []string{oidc.ScopeOpenID, "profile", "email"},
-//	}
-//	return nil
-//
-//}
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *OIDCReconciler) SetupWithManager(mgr ctrl.Manager) error {
