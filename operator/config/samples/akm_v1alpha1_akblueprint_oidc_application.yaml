@@ -7,7 +7,7 @@ metadata:
     app.kubernetes.io/part-of: operator
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/created-by: operator
-  name: auth-application
+  name: my-oidc-app
   namespace: auth
 spec:
   file: /blueprints/operator/my-oidc-app.yaml
@@ -19,14 +19,12 @@ spec:
     - model: authentik_core.application
       #id: null
       identifiers:
-        #pk: c885d2bd-1ebd-4799-9dfa-40d87f644fca
         slug: my-oidc-app
       state: present
       attrs:
-        name: My OIDC App # MyApplication
-        group: some-group # my-group
-        policy_engine_mode: any # any
-        #provider: {{ .provider }} # 2
-        #provider: !Find [authentik_flows.flow, [id, my-oidc-provider ]] # 2
-        slug: my-oidc-app # my-application
+        name: My OIDC App
+        group: some-group
+        policy_engine_mode: any
+        provider: !Find [authentik_providers_oauth2.oauth2provider, [name, my-oidc-provider ]]
+        slug: my-oidc-app
       conditions: []

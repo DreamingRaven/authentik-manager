@@ -7,14 +7,14 @@ metadata:
     app.kubernetes.io/part-of: operator
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/created-by: operator
-  name: auth-oidc-provider
+  name: my-oidc-provider
   namespace: auth
 spec:
   file: /blueprints/operator/my-oidc-provider.yaml
   blueprint: |
     version: 1
     metadata:
-      name: provider-blueprint
+      name: my-oidc-provider
     entries:
     - model: authentik_providers_oauth2.oauth2provider
       #id: null
@@ -25,23 +25,18 @@ spec:
         id: null
       state: present
       attrs:
-        name: my-oidc-provider # MyProvider
-        access_code_validity: minutes=1 # eg: minutes=1
-        access_token_validity: minutes=5 # eg: minutes=5
-        authentication_flow: !Find [authentik_flows.flow, [slug, default-authentication-flow]] # 30930b63-27b1-47bb-8146-832e7bb8fc35
-        authorization_flow: !Find [authentik_flows.flow, [slug, default-provider-authorization-implicit-consent]] #!KeyOf default-provider-authorization-consent # 2db507db-5a85-4637-9987-c2ea9cb56fce
-
+        name: my-oidc-provider
+        access_code_validity: minutes=1
+        access_token_validity: minutes=5
+        authentication_flow: !Find [authentik_flows.flow, [slug, default-authentication-flow]]
+        authorization_flow: !Find [authentik_flows.flow, [slug, default-provider-authorization-implicit-consent]]
         client_id: EJFCAfmB6dfV49WsMAoHh8oduCckjX4h
         client_secret: DPFx599qFKLquK8TDeH3vSjA8NBKM7dQ5245BaWSRBxjusC6mEgU34tjx7ccco7E
-        client_type: confidential # confidential
-        include_claims_in_id_token: true # true
-        issuer_mode: per_provider # per_provider
-        #property_mappings:
-        #- d1f2df46-2e04-4a9f-a4d9-844e86491ec8
-        #- d371d3e9-86a5-4892-94f6-691034c9957a
-        #- 87b04e4e-bb98-4562-9acc-eb070e14c9ed
-        redirect_uris: app.org.example/oauth2/callback/ # app.org.example/oauth2/callback/
-        refresh_token_validity: days=30 # days=30
-        signing_key: !Find [authentik_crypto.certificatekeypair, [name, authentik Self-signed Certificate]] # 1d1765cf-2bfc-4bb9-97af-0d4837c12cd7
-        sub_mode: hashed_user_id # hashed_user_id
+        client_type: confidential
+        include_claims_in_id_token: true
+        issuer_mode: per_provider
+        redirect_uris: app.org.example/oauth2/callback/
+        refresh_token_validity: days=30
+        signing_key: !Find [authentik_crypto.certificatekeypair, [name, authentik Self-signed Certificate]]
+        sub_mode: hashed_user_id
       conditions: []
