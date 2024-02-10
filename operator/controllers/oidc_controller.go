@@ -312,7 +312,8 @@ func (r *OIDCReconciler) reconcileApplicationBlueprint(ak *akmv1a1.Ak, ctx conte
 	// TODO: Once this works skip intermediary stage and go straight to blueprint
 	// as this is far too complex, but it does add sanity checking
 	// Really complicated way to take a map[string]string and convert it to a raw.Raw
-	mapId := map[string]string{
+	mapId := map[string]interface{}{
+		//"id": nil,
 		"slug": application.Slug,
 	}
 	rawId, err := yaml_v3.Marshal(mapId)
@@ -330,8 +331,8 @@ func (r *OIDCReconciler) reconcileApplicationBlueprint(ak *akmv1a1.Ak, ctx conte
 		"name":               application.Name,
 		"group":              application.Group,
 		"policy_engine_mode": application.PolicyEngineMode,
-		"provider":           fmt.Sprintf("!Find [authentik_providers_oauth2.oauth2provider, [slug, %v]]", application.Provider),
-		//"slug":               application.Slug,
+		"provider":           fmt.Sprintf("!Find [authentik_providers_oauth2.oauth2provider, [name, %v]]", application.Provider),
+		"slug":               application.Slug,
 	}
 	rawAttrs, err := yaml_v3.Marshal(mapAttrs)
 	if err != nil {
@@ -346,13 +347,12 @@ func (r *OIDCReconciler) reconcileApplicationBlueprint(ak *akmv1a1.Ak, ctx conte
 	bpContent := &akmv1a1.BP{
 		Version: 1,
 		Metadata: akmv1a1.BPMeta{
-			Name: fmt.Sprintf("%v-application-%v", crd.Namespace, application.Slug),
+			Name: fmt.Sprintf("%v-app-%v", crd.Namespace, application.Slug),
 		},
 		Entries: []akmv1a1.BPModel{
 			akmv1a1.BPModel{
-				Model:       "authentik_providers_oauth2.oauth2provider",
+				Model:       "authentik_core.application",
 				State:       "present",
-				Id:          "null",
 				Identifiers: &id,
 				Attrs:       &attrs,
 				Conditions:  []string{},
@@ -365,28 +365,28 @@ func (r *OIDCReconciler) reconcileApplicationBlueprint(ak *akmv1a1.Ak, ctx conte
 	}
 	bp := &akmv1a1.AkBlueprint{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("%v-application-%v", crd.Namespace, application.Slug),
+			Name:      fmt.Sprintf("%v-app-%v", crd.Namespace, application.Slug),
 			Namespace: ak.Namespace,
 		},
 		Spec: akmv1a1.AkBlueprintSpec{
 			StorageType: "file",
-			File:        fmt.Sprintf("/blueprints/operator/%v-application-%v.yaml", crd.Namespace, application.Slug),
+			File:        fmt.Sprintf("/blueprints/operator/%v-app-%v.yaml", crd.Namespace, application.Slug),
 			Blueprint:   string(bpContentStr),
 		},
 	}
 	ctrl.SetControllerReference(crd, bp, r.Scheme)
 
-	//err = r.Update(ctx, bp)
-	//if err != nil {
-	//	if errors.IsNotFound(err) {
-	//		err = r.Create(ctx, bp)
-	//		if err != nil {
-	//			return nil, err
-	//		}
-	//	} else {
-	//		return nil, err
-	//	}
-	//}
+	err = r.Update(ctx, bp)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			err = r.Create(ctx, bp)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			return nil, err
+		}
+	}
 	return bp, nil
 }
 
