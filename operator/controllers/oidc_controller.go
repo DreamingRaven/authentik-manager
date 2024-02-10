@@ -22,8 +22,6 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	klog "sigs.k8s.io/controller-runtime/pkg/log"
 
-	_ "embed"
-
 	akmv1a1 "gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1"
 	akmv1alpha1 "gitlab.com/GeorgeRaven/authentik-manager/operator/api/v1alpha1"
 	"gitlab.com/GeorgeRaven/authentik-manager/operator/utils"
@@ -33,12 +31,6 @@ import (
 )
 
 // Statically bundled templaes to ensure they are available in binaries
-var (
-	//go:embed templates/oauth2/provider.yaml
-	oauth2ProviderTemplate []byte
-	//go:embed templates/oauth2/application.yaml
-	oauth2ApplicationTemplate []byte
-)
 
 // OIDCReconciler reconciles a OIDC object
 type OIDCReconciler struct {
@@ -124,57 +116,7 @@ func (r *OIDCReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		}
 		fmt.Printf("application blueprint: %v\n", application_blueprint)
 	}
-
-	//// GENERATE OR UPDATE BLUEPRINT
-	//bps, err := r.BlueprintFromOIDC(crd)
-	//if err != nil {
-	//	return ctrl.Result{}, err
-	//}
-	//for _, bp := range bps {
-	//	bp.Namespace = o.OperatorNamespace
-	//	l.Info(fmt.Sprintf("Updating blueprint `%v` in `%v`", bp.Name, bp.Namespace))
-	//	err = r.Update(ctx, bp)
-	//	if err != nil {
-	//		if errors.IsNotFound(err) {
-	//			l.Info(fmt.Sprintf("Blueprint not found creating `%v` in `%v`", bp.Name, bp.Namespace))
-	//			m, err := utils.PrettyPrint(bp)
-	//			if err != nil {
-	//				return ctrl.Result{}, err
-	//			}
-	//			fmt.Printf("bp: %v", m)
-	//			err = r.Create(ctx, bp)
-	//			if err != nil {
-	//				return ctrl.Result{}, err
-	//			}
-	//		} else {
-	//			l.Error(err, "Failed to update blueprint. Retrying.")
-	//			return ctrl.Result{}, err
-	//		}
-	//	}
-	//}
-
-	// Generate secret and configmap for OIDC
-	// Secret contains OIDC clientID and clientSecret
-	// Configmap contains well-known configuration endpoints for the application to use
-
-	//TODO: add live testing of OIDC by operator and locking system to prevent binding to non-functioning OIDC
-	// GENERATE OR UPDATE INGRESS WELL-KNOWN
-	//in := r.IngressFromOIDC(crd)
-	//in.Namespace = o.OperatorNamespace
-	//l.Info(fmt.Sprintf("Updating ingress `%v` in `%v`", in.Name, in.Namespace))
-	//err = r.Update(ctx, in)
-	//if err != nil {
-	//	if errors.IsNotFound(err) {
-	//		l.Info(fmt.Sprintf("Ingress not found creating `%v` in `%v`", bp.Name, bp.Namespace))
-	//		errc := r.Create(ctx, in)
-	//		if errc != nil {
-	//			return ctrl.Result{}, errc
-	//		}
-	//	} else {
-	//		l.Error(err, "Failed to update ingress. Retrying.")
-	//		return ctrl.Result{}, err
-	//	}
-	//}
+	//TODO: add live testing of OIDC status by operator and locking system to prevent binding to non-functioning OIDC
 
 	return ctrl.Result{}, nil
 }
