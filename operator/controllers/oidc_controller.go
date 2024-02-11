@@ -167,36 +167,6 @@ func (r *OIDCReconciler) SecretFromOIDCProvider(crd *akmv1a1.OIDC, provider *akm
 	return oidcSecret
 }
 
-// reconcileProviderBlueprint ensure the provider blueprint exists and matches the desired state in the auth namespace
-func (r *OIDCReconciler) reconcileProviderBlueprint(ak *akmv1a1.Ak, ctx context.Context, crd *akmv1a1.OIDC, provider *akmv1a1.OIDCProvider) (*akmv1a1.AkBlueprint, error) {
-	bpContent := &akmv1a1.BP{
-		Version: 1,
-		Metadata: akmv1a1.BPMeta{
-			Name: fmt.Sprintf("%v-provider-%v", crd.Namespace, provider.Name),
-		},
-		Entries: []akmv1a1.BPModel{
-			akmv1a1.BPModel{
-				Model: "authentik_providers_oauth2.oauth2provider",
-				State: "present",
-				Id:    "null",
-			},
-		},
-	}
-	bpContentStr, err := yaml_v3.Marshal(bpContent)
-	if err != nil {
-		return nil, err
-	}
-	bp := &akmv1a1.AkBlueprint{
-		Spec: akmv1a1.AkBlueprintSpec{
-			StorageType: "file",
-			File:        fmt.Sprintf("/blueprints/operator/%v-provider-%v.yaml", crd.Namespace, provider.Name),
-			Blueprint:   string(bpContentStr),
-		},
-	}
-	ctrl.SetControllerReference(crd, bp, r.Scheme)
-	return bp, nil
-}
-
 // reconcileConfigmap creates a configmap to let the client know the relevant endpoints to use for OIDC
 func (r *OIDCReconciler) reconcileConfigmap(ak *akmv1a1.Ak, ctx context.Context, crd *akmv1a1.OIDC, application *akmv1a1.OIDCApplication) (*corev1.ConfigMap, error) {
 	akfqdn, err := uhelm.GetAkFQDN(ak)
@@ -329,6 +299,36 @@ func (r *OIDCReconciler) reconcileApplicationBlueprint(ak *akmv1a1.Ak, ctx conte
 			return nil, err
 		}
 	}
+	return bp, nil
+}
+
+// reconcileProviderBlueprint ensure the provider blueprint exists and matches the desired state in the auth namespace
+func (r *OIDCReconciler) reconcileProviderBlueprint(ak *akmv1a1.Ak, ctx context.Context, crd *akmv1a1.OIDC, provider *akmv1a1.OIDCProvider) (*akmv1a1.AkBlueprint, error) {
+	bpContent := &akmv1a1.BP{
+		Version: 1,
+		Metadata: akmv1a1.BPMeta{
+			Name: fmt.Sprintf("%v-provider-%v", crd.Namespace, provider.Name),
+		},
+		Entries: []akmv1a1.BPModel{
+			akmv1a1.BPModel{
+				Model: "authentik_providers_oauth2.oauth2provider",
+				State: "present",
+				Id:    "null",
+			},
+		},
+	}
+	bpContentStr, err := yaml_v3.Marshal(bpContent)
+	if err != nil {
+		return nil, err
+	}
+	bp := &akmv1a1.AkBlueprint{
+		Spec: akmv1a1.AkBlueprintSpec{
+			StorageType: "file",
+			File:        fmt.Sprintf("/blueprints/operator/%v-provider-%v.yaml", crd.Namespace, provider.Name),
+			Blueprint:   string(bpContentStr),
+		},
+	}
+	ctrl.SetControllerReference(crd, bp, r.Scheme)
 	return bp, nil
 }
 
