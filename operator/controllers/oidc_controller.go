@@ -93,6 +93,9 @@ func (r *OIDCReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 			return ctrl.Result{}, err
 		}
 		fmt.Printf("secret: %v\n", secret)
+		// ensure clientID and clientSecret are back into provider
+		provider.ProtocolSettings.ClientID = string(secret.Data["clientID"])
+		provider.ProtocolSettings.ClientSecret = string(secret.Data["clientSecret"])
 		provider_blueprint, err := r.reconcileProviderBlueprint(ak, ctx, crd, provider)
 		if err != nil {
 			return ctrl.Result{}, err

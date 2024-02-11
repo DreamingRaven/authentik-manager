@@ -213,6 +213,7 @@ spec:
                             type: string
                           type: array
                         signingKey:
+                          default: authentik Self-signed Certificate
                           description: The name of the signing key to use for signing
                             authenticated users tokens
                           type: string

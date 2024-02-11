@@ -569,6 +569,8 @@ func (r *AkBlueprintReconciler) configForBlueprint(crd *akmv1a1.AkBlueprint, nam
 	// this is required since authentiks python yaml parser doesn't like quotes on
 	// their custom yaml tags so we have to ensure they are stripped here for consistency
 	cleanedBlueprint := regexp.MustCompile(`['"](?P<content>\!.*)['"]`).ReplaceAllString(string(crd.Spec.Blueprint), "${content}")
+	// now also replace "null" -> null
+	cleanedBlueprint = strings.ReplaceAll(cleanedBlueprint, `["']null["']`, `null`)
 	// set the configmap key to be the file name we want it to be mounted as for the volume mounts
 	dataMap[filepath.Base(cleanFP)] = cleanedBlueprint
 

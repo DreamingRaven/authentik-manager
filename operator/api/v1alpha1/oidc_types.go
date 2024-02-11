@@ -121,6 +121,7 @@ type OIDCProviderProtocolSettings struct {
 	// Specifies valid redirect URIs to accept when returning user back from authentication / authorization flow. This also sets the origins for explicit flows.
 	RedirectURIs []string `json:"redirectURIs,omitempty"`
 	//+kubebuilder:validation:Optional
+	//+kubebuilder:default="authentik Self-signed Certificate"
 	// The name of the signing key to use for signing authenticated users tokens
 	SigningKey string `json:"signingKey,omitempty"`
 	//+kubebuilder:validation:Optional
