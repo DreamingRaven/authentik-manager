@@ -304,6 +304,49 @@ func (r *OIDCReconciler) reconcileApplicationBlueprint(ak *akmv1a1.Ak, ctx conte
 
 // reconcileProviderBlueprint ensure the provider blueprint exists and matches the desired state in the auth namespace
 func (r *OIDCReconciler) reconcileProviderBlueprint(ak *akmv1a1.Ak, ctx context.Context, crd *akmv1a1.OIDC, provider *akmv1a1.OIDCProvider) (*akmv1a1.AkBlueprint, error) {
+	// TODO: Once this works skip intermediary stage and go straight to blueprint
+	// as this is far too complex, but it does add sanity checking
+	// Really complicated way to take a map[string]string and convert it to a raw.Raw
+	mapId := map[string]interface{}{
+		"id": nil,
+	}
+	rawId, err := yaml_v3.Marshal(mapId)
+	if err != nil {
+		return nil, err
+	}
+	id := raw.Raw{}
+	err = yaml_v3.Unmarshal(rawId, &id)
+	if err != nil {
+		return nil, err
+	}
+
+	// Another complicated way to create the attrs map
+	mapAttrs := map[string]interface{}{
+		"name":                       provider.Name,
+		"access_code_validity":       provider.ProtocolSettings.AccessCodeValidity,
+		"access_token_validity":      provider.ProtocolSettings.AccessTokenValidity,
+		"refresh_token_validity":     provider.ProtocolSettings.RefreshTokenValidity,
+		"authentication_flow":        fmt.Sprintf("!Find [authentik_flows.flow, [slug, %v]]", provider.AuthenticationFlow),
+		"authorization_flow":         fmt.Sprintf("!Find [authentik_flows.flow, [slug, %v]]", provider.AuthorizationFlow),
+		"signing_key":                fmt.Sprintf("!Find [authentik_crypto.certificatekeypair, [name, %v]]", provider.ProtocolSettings.SigningKey),
+		"client_id":                  provider.ProtocolSettings.ClientID,
+		"client_secret":              provider.ProtocolSettings.ClientSecret,
+		"client_type":                provider.ProtocolSettings.ClientType,
+		"include_claims_in_id_token": provider.ProtocolSettings.IncludeClaimsInIDToken,
+		"issuer_mode":                provider.ProtocolSettings.IssuerMode,
+		"redirect_uris":              provider.ProtocolSettings.RedirectURIs,
+		"subject_claims":             provider.ProtocolSettings.SubjectMode,
+	}
+	rawAttrs, err := yaml_v3.Marshal(mapAttrs)
+	if err != nil {
+		return nil, err
+	}
+	attrs := raw.Raw{}
+	err = yaml_v3.Unmarshal(rawAttrs, &attrs)
+	if err != nil {
+		return nil, err
+	}
+
 	bpContent := &akmv1a1.BP{
 		Version: 1,
 		Metadata: akmv1a1.BPMeta{
@@ -311,9 +354,11 @@ func (r *OIDCReconciler) reconcileProviderBlueprint(ak *akmv1a1.Ak, ctx context.
 		},
 		Entries: []akmv1a1.BPModel{
 			akmv1a1.BPModel{
-				Model: "authentik_providers_oauth2.oauth2provider",
-				State: "present",
-				Id:    "null",
+				Model:       "authentik_providers_oauth2.oauth2provider",
+				State:       "present",
+				Identifiers: &id,
+				Attrs:       &attrs,
+				Conditions:  []string{},
 			},
 		},
 	}
@@ -322,6 +367,10 @@ func (r *OIDCReconciler) reconcileProviderBlueprint(ak *akmv1a1.Ak, ctx context.
 		return nil, err
 	}
 	bp := &akmv1a1.AkBlueprint{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      fmt.Sprintf("%v-provider-%v", crd.Namespace, provider.Name),
+			Namespace: ak.Namespace,
+		},
 		Spec: akmv1a1.AkBlueprintSpec{
 			StorageType: "file",
 			File:        fmt.Sprintf("/blueprints/operator/%v-provider-%v.yaml", crd.Namespace, provider.Name),
@@ -329,6 +378,18 @@ func (r *OIDCReconciler) reconcileProviderBlueprint(ak *akmv1a1.Ak, ctx context.
 		},
 	}
 	ctrl.SetControllerReference(crd, bp, r.Scheme)
+
+	err = r.Update(ctx, bp)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			err = r.Create(ctx, bp)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			return nil, err
+		}
+	}
 	return bp, nil
 }
 
