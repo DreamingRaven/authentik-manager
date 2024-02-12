@@ -1,14 +1,56 @@
+# this example file is used in the OIDC demo.
+# For your own uses please change the values in this file to point to your own secret
+# org.example should be changed to your organisation fqdn
+# app.org.example should be change to the fqdn of your application
 apiVersion: akm.goauthentik.io/v1alpha1
 kind: OIDC
 metadata:
-  labels:
-    app.kubernetes.io/name: oidc
-    app.kubernetes.io/instance: auth
-    app.kubernetes.io/part-of: operator
-    app.kubernetes.io/managed-by: kustomize
-    app.kubernetes.io/created-by: operator
-  name: oidc-sample
+  name: some-oidc
   namespace: default
 spec:
-  domains:
-  - someapp.org.example
+  # Select which authentik instance is to deal with this OIDC by namespace
+  instance:
+    namespace: auth
+  # An application defines a client to an OIDC provider.
+  # Think of the provider as something authentik does and the application
+  # is the things you or some application does to actually authenticate
+  applications:
+  - name: my-oidc-application
+    slug: my-oidc-app
+    # specify the name of the configmap that will store the application specific URLs
+    configMap:
+      name: my-oidc-application-config
+    # (optional) explicitly group, so multiple related applications are
+    # displayed together
+    group: some-group
+    # the name of the primary provider which handles login
+    provider: my-oidc-provider
+    # defines if any or all of the policies / rules should match for login
+    policyEngineMode: any
+    oidcApplicationUISettings: {}
+  # A provider outlines how authentik should handle OIDC login, what
+  # credentials it should use, along with specifics for OIDC itself to suit different
+  # applications with different requirements
+  providers:
+  # globally unique name for this provider
+  - name: my-oidc-provider
+    secret:
+      # the secret that will house the client_id and client_secret in this namespace for this provider
+      # NOTE: this will only be generated if it does not exist otherwise it will use the existing secret
+      # expecting the keys clientID and clientSecret
+      name: my-oidc-provider-secret
+    authenticationFlow: default-authentication-flow
+    authorizationFlow: default-provider-authorization-implicit-consent
+    protocolSettings:
+      # client type confidential or public
+      clientType: confidential
+      # (optional) explicitly defined client_id and client_secret
+      # NOTE: it is highly recommended you use a secret / sealed-secret or leave this blank to autogenerate
+      #clientID: my-oidc-provider-random-character-client-identifier
+      #clientSecret: my-oidc-provider-random-character-client-secret
+      # what URIs is the user allowed to be redirected to once they authenticate
+      # this also sets the origins for explicit consent flows
+      # usually this will be app.org.example/oauth/callback or some variation of that
+      # this is application specific so you need to know where your app is expecting users back
+      redirectURIs: app.org.example/oauth2/callback/
+    machineToMachineSettings: {}

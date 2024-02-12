@@ -33,82 +33,222 @@ spec:
           metadata:
             type: object
           spec:
-            description: OIDCSpec defines the desired state of OIDC
+            description: OIDCSpec defines abstract and safe interfaces to provision
+              an authentik OIDC authentication stack this is meant to be deployed
+              with applications and secrets so that OIDC can be provisioned for them.
             properties:
-              accessCodeValidity:
-                default: minutes=1
-                description: AccessCodeValidity
-                type: string
-              accessTokenValidity:
-                default: minutes=5
-                description: AccessTokenValidity
-                type: string
-              authenticationFlow:
-                default: default-authentication-flow
-                description: AuthenticationFlow
-                type: string
-              authorizationFlow:
-                default: default-provider-authorization-explicit-consent
-                description: AuthorizationFlow
-                type: string
-              clientIDs:
-                description: ClientID (optional) identifies the application to the
-                  OIDC server If this is empty we will automatically generate and
-                  roll this key for you.
-                maxLength: 255
-                minLength: 40
-                type: string
-              clientSecret:
-                description: ClientSecret (optional) defines the secret used by the
-                  application to authenticate to OIDC as a valid intermediary. If
-                  this is empty we will automatically generate and roll this key for
-                  you.
-                maxLength: 255
-                minLength: 128
-                type: string
-              clientType:
-                default: confidential
-                description: ClientType
-                enum:
-                - confidential
-                - public
-                type: string
-              configmap:
-                description: Configmap containing public information NOT YET USED
-                properties:
-                  name:
-                    type: string
-                type: object
-              domains:
-                description: Domains is a list of domain names the OIDC controller
-                  should capture the /well-known paths from. Each domain will be enforced
-                  to be unique between all namespaces.
+              applications:
+                description: Applications define what the provider authenticates for
                 items:
-                  type: string
+                  properties:
+                    backChannelProviders:
+                      description: BackChannelProviders is a list of providers that
+                        should be used to augment the main providers functionality
+                      items:
+                        type: string
+                      type: array
+                    configMap:
+                      description: ConfigMap references the configmap that contains
+                        the application specific URLs
+                      properties:
+                        name:
+                          description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                            TODO: Add other useful fields. apiVersion, kind, uid?'
+                          type: string
+                      type: object
+                      x-kubernetes-map-type: atomic
+                    group:
+                      description: Group is a string that is used to group applications
+                        with the idential group
+                      type: string
+                    name:
+                      description: Name is the name of the application to display
+                      type: string
+                    oidcApplicationUISettings:
+                      description: OIDCApplicationUISettings defines the behaviour
+                        of the application displayed or clicked
+                      properties:
+                        description:
+                          description: Description is the description of the application
+                            to display to user
+                          type: string
+                        icon:
+                          description: Icon is the full URL, a relative path, or 'fa://fa-test'
+                            to use FontAwesome to display for the applications badge
+                          type: string
+                        launchURL:
+                          description: Try to detect URL based on provider or set
+                            explicitly here
+                          type: string
+                        openInNewTab:
+                          default: false
+                          description: When user clicks on "launch url" open a new
+                            browser tab or window for it
+                          type: boolean
+                        publisher:
+                          description: Publisher is the name of the publisher to display
+                            to user
+                          type: string
+                      type: object
+                    policyEngineMode:
+                      description: PolicyEngineMode determines if all or any policy
+                        engine should match to grant access
+                      enum:
+                      - any
+                      - all
+                      type: string
+                    provider:
+                      description: Provider is the primary applications provider to
+                        use
+                      type: string
+                    slug:
+                      description: Slug is the unique name of the application used
+                        internally
+                      type: string
+                  required:
+                  - configMap
+                  - name
+                  - oidcApplicationUISettings
+                  - slug
+                  type: object
                 type: array
-              issuerMode:
-                default: per_provider
-                description: IssuerMode
-                type: string
-              refreshTokenValidity:
-                default: days=30
-                description: RefreshTokenValidity
-                type: string
-              secret:
-                description: Secret containing OIDC clientId and clientSecret NOT
-                  YET USED
+              instance:
+                description: Authentik Instance
                 properties:
-                  name:
+                  namespace:
+                    description: Namespace is the namespace of the authentik instance
                     type: string
+                required:
+                - namespace
                 type: object
-              signingKey:
-                default: authentik Self-signed Certificate
-                description: SigningKey
-                type: string
-              subMode:
-                default: hashed_user_id
-                description: SubMode
-                type: string
+              providers:
+                description: Provider which defines how and where OIDC takes place
+                items:
+                  properties:
+                    authenticationFlow:
+                      description: AuthenticationFlow is the name of the authentication
+                        flow to authenticate users with
+                      type: string
+                    authorizationFlow:
+                      description: AuthorizationFlow is the name of the authorization
+                        flow to authorize this provider
+                      type: string
+                    machineToMachineSettings:
+                      description: MachineToMachineSettings is the settings for machine
+                        to machine OIDC
+                      properties:
+                        trustedOIDCSources:
+                          items:
+                            type: string
+                          type: array
+                      type: object
+                    name:
+                      description: Name is the name of the provider
+                      type: string
+                    protocolSettings:
+                      description: ProtocolSettings is the settings for the OIDC protocol
+                        to use
+                      properties:
+                        accessCodeValidity:
+                          default: minutes=1
+                          description: The length of time that an access code is valid
+                            in format hours=1;minutes=2;seconds=3 can be used with
+                            weeks,days,hours,minutes,seconds,milliseconds
+                          type: string
+                        accessTokenValidity:
+                          default: minutes=5
+                          description: The length of time that an access token is
+                            valid in format hours=1;minutes=2;seconds=3 can be used
+                            with weeks,days,hours,minutes,seconds,milliseconds
+                          type: string
+                        clientID:
+                          description: ClientID (optional) identifies the application
+                            to the OIDC server If a secret is provided we will automatically
+                            use that instead of this
+                          type: string
+                        clientSecret:
+                          description: ClientSecret (optional) identifies the application
+                            to the OIDC server If a secret is provided we will automatically
+                            use that instead of this
+                          type: string
+                        clientType:
+                          description: ClientType is the type of client to use confidential
+                            or public
+                          enum:
+                          - confidential
+                          - public
+                          type: string
+                        includeClaimsInIDToken:
+                          default: true
+                          description: IncludeClaimsInIDToken whether to include claims
+                            in token for apps that arent checking userinfo endpoint
+                          type: boolean
+                        issuerMode:
+                          default: per_provider
+                          description: IssuerMode whether to use the same or different
+                            issuer for each application slug
+                          type: string
+                        redirectURIs:
+                          description: Specifies valid redirect URIs to accept when
+                            returning user back from authentication / authorization
+                            flow. This also sets the origins for explicit flows.
+                          type: string
+                        refreshTokenValidity:
+                          default: days=30
+                          description: The length of time that a refresh token is
+                            valid in format hours=1;minutes=2;seconds=3 can be used
+                            with weeks,days,hours,minutes,seconds,milliseconds
+                          type: string
+                        scopes:
+                          default:
+                          - email
+                          - openid
+                          - profile
+                          items:
+                            type: string
+                          type: array
+                        signingKey:
+                          default: authentik Self-signed Certificate
+                          description: The name of the signing key to use for signing
+                            authenticated users tokens
+                          type: string
+                        subjectMode:
+                          default: hashedId
+                          description: SubjectMode how you know the same user between
+                            applications of this provider
+                          enum:
+                          - hashedId
+                          - id
+                          - uuid
+                          - username
+                          - email
+                          - upn
+                          type: string
+                      required:
+                      - clientType
+                      type: object
+                    secret:
+                      description: Secret is an object reference in this namespace
+                        to generate or lookup the clientID and clientSecret
+                      properties:
+                        name:
+                          description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                            TODO: Add other useful fields. apiVersion, kind, uid?'
+                          type: string
+                      type: object
+                      x-kubernetes-map-type: atomic
+                  required:
+                  - authorizationFlow
+                  - machineToMachineSettings
+                  - name
+                  - protocolSettings
+                  - secret
+                  type: object
+                type: array
+            required:
+            - applications
+            - instance
+            - providers
             type: object
           status:
             description: OIDCStatus defines the observed state of OIDC

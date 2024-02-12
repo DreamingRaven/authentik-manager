@@ -38,6 +38,9 @@ spec:
       containers:
         - name: authentik-{{ $aktype }}
           image: "{{ .Values.authentik.image.registry }}/{{ .Values.authentik.image.repository}}:{{ .Values.authentik.image.tag}}"
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
           imagePullPolicy: {{ .Values.authentik.deployment.imagePullPolicy }}
           args:
           - |-
