@@ -33,7 +33,7 @@ variables:
 docker_build_branch:
   stage: build
   # image: docker:stable # an alpine image
-  image: docker:24.0.7 # an alpine image
+  image: docker:24.0.9 # an alpine image
   services:
     - docker:dind
   rules:
@@ -83,7 +83,7 @@ docker_build_branch:
 
 docker_build_multi_arch_tag:
   stage: build
-  image: docker:24.0.7 # an alpine image
+  image: docker:24.0.9 # an alpine image
   services:
     - docker:dind
   # only:
@@ -201,7 +201,7 @@ helm-chart-push:
 
 pages:
   stage: deploy
-  image: docker:24.0.7 # an alpine image
+  image: docker:24.0.9 # an alpine image
   services:
     - docker:dind
   rules:
