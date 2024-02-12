@@ -335,7 +335,7 @@ func (r *OIDCReconciler) reconcileProviderBlueprint(ak *akmv1a1.Ak, ctx context.
 		"client_id":                  provider.ProtocolSettings.ClientID,
 		"client_secret":              provider.ProtocolSettings.ClientSecret,
 		"client_type":                provider.ProtocolSettings.ClientType,
-		"include_claims_in_id_token": provider.ProtocolSettings.IncludeClaimsInIDToken,
+		"include_claims_in_id_token": bool(provider.ProtocolSettings.IncludeClaimsInIDToken),
 		"issuer_mode":                provider.ProtocolSettings.IssuerMode,
 		"redirect_uris":              provider.ProtocolSettings.RedirectURIs,
 		"subject_claims":             provider.ProtocolSettings.SubjectMode,

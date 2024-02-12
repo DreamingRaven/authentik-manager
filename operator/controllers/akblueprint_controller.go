@@ -568,9 +568,13 @@ func (r *AkBlueprintReconciler) configForBlueprint(crd *akmv1a1.AkBlueprint, nam
 	// apply regex substitution to remove quotes ['"](?P<content>\!.*)['"] -> ${content}
 	// this is required since authentiks python yaml parser doesn't like quotes on
 	// their custom yaml tags so we have to ensure they are stripped here for consistency
-	cleanedBlueprint := regexp.MustCompile(`['"](?P<content>\!.*)['"]`).ReplaceAllString(string(crd.Spec.Blueprint), "${content}")
-	// now also replace "null" -> null
-	cleanedBlueprint = strings.ReplaceAll(cleanedBlueprint, `["']null["']`, `null`)
+	regexPatterns := map[string]string{
+		`['"](?P<content>\!.*)['"]`:  "${content}", // This strips the quotes from special yaml tags
+		`['"](?P<content>null)['"]`:  "${content}", // This strips the quotes from "null"
+		`['"](?P<content>true)['"]`:  "${content}", // This strips the quotes from "true"
+		`['"](?P<content>false)['"]`: "${content}", // This strips the quotes from "false"
+	}
+	cleanedBlueprint := regexSubstituteMap(regexPatterns, string(crd.Spec.Blueprint))
 	// set the configmap key to be the file name we want it to be mounted as for the volume mounts
 	dataMap[filepath.Base(cleanFP)] = cleanedBlueprint
 
@@ -602,4 +606,15 @@ func (r *AkBlueprintReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&akmv1a1.AkBlueprint{}).
 		Complete(r)
+}
+
+// regexSubstituteMap takes in a map[string]string of regex patterns as keys and regex replacements as values
+// this is then applied to a given string by iterating over the keys to find matches and replacing the values
+func regexSubstituteMap(patterns map[string]string, data string) string {
+	result := data
+	for pattern, replacement := range patterns {
+		re := regexp.MustCompile(pattern)
+		result = re.ReplaceAllString(result, replacement)
+	}
+	return result
 }
