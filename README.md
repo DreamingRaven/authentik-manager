@@ -84,7 +84,7 @@ flowchart TD
         oidc[oidc crd]
         appoidc[oidc-app]
         oidcsec[secret]
-        oidconfig[configmap]
+        oidcconfig[configmap]
         appoidc---|env|oidcsec
         appoidc---|env|oidcconfig
         oidc -.->|produces| oidcsec
