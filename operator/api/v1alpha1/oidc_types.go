@@ -119,7 +119,7 @@ type OIDCProviderProtocolSettings struct {
 	ClientSecret string `json:"clientSecret,omitempty"`
 	//+kubebuilder:validation:Optional
 	// Specifies valid redirect URIs to accept when returning user back from authentication / authorization flow. This also sets the origins for explicit flows.
-	RedirectURIs []string `json:"redirectURIs,omitempty"`
+	RedirectURIs string `json:"redirectURIs,omitempty"`
 	//+kubebuilder:validation:Optional
 	//+kubebuilder:default="authentik Self-signed Certificate"
 	// The name of the signing key to use for signing authenticated users tokens
@@ -149,8 +149,7 @@ type OIDCProviderProtocolSettings struct {
 	// IncludeClaimsInIDToken whether to include claims in token for apps that arent checking userinfo endpoint
 	IncludeClaimsInIDToken bool `json:"includeClaimsInIDToken,omitempty"`
 	//+kubebuilder:validation:Optional
-	//+kubebuilder:default="different"
-	//+kubebuilder:validation:Enum="same";"different"
+	//+kubebuilder:default="per_provider"
 	// IssuerMode whether to use the same or different issuer for each application slug
 	IssuerMode string `json:"issuerMode,omitempty"`
 }

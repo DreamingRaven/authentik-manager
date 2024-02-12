@@ -184,20 +184,15 @@ spec:
                             in token for apps that arent checking userinfo endpoint
                           type: boolean
                         issuerMode:
-                          default: different
+                          default: per_provider
                           description: IssuerMode whether to use the same or different
                             issuer for each application slug
-                          enum:
-                          - same
-                          - different
                           type: string
                         redirectURIs:
                           description: Specifies valid redirect URIs to accept when
                             returning user back from authentication / authorization
                             flow. This also sets the origins for explicit flows.
-                          items:
-                            type: string
-                          type: array
+                          type: string
                         refreshTokenValidity:
                           default: days=30
                           description: The length of time that a refresh token is

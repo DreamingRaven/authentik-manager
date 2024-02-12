@@ -274,7 +274,9 @@ func (r *OIDCReconciler) reconcileApplicationBlueprint(ak *akmv1a1.Ak, ctx conte
 			},
 		},
 	}
+	fmt.Printf("APPLICATION BLUEPRINT: %+v\n", bpContent)
 	bpContentStr, err := yaml_v3.Marshal(bpContent)
+	fmt.Printf("APPLICATION BLUEPRINT: %+v\n", bpContentStr)
 	if err != nil {
 		return nil, err
 	}
@@ -290,6 +292,7 @@ func (r *OIDCReconciler) reconcileApplicationBlueprint(ak *akmv1a1.Ak, ctx conte
 		},
 	}
 	ctrl.SetControllerReference(crd, bp, r.Scheme)
+	fmt.Printf("APPLICATION BLUEPRINT: %+v\n", bp)
 
 	err = r.Update(ctx, bp)
 	if err != nil {
@@ -310,65 +313,120 @@ func (r *OIDCReconciler) reconcileProviderBlueprint(ak *akmv1a1.Ak, ctx context.
 	// TODO: Once this works skip intermediary stage and go straight to blueprint
 	// as this is far too complex, but it does add sanity checking
 	// Really complicated way to take a map[string]string and convert it to a raw.Raw
-	mapId := map[string]interface{}{
-		"id": nil,
-	}
-	rawId, err := yaml_v3.Marshal(mapId)
-	if err != nil {
-		return nil, err
-	}
-	id := raw.Raw{}
-	err = yaml_v3.Unmarshal(rawId, &id)
-	if err != nil {
-		return nil, err
-	}
 
-	// Another complicated way to create the attrs map
-	mapAttrs := map[string]interface{}{
-		"name":                       provider.Name,
-		"access_code_validity":       provider.ProtocolSettings.AccessCodeValidity,
-		"access_token_validity":      provider.ProtocolSettings.AccessTokenValidity,
-		"refresh_token_validity":     provider.ProtocolSettings.RefreshTokenValidity,
-		"authentication_flow":        fmt.Sprintf("!Find [authentik_flows.flow, [slug, %v]]", provider.AuthenticationFlow),
-		"authorization_flow":         fmt.Sprintf("!Find [authentik_flows.flow, [slug, %v]]", provider.AuthorizationFlow),
-		"signing_key":                fmt.Sprintf("!Find [authentik_crypto.certificatekeypair, [name, %v]]", provider.ProtocolSettings.SigningKey),
-		"client_id":                  provider.ProtocolSettings.ClientID,
-		"client_secret":              provider.ProtocolSettings.ClientSecret,
-		"client_type":                provider.ProtocolSettings.ClientType,
-		"include_claims_in_id_token": bool(provider.ProtocolSettings.IncludeClaimsInIDToken),
-		"issuer_mode":                provider.ProtocolSettings.IssuerMode,
-		"redirect_uris":              provider.ProtocolSettings.RedirectURIs,
-		"subject_claims":             provider.ProtocolSettings.SubjectMode,
-	}
-	rawAttrs, err := yaml_v3.Marshal(mapAttrs)
-	if err != nil {
-		return nil, err
-	}
-	attrs := raw.Raw{}
-	err = yaml_v3.Unmarshal(rawAttrs, &attrs)
-	if err != nil {
-		return nil, err
-	}
+	//mapId := map[string]interface{}{
+	//	"id": nil,
+	//}
+	//rawId, err := yaml_v3.Marshal(mapId)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//id := raw.Raw{}
+	//err = yaml_v3.Unmarshal(rawId, &id)
+	//if err != nil {
+	//	return nil, err
+	//}
 
-	bpContent := &akmv1a1.BP{
-		Version: 1,
-		Metadata: akmv1a1.BPMeta{
-			Name: fmt.Sprintf("%v-provider-%v", crd.Namespace, provider.Name),
+	bpPlainContent := map[string]interface{}{
+		"version": 1,
+		"metadata": map[string]interface{}{
+			"name": fmt.Sprintf("%v-provider-%v", crd.Namespace, provider.Name),
 		},
-		Entries: []akmv1a1.BPModel{
-			akmv1a1.BPModel{
-				Model:       "authentik_providers_oauth2.oauth2provider",
-				State:       "present",
-				Identifiers: &id,
-				Attrs:       &attrs,
-				Conditions:  []string{},
+		"entries": []map[string]interface{}{
+			{
+				"model": "authentik_providers_oauth2.oauth2provider",
+				"state": "created",
+				"identifiers": map[string]interface{}{
+					"id": nil,
+				},
+				"attrs": map[string]interface{}{
+					"name":                       provider.Name,
+					"access_code_validity":       provider.ProtocolSettings.AccessCodeValidity,
+					"access_token_validity":      provider.ProtocolSettings.AccessTokenValidity,
+					"refresh_token_validity":     provider.ProtocolSettings.RefreshTokenValidity,
+					"authentication_flow":        fmt.Sprintf("!Find [authentik_flows.flow, [slug, %v]]", provider.AuthenticationFlow),
+					"authorization_flow":         fmt.Sprintf("!Find [authentik_flows.flow, [slug, %v]]", provider.AuthorizationFlow),
+					"signing_key":                fmt.Sprintf("!Find [authentik_crypto.certificatekeypair, [name, %v]]", provider.ProtocolSettings.SigningKey),
+					"client_id":                  provider.ProtocolSettings.ClientID,
+					"client_secret":              provider.ProtocolSettings.ClientSecret,
+					"client_type":                provider.ProtocolSettings.ClientType,
+					"include_claims_in_id_token": bool(provider.ProtocolSettings.IncludeClaimsInIDToken),
+					"issuer_mode":                provider.ProtocolSettings.IssuerMode,
+					"redirect_uris":              provider.ProtocolSettings.RedirectURIs,
+					"subject_claims":             provider.ProtocolSettings.SubjectMode,
+				},
+				"conditions": []string{},
 			},
 		},
 	}
-	bpContentStr, err := yaml_v3.Marshal(bpContent)
+
+	bpPlainContentStr, err := yaml_v3.Marshal(bpPlainContent)
 	if err != nil {
 		return nil, err
 	}
+
+	//bpPlain := map[string]interface{}{
+	//b	"metadata": metav1.ObjectMeta{
+	//b		Name:      fmt.Sprintf("%v-provider-%v", crd.Namespace, provider.Name),
+	//b		Namespace: ak.Namespace,
+	//b	},
+	//b	"spec": map[string]interface{}{
+	//b		"storageType": "file",
+	//b		"file":        fmt.Sprintf("/blueprints/operator/%v-provider-%v.yaml", crd.Namespace, provider.Name),
+	//b		"blueprint":   string(bpPlainContentStr),
+	//b	},
+	//b}
+
+	//b// Another complicated way to create the attrs map
+	//bmapAttrs := map[string]interface{}{
+	//b	"name":                       provider.Name,
+	//b	"access_code_validity":       provider.ProtocolSettings.AccessCodeValidity,
+	//b	"access_token_validity":      provider.ProtocolSettings.AccessTokenValidity,
+	//b	"refresh_token_validity":     provider.ProtocolSettings.RefreshTokenValidity,
+	//b	"authentication_flow":        fmt.Sprintf("!Find [authentik_flows.flow, [slug, %v]]", provider.AuthenticationFlow),
+	//b	"authorization_flow":         fmt.Sprintf("!Find [authentik_flows.flow, [slug, %v]]", provider.AuthorizationFlow),
+	//b	"signing_key":                fmt.Sprintf("!Find [authentik_crypto.certificatekeypair, [name, %v]]", provider.ProtocolSettings.SigningKey),
+	//b	"client_id":                  provider.ProtocolSettings.ClientID,
+	//b	"client_secret":              provider.ProtocolSettings.ClientSecret,
+	//b	"client_type":                provider.ProtocolSettings.ClientType,
+	//b	"include_claims_in_id_token": bool(provider.ProtocolSettings.IncludeClaimsInIDToken),
+	//b	"issuer_mode":                provider.ProtocolSettings.IssuerMode,
+	//b	"redirect_uris":              provider.ProtocolSettings.RedirectURIs,
+	//b	"subject_claims":             provider.ProtocolSettings.SubjectMode,
+	//b}
+	//bfmt.Printf("PROVIDER BLUEPRINT ATTRS STRUCT: %+v\n", mapAttrs)
+	//brawAttrs, err := yaml_v3.Marshal(mapAttrs)
+	//bfmt.Printf("PROVIDER BLUEPRINT ATTRS SERIAL: %+v\n", string(rawAttrs))
+	//bif err != nil {
+	//b	return nil, err
+	//b}
+	//battrs := raw.Raw{}
+	//berr = yaml_v3.Unmarshal(rawAttrs, &attrs)
+	//bif err != nil {
+	//b	return nil, err
+	//b}
+
+	//bbpContent := &akmv1a1.BP{
+	//b	Version: 1,
+	//b	Metadata: akmv1a1.BPMeta{
+	//b		Name: fmt.Sprintf("%v-provider-%v", crd.Namespace, provider.Name),
+	//b	},
+	//b	Entries: []akmv1a1.BPModel{
+	//b		akmv1a1.BPModel{
+	//b			Model:       "authentik_providers_oauth2.oauth2provider",
+	//b			State:       "present",
+	//b			Identifiers: &id,
+	//b			Attrs:       &attrs,
+	//b			Conditions:  []string{},
+	//b		},
+	//b	},
+	//b}
+	//bfmt.Printf("PROVIDER BLUEPRINT CONTENT: %+v\n", bpContent)
+	//bbpContentStr, err := yaml_v3.Marshal(bpContent)
+	//bfmt.Printf("PROVIDER BLUEPRINT CONTENT STRING: %+v\n", string(bpContentStr))
+	//bif err != nil {
+	//b	return nil, err
+	//b}
 	bp := &akmv1a1.AkBlueprint{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("%v-provider-%v", crd.Namespace, provider.Name),
@@ -377,10 +435,11 @@ func (r *OIDCReconciler) reconcileProviderBlueprint(ak *akmv1a1.Ak, ctx context.
 		Spec: akmv1a1.AkBlueprintSpec{
 			StorageType: "file",
 			File:        fmt.Sprintf("/blueprints/operator/%v-provider-%v.yaml", crd.Namespace, provider.Name),
-			Blueprint:   string(bpContentStr),
+			Blueprint:   string(bpPlainContentStr),
 		},
 	}
 	ctrl.SetControllerReference(crd, bp, r.Scheme)
+	fmt.Printf("PROVIDER BLUEPRINT: %+v\n", bp)
 
 	err = r.Update(ctx, bp)
 	if err != nil {

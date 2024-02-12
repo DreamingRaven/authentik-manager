@@ -52,6 +52,5 @@ spec:
       # this also sets the origins for explicit consent flows
       # usually this will be app.org.example/oauth/callback or some variation of that
       # this is application specific so you need to know where your app is expecting users back
-      redirectURIs:
-      - app.org.example/oauth2/callback/
+      redirectURIs: app.org.example/oauth2/callback/
     machineToMachineSettings: {}
