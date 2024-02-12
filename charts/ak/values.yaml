@@ -164,7 +164,7 @@ authentik:
   image:
     registry: ghcr.io
     repository: goauthentik/server
-    tag: "2023.10.6"
+    tag: "2023.10.7"
   # domain: <BASE_DOMAIN>
   config:
     name: authentik-config
