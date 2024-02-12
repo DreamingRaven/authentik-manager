@@ -335,7 +335,7 @@ func (r *OIDCReconciler) reconcileProviderBlueprint(ak *akmv1a1.Ak, ctx context.
 		"entries": []map[string]interface{}{
 			{
 				"model": "authentik_providers_oauth2.oauth2provider",
-				"state": "created",
+				"state": "present",
 				"identifiers": map[string]interface{}{
 					"id": nil,
 				},
