@@ -1,7 +1,7 @@
 ARG AK_VERSION=0.0.0
 ARG AKM_VERSION=0.0.0
 # Build the manager binary
-FROM golang:1.21.6-alpine as builder
+FROM golang:1.22.0-alpine as builder
 ARG TARGETOS
 ARG TARGETARCH
 
