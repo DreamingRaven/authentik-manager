@@ -9,6 +9,22 @@
 	],
 	"packageRules": [
 		{
+			"groupName": "Kubernetes Dependencies",
+			"groupSlug": "k8s",
+			"matchPackagePatterns": [
+				"k8s.io/*",
+				"sigs.k8s.io/*"
+			]
+		},
+		{
+			"groupName": "Controller Testing",
+			"groupSlug": "testing",
+			"matchPackagePatterns": [
+				"github.com/onsi/ginkgo/v2*",
+				"github.com/onsi/gomega*"
+			]
+		},
+		{
 			"description": "Automerge non-major updates",
 			"matchUpdateTypes": [
 				"patch"
