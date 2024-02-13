@@ -332,7 +332,7 @@ pgadmin:
   image:
     registry: docker.io
     repository: dpage/pgadmin4
-    tag: "8.1"
+    tag: "8.3"
   persistence:
     enable: false
     name: pgadmin-pvc
