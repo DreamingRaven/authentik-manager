@@ -3,7 +3,7 @@ CHART_NAME="akm"
 CHART_NAMESPACE="auth"
 FORWARD_PORT=8079
 DOCS_PORT=8078
-MINIKUBE_KUBE_VERSION=1.29.2 # renovate: datasource=github-tags depName=kubernetes/kubernetes
+MINIKUBE_KUBE_VERSION=1.29.3 # renovate: datasource=github-tags depName=kubernetes/kubernetes
 PRIVATE_REGISTRY="registry.gitlab.com"
 DOCKER_AUTH_FILE="${HOME}/.docker/config.json"
 # https://docs.podman.io/en/latest/markdown/podman-login.1.html#authfile-path
