@@ -30,6 +30,9 @@ smtp:
   port: 587
   host: smtp.gmail.com
   from: noreply@org.example
+  useTLS: false
+  useSSL: false
+  timeout: 10
 
 secret:
   generate: true

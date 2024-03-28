@@ -73,6 +73,12 @@ spec:
               value: {{ .Values.smtp.from }}
             - name: AUTHENTIK_EMAIL__PORT
               value: {{ .Values.smtp.port | quote }}
+            - name: AUTHENTIK_EMAIL__USE_TLS
+              value: {{ .Values.smtp.useTLS | quote }}
+            - name: AUTHENTIK_EMAIL__USE_SSL
+              value: {{ .Values.smtp.useSSL | quote }}
+            - name: AUTHENTIK_EMAIL__TIMEOUT
+              value: {{ .Values.smtp.timeout | quote }}
             # AUTHENTIK AUTOGEN VARIABLES
             - name: AUTHENTIK_COOKIE_DOMAIN
               value: {{ .Values.global.domain.full }}
