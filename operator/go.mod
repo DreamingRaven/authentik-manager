@@ -1,6 +1,6 @@
 module gitlab.com/GeorgeRaven/authentik-manager/operator
 
-go 1.21.4
+go 1.22.6
 
 require (
 	github.com/alexflint/go-arg v1.4.3
